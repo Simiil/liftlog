@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Deliberate: OS-managed auto-backup and device-transfer stay fully enabled.
+     The user's own Google backup protecting their training data supports the
+     no-data-loss guardrail (HANDOFF §10) and involves no app network code.
+     minSdk 31 ⇒ only dataExtractionRules applies (no fullBackupContent needed). -->
+<data-extraction-rules>
+    <cloud-backup />
+    <device-transfer />
+</data-extraction-rules>
