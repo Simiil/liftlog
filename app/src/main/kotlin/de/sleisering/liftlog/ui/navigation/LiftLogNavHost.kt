@@ -17,7 +17,11 @@ import de.sleisering.liftlog.ui.plans.PlansScreen
 fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(navController = navController, startDestination = HomeRoute, modifier = modifier) {
         composable<HomeRoute> {
-            HomeScreen(onOpenSettings = { navController.navigate(SettingsRoute) })
+            HomeScreen(
+                onOpenSettings = {
+                    navController.navigate(SettingsRoute) { launchSingleTop = true }
+                },
+            )
         }
         composable<PlansRoute> { PlansScreen() }
         composable<AnalyticsRoute> { AnalyticsScreen() }

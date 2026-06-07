@@ -2,6 +2,7 @@ package de.sleisering.liftlog.ui
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FitnessCenter
@@ -33,7 +34,7 @@ import de.sleisering.liftlog.ui.navigation.PlansRoute
 private data class TopLevelDestination(
     val route: Any,
     val icon: ImageVector,
-    @StringRes val labelRes: Int,
+    @param:StringRes val labelRes: Int,
 )
 
 // 03-ux-spec §2: Home · Plans · Analytics · History
@@ -86,7 +87,7 @@ fun LiftLogApp() {
     ) { innerPadding ->
         LiftLogNavHost(
             navController = navController,
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.padding(innerPadding).consumeWindowInsets(innerPadding),
         )
     }
 }
