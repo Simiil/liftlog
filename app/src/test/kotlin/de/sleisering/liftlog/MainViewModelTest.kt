@@ -25,4 +25,19 @@ class MainViewModelTest {
             assertEquals(ThemePreference.DARK, awaitItem())
         }
     }
+
+    @Test
+    fun `persisted preference replaces the SYSTEM default`() = runTest {
+        val repository = FakeSettingsRepository(initial = ThemePreference.DARK)
+        val viewModel = MainViewModel(repository)
+
+        viewModel.themePreference.test {
+            // Under UnconfinedTestDispatcher the upstream value propagates during
+            // subscription, so stateIn's SYSTEM initial is conflated away — the
+            // first observed state is already the persisted value. (On device the
+            // DataStore read is async; the brief SYSTEM first frame is the
+            // cold-start flash tracked as an M5 follow-up.)
+            assertEquals(ThemePreference.DARK, awaitItem())
+        }
+    }
 }

@@ -5,8 +5,10 @@ import de.sleisering.liftlog.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class FakeSettingsRepository : SettingsRepository {
-    private val theme = MutableStateFlow(ThemePreference.SYSTEM)
+class FakeSettingsRepository(
+    initial: ThemePreference = ThemePreference.SYSTEM,
+) : SettingsRepository {
+    private val theme = MutableStateFlow(initial)
 
     override val themePreference: Flow<ThemePreference> = theme
 
