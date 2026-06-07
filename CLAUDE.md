@@ -6,9 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **LiftLog** (name is a placeholder, TBD) — an offline-first Android app for tracking weightlifting workouts: training diary (log weight/reps/sets), training plans, and progress analytics. The full project brief is in `HANDOFF.md` — read it before doing substantive work.
 
-## Current phase: design docs awaiting review
+## Current phase: implementation
 
-The design/spec doc set exists under `/docs` (00-product-spec through 05-roadmap) and is the authoritative, refined version of HANDOFF.md — including all resolved §9 decisions (see `docs/00-product-spec.md` §5). **Do not write application code** until the owner approves the docs; implementation then follows the milestones in `docs/05-roadmap.md` (M0 scaffold first). Once implementation starts, update this file with the Gradle build/test commands.
+Docs under `/docs` are approved (owner green-lit implementation 2026-06-07).
+Implementation follows the milestones in `docs/05-roadmap.md`; M0 (scaffold) is
+done, M1 (data layer) is next. Each milestone is a reviewable PR series with a
+review gate at its exit criteria.
+
+## Build & test
+
+- `./gradlew assembleDebug` — build the debug APK
+- `./gradlew testDebugUnitTest` — JVM unit tests
+- `./gradlew lint` — Android lint
+- `./gradlew lint testDebugUnitTest assembleDebug` — exactly what CI runs
+- Needs JDK 17+ and an Android SDK (`local.properties` → `sdk.dir`); the
+  Gradle wrapper is committed. No emulator on this machine — instrumented
+  tests (from M1 on) run via Gradle-managed devices in CI.
 
 ## Fixed technical decisions (do not relitigate)
 
