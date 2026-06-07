@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,12 +62,15 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .selectableGroup(),
         ) {
             Text(
                 text = stringResource(R.string.settings_theme_label),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .semantics { heading() },
             )
             ThemeOptionRow(R.string.theme_system, ThemePreference.SYSTEM, uiState.theme, viewModel::onThemeSelected)
             ThemeOptionRow(R.string.theme_light, ThemePreference.LIGHT, uiState.theme, viewModel::onThemeSelected)
@@ -76,7 +83,7 @@ fun SettingsScreen(
 private fun ThemeOptionRow(
     @StringRes labelRes: Int,
     option: ThemePreference,
-    selected: ThemePreference,
+    currentSelection: ThemePreference,
     onSelect: (ThemePreference) -> Unit,
 ) {
     Row(
@@ -84,14 +91,14 @@ private fun ThemeOptionRow(
             .fillMaxWidth()
             .heightIn(min = 48.dp) // non-logging-path a11y floor (03-ux-spec §7)
             .selectable(
-                selected = option == selected,
+                selected = option == currentSelection,
                 onClick = { onSelect(option) },
                 role = Role.RadioButton,
             )
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(selected = option == selected, onClick = null)
+        RadioButton(selected = option == currentSelection, onClick = null)
         Text(text = stringResource(labelRes), modifier = Modifier.padding(start = 12.dp))
     }
 }
