@@ -3,3 +3,15 @@
 
 # Git worktrees
 .worktrees/
+
+# Android / Gradle
+*.iml
+.gradle/
+.kotlin/
+build/
+local.properties
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+*.keystore
