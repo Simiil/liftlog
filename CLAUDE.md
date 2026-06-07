@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **LiftLog** (name is a placeholder, TBD) — an offline-first Android app for tracking weightlifting workouts: training diary (log weight/reps/sets), training plans, and progress analytics. The full project brief is in `HANDOFF.md` — read it before doing substantive work.
 
-## Current phase: design docs, not code
+## Current phase: design docs awaiting review
 
-The project is **pre-implementation**. The first deliverables are design/specification documents under `/docs` (see HANDOFF.md §8 for the full list: product spec, architecture, data spec, UX spec, analytics spec, roadmap). **Do not write application code** until the design docs have been produced and reviewed. Once implementation starts, update this file with the Gradle build/test commands.
+The design/spec doc set exists under `/docs` (00-product-spec through 05-roadmap) and is the authoritative, refined version of HANDOFF.md — including all resolved §9 decisions (see `docs/00-product-spec.md` §5). **Do not write application code** until the owner approves the docs; implementation then follows the milestones in `docs/05-roadmap.md` (M0 scaffold first). Once implementation starts, update this file with the Gradle build/test commands.
 
 ## Fixed technical decisions (do not relitigate)
 
