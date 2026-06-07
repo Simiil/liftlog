@@ -53,7 +53,8 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
-    // Official Compose artifact, debug-size only — R8 strips unused icons in release
+    // Official Compose artifact; R8 strips unused icons once minification
+    // is enabled (M5) — until then release builds carry it like debug
     implementation(libs.compose.material.icons.extended)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
