@@ -20,3 +20,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "liftlog"
+
+include(":app")
