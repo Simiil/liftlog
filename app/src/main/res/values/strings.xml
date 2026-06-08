@@ -102,5 +102,6 @@
     <string name="set_delete">Delete</string>
     <string name="set_save">Save</string>
     <string name="rpe_none">—</string>
-    <string name="cd_set_logged">Set %1$d logged: %2$s %3$s, %4$d reps, double-tap to edit</string>
+    <string name="cd_set_logged">Set %1$d logged: %2$s %3$s, %4$d reps</string>
+    <string name="cd_edit_set">Edit set</string>
 </resources>

@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -28,7 +29,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,7 +63,6 @@ fun ActiveSessionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
     var showDiscardDialog by remember { mutableStateOf(false) }
 
     // Consume picked exercise id
@@ -74,15 +73,16 @@ fun ActiveSessionScreen(
         }
     }
 
-    // Navigate on finish (best-effort snackbar)
+    // Navigate on finish (show snackbar briefly, then navigate)
+    val finishMessage = stringResource(
+        R.string.session_finish_summary,
+        uiState.name ?: stringResource(R.string.session_untitled),
+        uiState.lastFinishedSetCount,
+    )
     LaunchedEffect(uiState.finished) {
         if (uiState.finished) {
-            coroutineScope.launch {
-                val name = uiState.name ?: "Quick workout"
-                snackbarHostState.showSnackbar(
-                    message = "$name — ${uiState.lastFinishedSetCount} sets",
-                )
-            }
+            launch { snackbarHostState.showSnackbar(finishMessage, duration = SnackbarDuration.Short) }
+            delay(1500)
             onFinished()
         }
     }

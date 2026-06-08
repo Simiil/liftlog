@@ -88,7 +88,9 @@ class ActiveSessionViewModel @Inject constructor(
     @Volatile
     private var latestDetails: SessionWithDetails? = null
     private var currentUnit: WeightUnit = WeightUnit.KG
-    private var pendingReplaceSeId: String? = null
+    private var pendingReplaceSeId: String?
+        get() = savedStateHandle.get<String?>("pendingReplaceSeId")
+        set(value) { savedStateHandle["pendingReplaceSeId"] = value }
 
     val uiState: StateFlow<ActiveSessionUiState> = combine(
         sessionRepository.observeSessionDetails(sessionId),
