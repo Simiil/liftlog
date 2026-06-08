@@ -84,15 +84,21 @@ class TemplateStartPathTest {
     fun seed() = runBlocking {
         hiltRule.inject()
 
-        // 1. A custom exercise (built-in seeder does NOT run under HiltTestApplication).
-        //    The same exercise is referenced by the template exercise AND used by the picker in
-        //    the ad-hoc deviation test (it appears in search results because it's the only one).
+        // 1. Two custom exercises (built-in seeder does NOT run under HiltTestApplication).
+        //    "Test Squat" is the TEMPLATE exercise (snapshotted into the session). "Test Lunge" is
+        //    NOT in the template — it's the distinct exercise the ad-hoc deviation test adds via the
+        //    picker, so its appearance in the session proves the add actually did something.
         val ex = exerciseRepository.createCustom(
             "Test Squat",
             MuscleGroup.QUADS,
             Equipment.BARBELL,
         )
         exerciseId = ex.id
+        exerciseRepository.createCustom(
+            "Test Lunge",
+            MuscleGroup.QUADS,
+            Equipment.DUMBBELL,
+        )
 
         // 2. A plan + day template with one template-exercise carrying real targets.
         //    Using PlanRepository exactly as the plan doc prescribes for Task 11.
@@ -164,19 +170,25 @@ class TemplateStartPathTest {
         composeRule.onNodeWithTag(HOME_TEMPLATE_CHIP).performClick()
         waitUntilExists(hasTestTag(LOG_SET_BUTTON))
 
+        // Sanity: the templated session already contains "Test Squat" (snapshotted) but NOT
+        // "Test Lunge" — so finding "Test Lunge" later proves the ad-hoc add worked.
+        waitUntilExists(hasText("Test Squat"))
+        composeRule.onAllNodes(hasText("Test Lunge")).assertCountEquals(0)
+
         // Tap ADD_EXERCISE to open the exercise picker from within the templated session.
         waitUntilExists(hasTestTag(ADD_EXERCISE))
         composeRule.onNodeWithTag(ADD_EXERCISE).performClick()
 
-        // "Test Squat" should appear in the picker (the only visible exercise).
-        // As in CriticalLoggingPathTest, it may appear in multiple rows (Recent + Results).
-        waitUntilExists(hasText("Test Squat"))
-        composeRule.onAllNodesWithText("Test Squat").onFirst().performClick()
+        // Pick "Test Lunge" — a DIFFERENT exercise that is not part of the template.
+        // As in CriticalLoggingPathTest, pick the first matching row (Recent + Results may dupe).
+        waitUntilExists(hasText("Test Lunge"))
+        composeRule.onAllNodesWithText("Test Lunge").onFirst().performClick()
 
-        // After selecting, the picker closes and we return to the active session.
-        // The newly added exercise card should appear (proves ad-hoc deviation works).
-        // We assert that "Test Squat" appears in the session (as an exercise card header).
-        waitUntilExists(hasText("Test Squat"))
+        // After selecting, the picker closes and we return to the active session, which must now
+        // show the newly added "Test Lunge" card alongside the templated "Test Squat" — this is
+        // the discriminating assertion: it was absent before the add.
+        waitUntilExists(hasText("Test Lunge"))
+        composeRule.onAllNodes(hasText("Test Squat")).assertCountEquals(1)
     }
 
     // ── Wait helpers (copied verbatim from CriticalLoggingPathTest) ───────────────

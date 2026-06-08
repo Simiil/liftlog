@@ -146,7 +146,6 @@
     <string name="template_remove_exercise">Remove</string>
     <string name="template_target_sets">Sets</string>
     <string name="template_target_reps">Reps</string>
-    <string name="template_target_none">—</string>
     <string name="template_set_targets">Set targets</string>
     <string name="template_targets_summary">%1$s · %2$s</string>
     <string name="template_drag_handle_cd">Reorder</string>
