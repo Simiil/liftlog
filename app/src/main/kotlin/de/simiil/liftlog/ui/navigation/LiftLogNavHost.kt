@@ -11,6 +11,7 @@ import de.simiil.liftlog.ui.analytics.AnalyticsScreen
 import de.simiil.liftlog.ui.exercises.ExercisePickerScreen
 import de.simiil.liftlog.ui.history.HistoryScreen
 import de.simiil.liftlog.ui.home.HomeScreen
+import de.simiil.liftlog.ui.plans.PlanDetailScreen
 import de.simiil.liftlog.ui.plans.PlansScreen
 import de.simiil.liftlog.ui.session.ActiveSessionScreen
 import de.simiil.liftlog.ui.session.SessionDetailScreen
@@ -46,6 +47,12 @@ fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifi
                 onAddExercise = { navController.navigate(ExercisePickerRoute) },
                 pickedExerciseId = pickedId,
                 onPickedExerciseConsumed = { entry.savedStateHandle[PICKED_EXERCISE_ID] = null },
+            )
+        }
+        composable<PlanDetailRoute> {
+            PlanDetailScreen(
+                onBack = { navController.popBackStack() },
+                onOpenTemplate = { id -> navController.navigate(TemplateEditorRoute(id)) },
             )
         }
         composable<SessionDetailRoute> {

@@ -134,6 +134,8 @@
     <string name="plan_delete_confirm_title">Delete plan?</string>
     <string name="plan_delete_confirm_message">This removes the plan and all its day templates. Past sessions are not affected.</string>
     <string name="plan_detail_add_day">Add day</string>
+    <string name="plan_detail_empty_title">No days yet</string>
+    <string name="plan_detail_empty_sub">Add a day to start building your template — Push, Pull, Legs, or whatever fits your split.</string>
     <string name="day_name_hint">Day name (Push, Legs…)</string>
     <string name="day_rename">Rename</string>
     <string name="day_delete">Delete day</string>
