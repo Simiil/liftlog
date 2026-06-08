@@ -1,21 +1,30 @@
 package de.simiil.liftlog.ui.session
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -32,11 +41,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -67,7 +86,6 @@ fun ActiveSessionScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showDiscardDialog by remember { mutableStateOf(false) }
 
-    // Consume picked exercise id
     LaunchedEffect(pickedExerciseId) {
         if (pickedExerciseId != null) {
             viewModel.onPickedExercise(pickedExerciseId)
@@ -75,7 +93,6 @@ fun ActiveSessionScreen(
         }
     }
 
-    // Navigate on finish (show snackbar briefly, then navigate)
     val finishMessage = stringResource(
         R.string.session_finish_summary,
         uiState.name ?: stringResource(R.string.session_untitled),
@@ -89,14 +106,10 @@ fun ActiveSessionScreen(
         }
     }
 
-    // Navigate on discard
     LaunchedEffect(uiState.discarded) {
-        if (uiState.discarded) {
-            onDiscarded()
-        }
+        if (uiState.discarded) onDiscarded()
     }
 
-    // Elapsed timer state (updates each second)
     val elapsedSeconds = remember(uiState.startedAt) {
         androidx.compose.runtime.mutableLongStateOf(
             uiState.startedAt?.let { Instant.now().epochSecond - it.epochSecond } ?: 0L,
@@ -126,8 +139,8 @@ fun ActiveSessionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(uiState.cards, key = { it.sessionExerciseId }) { card ->
                 ExerciseCard(
@@ -154,13 +167,10 @@ fun ActiveSessionScreen(
                 )
             }
 
-            item {
-                AddExerciseRow(onClick = onAddExercise)
-            }
+            item { AddExerciseRow(onClick = onAddExercise) }
         }
     }
 
-    // Discard confirm dialog
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
@@ -217,57 +227,85 @@ private fun SessionTopBar(
             }
         },
         title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                Text(
-                    text = timerText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
         },
         actions = {
-            IconButton(
+            Text(
+                text = timerText,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.width(8.dp))
+            FilledIconButton(
                 onClick = onFinishClick,
-                modifier = Modifier.semantics { contentDescription = finishCd },
+                modifier = Modifier
+                    .size(48.dp)
+                    .semantics { contentDescription = finishCd },
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+                Icon(imageVector = Icons.Filled.Check, contentDescription = null)
             }
+            Spacer(Modifier.width(4.dp))
         },
     )
 }
 
-// ─── Add exercise row ─────────────────────────────────────────────────────────
+// ─── Add exercise row (dashed) ─────────────────────────────────────────────────
 
 @Composable
 private fun AddExerciseRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TextButton(
-        onClick = onClick,
+    val shape = RoundedCornerShape(20.dp)
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
+            .height(56.dp)
+            .clip(shape)
+            .dashedBorder(color = MaterialTheme.colorScheme.outline, width = 1.5.dp, cornerRadius = 20.dp)
+            .clickable(onClick = onClick)
             .testTag(UiTestTags.ADD_EXERCISE),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = stringResource(R.string.session_add_exercise),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.session_add_exercise),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
     }
+}
+
+private fun Modifier.dashedBorder(
+    color: Color,
+    width: Dp,
+    cornerRadius: Dp,
+    on: Dp = 6.dp,
+    off: Dp = 4.dp,
+): Modifier = drawBehind {
+    val stroke = width.toPx()
+    drawRoundRect(
+        color = color,
+        topLeft = Offset(stroke / 2f, stroke / 2f),
+        size = Size(size.width - stroke, size.height - stroke),
+        cornerRadius = CornerRadius(cornerRadius.toPx()),
+        style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(on.toPx(), off.toPx()))),
+    )
 }
 
 // ─── Elapsed timer formatting ─────────────────────────────────────────────────
@@ -277,11 +315,7 @@ internal fun formatElapsed(seconds: Long): String {
     val h = absSeconds / 3600
     val m = (absSeconds % 3600) / 60
     val s = absSeconds % 60
-    return if (h > 0) {
-        "%d:%02d:%02d".format(h, m, s)
-    } else {
-        "%02d:%02d".format(m, s)
-    }
+    return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%02d:%02d".format(m, s)
 }
 
 // ─── Previews ─────────────────────────────────────────────────────────────────
@@ -336,20 +370,15 @@ private val previewCards = listOf(
     ),
 )
 
-private val previewEntry = EntryUi(
-    sessionExerciseId = "se1",
-    weightKg = 87.5,
-    reps = 8,
-)
+private val previewEntry = EntryUi(sessionExerciseId = "se1", weightKg = 87.5, reps = 8)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(name = "ActiveSession – normal state", showBackground = true)
 @Composable
 private fun PreviewActiveSession() {
     LiftLogTheme {
-        // Render the body content directly (without VM) for preview
         Scaffold(
             topBar = {
-                @OptIn(ExperimentalMaterial3Api::class)
                 SessionTopBar(
                     name = "Push Day",
                     elapsedSeconds = 1830,
@@ -362,8 +391,8 @@ private fun PreviewActiveSession() {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(previewCards, key = { it.sessionExerciseId }) { card ->
                     ExerciseCard(
