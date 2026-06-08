@@ -15,3 +15,6 @@ captures/
 .externalNativeBuild/
 .cxx/
 *.keystore
+
+# Kotlin language-server artifact
+kls_database.db
