@@ -1,8 +1,10 @@
 package de.simiil.liftlog.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,8 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
@@ -19,6 +24,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,11 +37,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.R
@@ -48,11 +56,11 @@ import java.time.Instant
 /**
  * A single logged-set row that supports inline editing (long-press to expand).
  *
- * Collapsed: index + "{weight} {unit} × {reps} ✓"; long-press to edit, tap to collapse.
- * Expanded:  weight + reps steppers, RPE chip strip, note field, Delete + Save buttons.
+ * Collapsed: a `surfaceContainerHighest` pill — numbered chip · "{weight} {unit} × {reps}" ·
+ * optional RPE pill / note dot · check (design mockup `.logged-row`). Long-press to edit.
+ * Expanded: weight + reps steppers, RPE chip strip, note field, Delete + Save (`.edit-row`).
  *
- * This is OFF the hot logging path, so steppers (not numpad) are used for editing.
- * All interactive targets ≥ 48 dp (non-logging-path floor per 03-ux-spec §7).
+ * Editing is OFF the hot logging path, so steppers (not numpad) are used.
  */
 @Composable
 fun LoggedSetRow(
@@ -71,14 +79,8 @@ fun LoggedSetRow(
             index = index,
             set = set,
             unit = unit,
-            onSave = { w, r, rpe, note ->
-                onSave(w, r, rpe, note)
-                onCollapse()
-            },
-            onDelete = {
-                onDelete()
-                onCollapse()
-            },
+            onSave = { w, r, rpe, note -> onSave(w, r, rpe, note); onCollapse() },
+            onDelete = { onDelete(); onCollapse() },
             onCollapse = onCollapse,
             modifier = modifier,
         )
@@ -118,56 +120,76 @@ private fun CollapsedSetRow(
     val cd = cdBase + cdRpe + cdNote
     val editLabel = stringResource(R.string.cd_edit_set)
 
-    Row(
+    Surface(
+        // The clickable merge-root MUST be the same node that carries the LOGGED_SET_ROW
+        // testTag (from `modifier`) so the critical UI test's `tag AND text` matcher finds
+        // one node with both the tag and the merged "{weight} {unit} × {reps}" text.
         modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
             .combinedClickable(
                 onLongClick = onLongPress,
                 onClick = { /* collapsed row: nothing on single tap */ },
             )
-            .padding(vertical = 4.dp)
             .semantics {
                 contentDescription = cd
-                customActions = listOf(
-                    CustomAccessibilityAction(editLabel) { onLongPress(); true },
-                )
+                customActions = listOf(CustomAccessibilityAction(editLabel) { onLongPress(); true })
             },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
-        Text(
-            text = "$index",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(20.dp),
-        )
-        Text(
-            text = "$weightFormatted $unitLabel × ${set.reps}",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f),
-        )
-        // Small RPE/note indicator
-        if (set.rpe != null || set.note != null) {
-            val indicator = buildString {
-                if (rpeFormatted != null) {
-                    append(stringResource(R.string.rpe_value, rpeFormatted))
-                }
-                if (set.note != null) {
-                    if (isNotEmpty()) append(" · ")
-                    append("📝") // 📝
-                }
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            // Numbered chip
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "$index",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
             }
             Text(
-                text = indicator,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = "$weightFormatted $unitLabel × ${set.reps}",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            if (rpeFormatted != null) {
+                Surface(
+                    shape = RoundedCornerShape(100.dp),
+                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.16f),
+                ) {
+                    Text(
+                        text = stringResource(R.string.rpe_value, rpeFormatted),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                    )
+                }
+            }
+            if (set.note != null) {
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .background(MaterialTheme.colorScheme.tertiary, CircleShape),
+                )
+            }
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
-        Icon(
-            imageVector = Icons.Filled.Check,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-        )
     }
 }
 
@@ -185,123 +207,105 @@ private fun ExpandedSetRow(
     onCollapse: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Local edit state seeded from the set — intentionally NOT rememberSaveable since
-    // the editing session is transient and tied to the expanded flag driven by the VM.
     var editWeightKg by remember(set.id) { mutableDoubleStateOf(set.weightKg) }
     var editReps by remember(set.id) { mutableIntStateOf(set.reps) }
     var editRpe by remember(set.id) { mutableStateOf(set.rpe) }
     var editNote by rememberSaveable(set.id) { mutableStateOf(set.note ?: "") }
 
-    Column(modifier = modifier.padding(vertical = 8.dp)) {
-        Text(
-            text = stringResource(R.string.set_number, index),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp),
-        )
-
-        // Weight stepper
-        WeightStepper(
-            valueKg = editWeightKg,
-            unit = unit,
-            onDecrement = {
-                val stepKg = Weights.displayToKg(Weights.stepIncrementDisplay(unit), unit)
-                editWeightKg = (editWeightKg - stepKg).coerceAtLeast(0.0)
-            },
-            onIncrement = {
-                val stepKg = Weights.displayToKg(Weights.stepIncrementDisplay(unit), unit)
-                editWeightKg += stepKg
-            },
-            onValueClick = { /* no numpad for edit path */ },
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Reps stepper
-        RepsStepper(
-            reps = editReps,
-            onDecrement = { editReps = (editReps - 1).coerceAtLeast(1) },
-            onIncrement = { editReps = editReps + 1 },
-            onValueClick = { /* no numpad for edit path */ },
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // RPE chips (6.0 … 10.0, step 0.5) + clear
-        Text(
-            text = stringResource(R.string.rpe_label),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            // "—" clear chip
-            FilterChip(
-                selected = editRpe == null,
-                onClick = { editRpe = null },
-                label = { Text(stringResource(R.string.rpe_none)) },
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                text = stringResource(R.string.set_number, index),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp),
             )
-            RPE_VALUES.forEach { rpe ->
-                val label = if (rpe == rpe.toLong().toDouble()) {
-                    rpe.toLong().toString()
-                } else {
-                    "%.1f".format(rpe)
-                }
-                FilterChip(
-                    selected = editRpe == rpe,
-                    onClick = { editRpe = if (editRpe == rpe) null else rpe },
-                    label = { Text(label) },
-                )
-            }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Note field
-        OutlinedTextField(
-            value = editNote,
-            onValueChange = { editNote = it },
-            label = { Text(stringResource(R.string.set_note)) },
-            modifier = Modifier.fillMaxWidth(),
-            maxLines = 3,
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Delete + Save
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextButton(
-                onClick = onDelete,
-            ) {
-                Text(
-                    text = stringResource(R.string.set_delete),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(
-                onClick = {
-                    onSave(
-                        editWeightKg,
-                        editReps,
-                        editRpe,
-                        editNote.trim().takeIf { it.isNotEmpty() },
-                    )
+            WeightStepper(
+                valueKg = editWeightKg,
+                unit = unit,
+                onDecrement = {
+                    val stepKg = Weights.displayToKg(Weights.stepIncrementDisplay(unit), unit)
+                    editWeightKg = (editWeightKg - stepKg).coerceAtLeast(0.0)
                 },
-                modifier = Modifier.heightIn(min = 48.dp),
+                onIncrement = {
+                    val stepKg = Weights.displayToKg(Weights.stepIncrementDisplay(unit), unit)
+                    editWeightKg += stepKg
+                },
+                onValueClick = { /* no numpad for edit path */ },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(8.dp))
+            RepsStepper(
+                reps = editReps,
+                onDecrement = { editReps = (editReps - 1).coerceAtLeast(1) },
+                onIncrement = { editReps += 1 },
+                onValueClick = { /* no numpad for edit path */ },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.rpe_label),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(4.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(stringResource(R.string.set_save))
+                FilterChip(
+                    selected = editRpe == null,
+                    onClick = { editRpe = null },
+                    label = { Text(stringResource(R.string.rpe_none)) },
+                )
+                RPE_VALUES.forEach { rpe ->
+                    val label = if (rpe == rpe.toLong().toDouble()) rpe.toLong().toString() else "%.1f".format(rpe)
+                    FilterChip(
+                        selected = editRpe == rpe,
+                        onClick = { editRpe = if (editRpe == rpe) null else rpe },
+                        label = { Text(label) },
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = editNote,
+                onValueChange = { editNote = it },
+                label = { Text(stringResource(R.string.set_note)) },
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 3,
+            )
+
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = onDelete) {
+                    Text(
+                        text = stringResource(R.string.set_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                Spacer(Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        onSave(editWeightKg, editReps, editRpe, editNote.trim().takeIf { it.isNotEmpty() })
+                    },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    Text(stringResource(R.string.set_save))
+                }
             }
         }
     }

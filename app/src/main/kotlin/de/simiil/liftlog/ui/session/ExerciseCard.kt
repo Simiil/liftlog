@@ -1,5 +1,8 @@
 package de.simiil.liftlog.ui.session
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,12 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -20,6 +24,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,8 +37,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import de.simiil.liftlog.R
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.domain.model.Equipment
@@ -47,20 +54,14 @@ import de.simiil.liftlog.ui.components.WeightStepper
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 import java.time.Instant
 
+private val CARD_SHAPE = RoundedCornerShape(22.dp)
+
 // ─── ExerciseCard ─────────────────────────────────────────────────────────────
 
-/**
- * Renders a single exercise card in the Active Session screen.
- *
- * State is determined by [card.state]:
- *  - COMPLETED  collapsed summary with set recap
- *  - UPCOMING   collapsed name-only row
- *  - ACTIVE     fully expanded entry area with steppers / numpad + LOG SET
- */
 @Composable
 fun ExerciseCard(
     card: ExerciseCardUi,
-    entry: EntryUi?,           // non-null only when card.state == ACTIVE
+    entry: EntryUi?,
     unit: WeightUnit,
     onActivateCard: (seId: String) -> Unit,
     onWeightIncrement: () -> Unit,
@@ -121,27 +122,40 @@ private fun CompletedCard(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(onClick = { onActivateCard(card.sessionExerciseId) }),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        ),
+        shape = CARD_SHAPE,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
         ) {
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .background(MaterialTheme.colorScheme.primary, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
             Text(
-                text = "✓ ${card.name}",
+                text = card.name,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
             if (summary.isNotEmpty()) {
                 Text(
                     text = summary,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -160,20 +174,25 @@ private fun UpcomingCard(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(onClick = { onActivateCard(card.sessionExerciseId) }),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
+        shape = CARD_SHAPE,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
         ) {
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .border(2.dp, MaterialTheme.colorScheme.outline, CircleShape),
+            )
             Text(
                 text = card.name,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
             if (card.targetSets != null) {
@@ -215,35 +234,23 @@ private fun ActiveCard(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = CARD_SHAPE,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.26f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 14.dp)) {
 
             // ── Header ──────────────────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = card.name,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
                 )
-
-                // Progress: "2/—" or "2/5"
-                val targetLabel = card.targetSets?.toString() ?: "—"
-                Text(
-                    text = stringResource(R.string.session_progress, card.sets.size, targetLabel),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(end = 4.dp),
-                )
-
-                // Overflow menu (⋮)
+                ProgressPill(setsDone = card.sets.size, target = card.targetSets)
                 Box {
                     val overflowCd = stringResource(R.string.session_overflow)
                     IconButton(
@@ -281,12 +288,11 @@ private fun ActiveCard(
 
             // ── Ghost row (last performance) ─────────────────────────────
             if (card.ghostSets.isNotEmpty()) {
-                val ghostSummary = formatSetsSummary(card.ghostSets, unit)
                 Text(
-                    text = stringResource(R.string.ghost_last, ghostSummary),
+                    text = stringResource(R.string.ghost_last, formatSetsSummary(card.ghostSets, unit)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 10.dp, bottom = 2.dp),
                 )
             }
 
@@ -298,19 +304,17 @@ private fun ActiveCard(
                     unit = unit,
                     expanded = card.editingSetId == set.id,
                     onLongPress = { onLongPressSet(set.id) },
-                    onSave = { w, r, rpe, note ->
-                        onEditSetSave(set.id, w, r, rpe, note)
-                    },
+                    onSave = { w, r, rpe, note -> onEditSetSave(set.id, w, r, rpe, note) },
                     onDelete = { onDeleteSet(set.id) },
                     onCollapse = onCollapseEdit,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp)
+                        .padding(top = 6.dp)
                         .testTag(UiTestTags.LOGGED_SET_ROW),
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
             // ── Entry area (steppers or numpad) ──────────────────────────
             if (entry != null) {
@@ -324,71 +328,108 @@ private fun ActiveCard(
                         } else {
                             emptyList()
                         },
+                        unitLabel = if (numpad.target == NumpadTarget.WEIGHT) {
+                            Weights.label(unit)
+                        } else {
+                            stringResource(R.string.reps_label)
+                        },
                         onConfirm = { onNumpadConfirm(it) },
                         onDismiss = { onNumpadDismiss() },
                         modifier = Modifier.fillMaxWidth(),
                     )
                 } else {
-                    WeightStepper(
-                        valueKg = entry.weightKg,
-                        unit = unit,
-                        onDecrement = onWeightDecrement,
-                        onIncrement = onWeightIncrement,
-                        onValueClick = { onOpenNumpad(NumpadTarget.WEIGHT) },
-                        valueTestTag = UiTestTags.WEIGHT_VALUE,
-                        incrementTestTag = UiTestTags.WEIGHT_INCREMENT,
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    RepsStepper(
-                        reps = entry.reps,
-                        onDecrement = onRepsDecrement,
-                        onIncrement = onRepsIncrement,
-                        onValueClick = { onOpenNumpad(NumpadTarget.REPS) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+                    ) {
+                        WeightStepper(
+                            valueKg = entry.weightKg,
+                            unit = unit,
+                            onDecrement = onWeightDecrement,
+                            onIncrement = onWeightIncrement,
+                            onValueClick = { onOpenNumpad(NumpadTarget.WEIGHT) },
+                            valueTestTag = UiTestTags.WEIGHT_VALUE,
+                            incrementTestTag = UiTestTags.WEIGHT_INCREMENT,
+                            modifier = Modifier.weight(1f),
+                        )
+                        RepsStepper(
+                            reps = entry.reps,
+                            onDecrement = onRepsDecrement,
+                            onIncrement = onRepsIncrement,
+                            onValueClick = { onOpenNumpad(NumpadTarget.REPS) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    LogSetButton(enabled = entry.weightKg != null, onClick = onLogSet)
+
+                    // Reserved rest-timer slot (v1: empty placeholder) — DO NOT fill.
+                    Spacer(Modifier.height(14.dp))
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // ── LOG SET ─────────────────────────────────────────────
-                Button(
-                    onClick = onLogSet,
-                    enabled = entry.weightKg != null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 56.dp)
-                        .testTag(UiTestTags.LOG_SET_BUTTON),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                ) {
-                    Text(
-                        text = stringResource(R.string.session_log_set),
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                }
-
-                // ── Reserved rest-timer slot (v1: empty placeholder) ────
-                // DO NOT fill this in v1 — the rest timer lands here in a future milestone.
-                Spacer(modifier = Modifier.height(48.dp))
             }
+        }
+    }
+}
+
+@Composable
+private fun ProgressPill(setsDone: Int, target: Int?) {
+    Surface(
+        shape = RoundedCornerShape(100.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+        modifier = Modifier.padding(end = 4.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.session_progress, setsDone, target?.toString() ?: "—"),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+        )
+    }
+}
+
+@Composable
+private fun LogSetButton(enabled: Boolean, onClick: () -> Unit) {
+    val container = if (enabled) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    }
+    val content = if (enabled) {
+        MaterialTheme.colorScheme.onPrimary
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .testTag(UiTestTags.LOG_SET_BUTTON),
+        shape = RoundedCornerShape(20.dp),
+        color = container,
+        contentColor = content,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = stringResource(R.string.session_log_set),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+            )
         }
     }
 }
 
 // ─── Formatting helper ────────────────────────────────────────────────────────
 
-/**
- * Compact set summary, e.g. "82.5 kg × 8·8·6".
- * Groups by weight for brevity; falls back to listing all reps.
- */
+/** Compact set summary, e.g. "82.5 kg × 8·8·6" (first set's weight + all reps). */
 internal fun formatSetsSummary(sets: List<LoggedSet>, unit: WeightUnit): String {
     if (sets.isEmpty()) return ""
-    // Simple format: use the first set's weight + all reps joined by ·
-    val weightKg = sets.first().weightKg
-    val weightDisplay = "${Weights.format(weightKg, unit)} ${Weights.label(unit)}"
+    val weightDisplay = "${Weights.format(sets.first().weightKg, unit)} ${Weights.label(unit)}"
     val repsStr = sets.joinToString("·") { it.reps.toString() }
     return "$weightDisplay × $repsStr"
 }
@@ -411,16 +452,8 @@ private fun fakeSet(id: String, weightKg: Double, reps: Int, rpe: Double? = null
     deletedAt = null,
 )
 
-private val fakeGhostSets = listOf(
-    fakeSet("g1", 82.5, 8),
-    fakeSet("g2", 82.5, 8),
-    fakeSet("g3", 82.5, 7),
-)
-
-private val fakeLoggedSets = listOf(
-    fakeSet("s1", 85.0, 8),
-    fakeSet("s2", 85.0, 6, rpe = 8.5),
-)
+private val fakeGhostSets = listOf(fakeSet("g1", 82.5, 8), fakeSet("g2", 82.5, 8), fakeSet("g3", 82.5, 7))
+private val fakeLoggedSets = listOf(fakeSet("s1", 85.0, 8), fakeSet("s2", 85.0, 6, rpe = 8.5))
 
 private val fakeActiveCard = ExerciseCardUi(
     sessionExerciseId = "se1",
@@ -434,125 +467,55 @@ private val fakeActiveCard = ExerciseCardUi(
     editingSetId = null,
 )
 
-private val fakeEntry = EntryUi(
-    sessionExerciseId = "se1",
-    weightKg = 87.5,
-    reps = 8,
-)
+private val fakeEntry = EntryUi(sessionExerciseId = "se1", weightKg = 87.5, reps = 8)
+
+private val noopCard: @Composable (ExerciseCardUi, EntryUi?) -> Unit = { card, entry ->
+    ExerciseCard(
+        card = card,
+        entry = entry,
+        unit = WeightUnit.KG,
+        onActivateCard = {},
+        onWeightIncrement = {},
+        onWeightDecrement = {},
+        onRepsIncrement = {},
+        onRepsDecrement = {},
+        onOpenNumpad = {},
+        onNumpadConfirm = {},
+        onNumpadDismiss = {},
+        onLogSet = {},
+        onRequestRemoveExercise = {},
+        onRequestReplaceExercise = {},
+        onAddExercise = {},
+        onLongPressSet = {},
+        onEditSetSave = { _, _, _, _, _ -> },
+        onDeleteSet = {},
+        onCollapseEdit = {},
+    )
+}
 
 @Preview(name = "ExerciseCard – ACTIVE (ghost + 2 sets)", showBackground = true)
 @Composable
 private fun PreviewActiveCard() {
-    LiftLogTheme {
-        ExerciseCard(
-            card = fakeActiveCard,
-            entry = fakeEntry,
-            unit = WeightUnit.KG,
-            onActivateCard = {},
-            onWeightIncrement = {},
-            onWeightDecrement = {},
-            onRepsIncrement = {},
-            onRepsDecrement = {},
-            onOpenNumpad = {},
-            onNumpadConfirm = {},
-            onNumpadDismiss = {},
-            onLogSet = {},
-            onRequestRemoveExercise = {},
-            onRequestReplaceExercise = {},
-            onAddExercise = {},
-            onLongPressSet = {},
-            onEditSetSave = { _, _, _, _, _ -> },
-            onDeleteSet = {},
-            onCollapseEdit = {},
-        )
-    }
+    LiftLogTheme { noopCard(fakeActiveCard, fakeEntry) }
 }
 
 @Preview(name = "ExerciseCard – ACTIVE with numpad open", showBackground = true)
 @Composable
 private fun PreviewActiveCardNumpad() {
-    LiftLogTheme {
-        ExerciseCard(
-            card = fakeActiveCard,
-            entry = fakeEntry.copy(numpad = NumpadUi(NumpadTarget.WEIGHT, "87.5")),
-            unit = WeightUnit.KG,
-            onActivateCard = {},
-            onWeightIncrement = {},
-            onWeightDecrement = {},
-            onRepsIncrement = {},
-            onRepsDecrement = {},
-            onOpenNumpad = {},
-            onNumpadConfirm = {},
-            onNumpadDismiss = {},
-            onLogSet = {},
-            onRequestRemoveExercise = {},
-            onRequestReplaceExercise = {},
-            onAddExercise = {},
-            onLongPressSet = {},
-            onEditSetSave = { _, _, _, _, _ -> },
-            onDeleteSet = {},
-            onCollapseEdit = {},
-        )
-    }
+    LiftLogTheme { noopCard(fakeActiveCard, fakeEntry.copy(numpad = NumpadUi(NumpadTarget.WEIGHT, "87.5"))) }
 }
 
 @Preview(name = "ExerciseCard – COMPLETED", showBackground = true)
 @Composable
 private fun PreviewCompletedCard() {
-    LiftLogTheme {
-        ExerciseCard(
-            card = fakeActiveCard.copy(state = CardState.COMPLETED, ghostSets = emptyList()),
-            entry = null,
-            unit = WeightUnit.KG,
-            onActivateCard = {},
-            onWeightIncrement = {},
-            onWeightDecrement = {},
-            onRepsIncrement = {},
-            onRepsDecrement = {},
-            onOpenNumpad = {},
-            onNumpadConfirm = {},
-            onNumpadDismiss = {},
-            onLogSet = {},
-            onRequestRemoveExercise = {},
-            onRequestReplaceExercise = {},
-            onAddExercise = {},
-            onLongPressSet = {},
-            onEditSetSave = { _, _, _, _, _ -> },
-            onDeleteSet = {},
-            onCollapseEdit = {},
-        )
-    }
+    LiftLogTheme { noopCard(fakeActiveCard.copy(state = CardState.COMPLETED, ghostSets = emptyList()), null) }
 }
 
 @Preview(name = "ExerciseCard – UPCOMING", showBackground = true)
 @Composable
 private fun PreviewUpcomingCard() {
     LiftLogTheme {
-        ExerciseCard(
-            card = fakeActiveCard.copy(
-                state = CardState.UPCOMING,
-                sets = emptyList(),
-                ghostSets = emptyList(),
-            ),
-            entry = null,
-            unit = WeightUnit.KG,
-            onActivateCard = {},
-            onWeightIncrement = {},
-            onWeightDecrement = {},
-            onRepsIncrement = {},
-            onRepsDecrement = {},
-            onOpenNumpad = {},
-            onNumpadConfirm = {},
-            onNumpadDismiss = {},
-            onLogSet = {},
-            onRequestRemoveExercise = {},
-            onRequestReplaceExercise = {},
-            onAddExercise = {},
-            onLongPressSet = {},
-            onEditSetSave = { _, _, _, _, _ -> },
-            onDeleteSet = {},
-            onCollapseEdit = {},
-        )
+        noopCard(fakeActiveCard.copy(state = CardState.UPCOMING, sets = emptyList(), ghostSets = emptyList()), null)
     }
 }
 
@@ -560,26 +523,6 @@ private fun PreviewUpcomingCard() {
 @Composable
 private fun PreviewActiveCardFirstEver() {
     LiftLogTheme {
-        ExerciseCard(
-            card = fakeActiveCard.copy(sets = emptyList(), ghostSets = emptyList()),
-            entry = fakeEntry.copy(weightKg = null),
-            unit = WeightUnit.KG,
-            onActivateCard = {},
-            onWeightIncrement = {},
-            onWeightDecrement = {},
-            onRepsIncrement = {},
-            onRepsDecrement = {},
-            onOpenNumpad = {},
-            onNumpadConfirm = {},
-            onNumpadDismiss = {},
-            onLogSet = {},
-            onRequestRemoveExercise = {},
-            onRequestReplaceExercise = {},
-            onAddExercise = {},
-            onLongPressSet = {},
-            onEditSetSave = { _, _, _, _, _ -> },
-            onDeleteSet = {},
-            onCollapseEdit = {},
-        )
+        noopCard(fakeActiveCard.copy(sets = emptyList(), ghostSets = emptyList()), fakeEntry.copy(weightKg = null))
     }
 }

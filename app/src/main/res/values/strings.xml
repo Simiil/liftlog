@@ -38,6 +38,7 @@
     <string name="weight_kilograms">kilograms</string>
     <string name="weight_pounds">pounds</string>
     <string name="weight_placeholder">—</string>
+    <string name="reps_label">reps</string>
 
     <!-- InlineNumpad content descriptions -->
     <string name="cd_digit">Digit %1$d</string>
