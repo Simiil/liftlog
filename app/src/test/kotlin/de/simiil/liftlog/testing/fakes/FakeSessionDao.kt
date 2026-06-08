@@ -60,4 +60,41 @@ class FakeSessionDao : SessionDao {
             }
         }
     }
+
+    override suspend fun maxExercisePosition(sessionId: String): Int? =
+        sessionExercises.values
+            .filter { it.sessionId == sessionId && it.deletedAt == null }
+            .maxOfOrNull { it.position }
+
+    override suspend fun maxSetPosition(sessionExerciseId: String): Int? =
+        loggedSets.values
+            .filter { it.sessionExerciseId == sessionExerciseId && it.deletedAt == null }
+            .maxOfOrNull { it.position }
+
+    override suspend fun findSessionExercise(id: String): SessionExerciseEntity? =
+        sessionExercises[id]?.takeIf { it.deletedAt == null }
+
+    override suspend fun findLoggedSet(id: String): LoggedSetEntity? =
+        loggedSets[id]?.takeIf { it.deletedAt == null }
+
+    override suspend fun updateLoggedSet(set: LoggedSetEntity) {
+        loggedSets[set.id] = set
+    }
+
+    override suspend fun softDeleteLoggedSet(id: String, now: Long) {
+        loggedSets[id]?.let { loggedSets[id] = it.copy(deletedAt = now, updatedAt = now) }
+    }
+
+    override suspend fun softDeleteSessionExercise(id: String, now: Long) {
+        sessionExercises[id]?.let { sessionExercises[id] = it.copy(deletedAt = now, updatedAt = now) }
+    }
+
+    override suspend fun softDeleteLoggedSetsForSessionExercise(sessionExerciseId: String, now: Long) {
+        loggedSets.keys.toList().forEach { id ->
+            val ls = loggedSets[id]!!
+            if (ls.sessionExerciseId == sessionExerciseId && ls.deletedAt == null) {
+                loggedSets[id] = ls.copy(deletedAt = now, updatedAt = now)
+            }
+        }
+    }
 }

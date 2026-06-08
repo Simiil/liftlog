@@ -45,4 +45,28 @@ interface SessionDao {
              AND sessionExerciseId IN (SELECT id FROM session_exercises WHERE sessionId = :sessionId)"""
     )
     suspend fun softDeleteLoggedSetsForSession(sessionId: String, now: Long)
+
+    @Query("SELECT MAX(position) FROM session_exercises WHERE sessionId = :sessionId AND deletedAt IS NULL")
+    suspend fun maxExercisePosition(sessionId: String): Int?
+
+    @Query("SELECT MAX(position) FROM logged_sets WHERE sessionExerciseId = :sessionExerciseId AND deletedAt IS NULL")
+    suspend fun maxSetPosition(sessionExerciseId: String): Int?
+
+    @Query("SELECT * FROM session_exercises WHERE id = :id AND deletedAt IS NULL")
+    suspend fun findSessionExercise(id: String): SessionExerciseEntity?
+
+    @Query("SELECT * FROM logged_sets WHERE id = :id AND deletedAt IS NULL")
+    suspend fun findLoggedSet(id: String): LoggedSetEntity?
+
+    @Update suspend fun updateLoggedSet(set: LoggedSetEntity)
+
+    @Query("UPDATE logged_sets SET deletedAt = :now, updatedAt = :now WHERE id = :id")
+    suspend fun softDeleteLoggedSet(id: String, now: Long)
+
+    @Query("UPDATE session_exercises SET deletedAt = :now, updatedAt = :now WHERE id = :id")
+    suspend fun softDeleteSessionExercise(id: String, now: Long)
+
+    @Query("""UPDATE logged_sets SET deletedAt = :now, updatedAt = :now
+              WHERE sessionExerciseId = :sessionExerciseId AND deletedAt IS NULL""")
+    suspend fun softDeleteLoggedSetsForSessionExercise(sessionExerciseId: String, now: Long)
 }
