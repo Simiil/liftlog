@@ -12,4 +12,5 @@
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="placeholder_coming_soon">Coming soon</string>
 </resources>
