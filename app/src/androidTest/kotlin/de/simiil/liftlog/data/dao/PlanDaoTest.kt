@@ -5,6 +5,7 @@ import app.cash.turbine.test
 import de.simiil.liftlog.data.entity.ExerciseEntity
 import de.simiil.liftlog.data.entity.PlanDayTemplateEntity
 import de.simiil.liftlog.data.entity.SessionEntity
+import de.simiil.liftlog.data.entity.SessionExerciseEntity
 import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
 import de.simiil.liftlog.domain.model.Equipment
@@ -547,5 +548,63 @@ class PlanDaoTest {
             assertEquals(listOf("p1"), result)
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Snapshot isolation: editing/deleting a template must never touch session_exercises
+    // -------------------------------------------------------------------------
+
+    @Test fun snapshotIsolation_mutatingTemplateDoesNotAffectSessionExercises() = runTest {
+        exerciseDao.insert(exercise("ex1"))
+
+        // Set up plan / day / template exercise
+        dao.insertPlan(plan("p1", "Push Plan", position = 0))
+        dao.insertDayTemplate(dayTemplate("d1", "p1", "Push Day", position = 0))
+        dao.insertTemplateExercise(templateExercise("te1", "d1", "ex1", position = 0,
+            targetSets = 3, targetRepsMin = 8, targetRepsMax = 12))
+
+        // Simulate a snapshot: insert a session + a session_exercise that copied the template row
+        val snapshotSession = session("sess-snap", templateId = "d1", startedAt = 5000L)
+        sessionDao.insertSession(snapshotSession)
+        val seId = "se-snap-1"
+        sessionDao.insertSessionExercise(
+            SessionExerciseEntity(
+                id = seId,
+                sessionId = "sess-snap",
+                exerciseId = "ex1",
+                position = 0,
+                targetSets = 3,
+                targetRepsMin = 8,
+                targetRepsMax = 12,
+                createdAt = 5000L,
+                updatedAt = 5000L,
+                deletedAt = null,
+            )
+        )
+
+        // Mutate the template: change targets, then soft-delete the day and its exercises
+        dao.updateTemplateExercise(templateExercise("te1", "d1", "ex1", position = 0,
+            targetSets = 5, targetRepsMin = 6, targetRepsMax = 10))
+        dao.softDeleteTemplateExercisesForTemplate("d1", NOW)
+        dao.softDeleteDayTemplate("d1", NOW)
+
+        // The template exercise and day are tombstoned
+        assertEquals(NOW to NOW, db.tombstoneOf("template_exercises", "te1"))
+        assertEquals(NOW to NOW, db.tombstoneOf("plan_day_templates", "d1"))
+
+        // The session_exercise snapshot must be byte-for-byte unchanged
+        assertNull("session_exercise must still be live",
+            db.tombstoneOf("session_exercises", seId)!!.first)
+
+        // Verify targets are still the original snapshot values
+        val seRow = sessionDao.findSessionExercise(seId)
+        assertNotNull(seRow)
+        assertEquals("ex1", seRow!!.exerciseId)
+        assertEquals(0, seRow.position)
+        assertEquals(3, seRow.targetSets)
+        assertEquals(8, seRow.targetRepsMin)
+        assertEquals(12, seRow.targetRepsMax)
+        assertEquals(5000L, seRow.updatedAt)   // unchanged — not bumped by the template mutation
+        assertNull(seRow.deletedAt)
     }
 }

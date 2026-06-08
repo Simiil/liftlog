@@ -4,6 +4,7 @@ import de.simiil.liftlog.data.dao.SessionSetCount
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.data.entity.SessionEntity
 import de.simiil.liftlog.data.entity.SessionExerciseEntity
+import de.simiil.liftlog.testing.fakes.FakePlanDao
 import de.simiil.liftlog.testing.fakes.FakePrefillDao
 import de.simiil.liftlog.testing.fakes.FakeSessionDao
 import de.simiil.liftlog.testing.fakes.FakeTransactor
@@ -34,7 +35,7 @@ class SessionRepositoryTest {
     fun setUp() {
         dao = FakeSessionDao()
         prefillDao = FakePrefillDao()
-        repo = SessionRepositoryImpl(dao, FakeTransactor(), clock, prefillDao)
+        repo = SessionRepositoryImpl(dao, FakeTransactor(), clock, prefillDao, FakePlanDao())
     }
 
     @Test

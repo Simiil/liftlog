@@ -155,4 +155,25 @@ class FakeSessionRepository : SessionRepository {
     }
 
     override suspend fun lastPerformance(exerciseId: String): List<LoggedSet> = lastPerformanceResult
+
+    val startFromTemplateCalls = mutableListOf<String>()
+
+    override suspend fun startSessionFromTemplate(templateId: String): Session {
+        startFromTemplateCalls += templateId
+        val id = "new-session-${++sessionIdCounter}"
+        val now = Instant.now()
+        val session = Session(
+            id = id,
+            templateId = templateId,
+            templateNameSnapshot = "Snapshot $templateId",
+            startedAt = now,
+            endedAt = null,
+            note = null,
+            createdAt = now,
+            updatedAt = now,
+            deletedAt = null,
+        )
+        activeSession.value = session
+        return session
+    }
 }
