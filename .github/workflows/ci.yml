@@ -47,9 +47,17 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - uses: gradle/actions/setup-gradle@v4
-      - name: Accept Android SDK licenses
-        run: yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-      - name: Run DAO + seeder tests on a Gradle-managed device
-        # Force software GPU: headless runners reject the emulator's default
-        # 'auto-no-window' mode (it falls back to 'auto', which needs a real GPU).
-        run: ./gradlew pixelApi34DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+      # 01-architecture §8 named a Gradle-managed device (pixelApi34DebugAndroidTest),
+      # but its snapshot emulator fails to boot on GitHub's headless runners. This is
+      # the documented fallback: the emulator-runner action boots a headless ATD
+      # emulator reliably and runs the standard connectedDebugAndroidTest task.
+      - name: Run DAO + seeder tests on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: aosp_atd
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
+          disable-animations: true
+          script: ./gradlew connectedDebugAndroidTest
