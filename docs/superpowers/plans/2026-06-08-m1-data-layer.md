@@ -1325,4 +1325,18 @@ class SeedAssetTest {
 
 ## Revision log
 
-_(Append review-driven deviations here during execution, as in the M0 plan.)_
+Execution via subagent-driven-development (fresh subagent per task, two-stage review on the substantive tasks). Deviations and review-driven changes:
+
+1. **Tasks batched per dispatch** for efficiency, but committed granularly (one commit per plan task): 2+3 (enums+models), 4+5 (entities/converters+mappers), 6+7 (DAOs+database/DI), 9+10 (repos+tests), 11+12 (seed+seeder tests). Tasks 1, 8, 13 ran solo.
+2. **Schema export path correction:** the exported Room schema lives at `app/schemas/de.simiil.liftlog.data.db.AppDatabase/1.json` (the dir uses the AppDatabase FQCN, which includes the `.data.db` package), not `…/de.simiil.liftlog.AppDatabase/` as the §File-structure note guessed. Committed and verified zero-drift.
+3. **Task 8 strengthened after review (commit `da7d58b`):** the original logged-sets cascade test was vacuous (asserted only the untouched sibling). Added a test-only raw-cursor helper `AppDatabase.tombstoneOf(table, id)` (no production change) to read back tombstoned rows; cascade tests now assert both `deletedAt == now` AND `updatedAt == now` on targets and untouched siblings; two "ordering" tests now insert out of order so `ORDER BY` is load-bearing; added `@RunWith(AndroidJUnit4::class)`.
+4. **Task 9/10 coverage gap closed after review (commit `6871551`):** `SessionWithDetailsRelation.toDomain()` (live-filter + position-sort, the only nontrivial logic in that diff) was untested. Added JVM `SessionWithDetailsMapperTest` (6 cases).
+5. **Fake-DAO fidelity verified:** the JVM repository tests' fake DAOs were reviewed line-by-line against the real `@Query` SQL (incl. the deliberate non-filtering of intermediate `deletedAt` in cascade subqueries) so the tests aren't hollow.
+6. **Seed asset verified** against the authoritative Appendix A list: exactly 69 entries, 69 unique valid UUIDs, every `name→muscleGroup→equipment` tuple correct, `seedVersion = 1`. These UUIDs are now frozen (flagged decision #8).
+
+### Forward-looking notes for later milestones (from the final holistic review — all correctly deferred, not M1 defects)
+
+- **M3 (Plans):** `PlanRepositoryImpl.createPlan` hardcodes `position = 0`; when the Plans UI lands, assign `(max existing position) + 1` so `observePlans ORDER BY position` is well-defined.
+- **M2 (Logging):** `SessionRepositoryImpl.finishSession` unconditionally sets `endedAt`/`updatedAt`; add an "already ended" guard when M2 owns the finish flow. Also: `PrefillDao` ships only the indexed building-block queries — M2 composes the `observeLastPerformance` `Flow` wrapper (flagged decision #2).
+- **General:** the startup seeder runs fire-and-forget on the application scope with no try/catch (asset presence/shape are build-verified by `SeedAssetTest`, so safe for v1); revisit if seeding ever depends on fallible runtime input.
+- **Deferred repo interfaces:** `AnalyticsRepository` (M4) and `BackupRepository` (M5) were intentionally not created (flagged decision #1); their DAOs/building blocks exist and are tested.
