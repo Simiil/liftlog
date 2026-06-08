@@ -13,4 +13,24 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="placeholder_coming_soon">Coming soon</string>
+
+    <!-- WeightStepper / RepsStepper content descriptions -->
+    <string name="cd_decrease_weight">Decrease weight, %1$s %2$s</string>
+    <string name="cd_increase_weight">Increase weight, %1$s %2$s</string>
+    <string name="cd_weight_value">Weight %1$s %2$s, tap to enter exactly</string>
+    <string name="cd_decrease_reps">Decrease reps</string>
+    <string name="cd_increase_reps">Increase reps</string>
+    <string name="cd_reps_value">Reps %1$d, tap to enter exactly</string>
+    <string name="weight_kilograms">kilograms</string>
+    <string name="weight_pounds">pounds</string>
+    <string name="weight_placeholder">—</string>
+
+    <!-- InlineNumpad content descriptions -->
+    <string name="cd_digit">Digit %1$d</string>
+    <string name="cd_decimal">Decimal point</string>
+    <string name="cd_backspace">Backspace</string>
+    <string name="cd_numpad_add">Add %1$s</string>
+    <string name="cd_confirm">Confirm</string>
+    <string name="numpad_confirm">Done</string>
+    <string name="numpad_dismiss">Cancel</string>
 </resources>
