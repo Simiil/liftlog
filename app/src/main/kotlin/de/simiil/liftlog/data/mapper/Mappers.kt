@@ -1,5 +1,6 @@
 package de.simiil.liftlog.data.mapper
 
+import de.simiil.liftlog.data.dao.SessionWithDetailsRelation
 import de.simiil.liftlog.data.entity.ExerciseEntity
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.data.entity.PlanDayTemplateEntity
@@ -12,6 +13,8 @@ import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.PlanDayTemplate
 import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.model.SessionExercise
+import de.simiil.liftlog.domain.model.SessionExerciseWithSets
+import de.simiil.liftlog.domain.model.SessionWithDetails
 import de.simiil.liftlog.domain.model.TemplateExercise
 import de.simiil.liftlog.domain.model.WorkoutPlan
 import java.time.Instant
@@ -97,4 +100,17 @@ fun LoggedSet.toEntity() = LoggedSetEntity(
     id, sessionExerciseId, weightKg, reps, position,
     completedAt.toMillis(), rpe, note,
     createdAt.toMillis(), updatedAt.toMillis(), deletedAt.toMillisOrNull(),
+)
+
+fun SessionWithDetailsRelation.toDomain() = SessionWithDetails(
+    session = session.toDomain(),
+    exercises = exercises
+        .filter { it.sessionExercise.deletedAt == null }
+        .sortedBy { it.sessionExercise.position }
+        .map { se ->
+            SessionExerciseWithSets(
+                sessionExercise = se.sessionExercise.toDomain(),
+                sets = se.sets.filter { it.deletedAt == null }.sortedBy { it.position }.map { it.toDomain() },
+            )
+        },
 )
