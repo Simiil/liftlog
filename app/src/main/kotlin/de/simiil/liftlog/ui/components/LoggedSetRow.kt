@@ -37,6 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
@@ -120,21 +121,24 @@ private fun CollapsedSetRow(
     val editLabel = stringResource(R.string.cd_edit_set)
 
     Surface(
-        modifier = modifier,
+        // The clickable merge-root MUST be the same node that carries the LOGGED_SET_ROW
+        // testTag (from `modifier`) so the critical UI test's `tag AND text` matcher finds
+        // one node with both the tag and the merged "{weight} {unit} × {reps}" text.
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .combinedClickable(
+                onLongClick = onLongPress,
+                onClick = { /* collapsed row: nothing on single tap */ },
+            )
+            .semantics {
+                contentDescription = cd
+                customActions = listOf(CustomAccessibilityAction(editLabel) { onLongPress(); true })
+            },
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Row(
-            modifier = Modifier
-                .combinedClickable(
-                    onLongClick = onLongPress,
-                    onClick = { /* collapsed row: nothing on single tap */ },
-                )
-                .semantics {
-                    contentDescription = cd
-                    customActions = listOf(CustomAccessibilityAction(editLabel) { onLongPress(); true })
-                }
-                .padding(horizontal = 12.dp, vertical = 9.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
