@@ -46,6 +46,7 @@ import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
+import de.simiil.liftlog.domain.logging.Targets
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.InlineNumpad
 import de.simiil.liftlog.ui.components.LoggedSetRow
@@ -357,6 +358,7 @@ private fun ActiveCard(
                             onDecrement = onRepsDecrement,
                             onIncrement = onRepsIncrement,
                             onValueClick = { onOpenNumpad(NumpadTarget.REPS) },
+                            targetHint = Targets.repRangeHint(card.targetRepsMin, card.targetRepsMax),
                             modifier = Modifier.weight(1f),
                         )
                     }

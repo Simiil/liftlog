@@ -48,6 +48,8 @@ data class ExerciseCardUi(
     val name: String,
     val equipment: Equipment,
     val targetSets: Int?,
+    val targetRepsMin: Int? = null,
+    val targetRepsMax: Int? = null,
     val state: CardState,
     val sets: List<LoggedSet>, // kg, sorted by position (already sorted by the mapper)
     val ghostSets: List<LoggedSet>, // last-performance snapshot; non-empty only for the ACTIVE card
@@ -186,6 +188,8 @@ class ActiveSessionViewModel @Inject constructor(
                 name = exercise?.name.orEmpty(),
                 equipment = exercise?.equipment ?: Equipment.MACHINE,
                 targetSets = se.targetSets,
+                targetRepsMin = se.targetRepsMin,
+                targetRepsMax = se.targetRepsMax,
                 state = when {
                     isActive -> CardState.ACTIVE
                     ews.sets.isNotEmpty() -> CardState.COMPLETED
