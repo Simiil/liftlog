@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -44,6 +45,11 @@ fun WeightStepper(
     onValueClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    // Test-only handles (null in every production call except the active logging card,
+    // so the critical-path UI test can address the increment button + value display).
+    // Inert otherwise — a testTag only adds an invisible semantics property.
+    valueTestTag: String? = null,
+    incrementTestTag: String? = null,
 ) {
     val unitLong = when (unit) {
         WeightUnit.KG -> stringResource(R.string.weight_kilograms)
@@ -102,6 +108,7 @@ fun WeightStepper(
             },
             modifier = Modifier
                 .defaultMinSize(minWidth = 56.dp, minHeight = 56.dp)
+                .then(if (valueTestTag != null) Modifier.testTag(valueTestTag) else Modifier)
                 .clickable(enabled = enabled, onClick = onValueClick)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
                 .semantics { contentDescription = valueCd },
@@ -111,7 +118,9 @@ fun WeightStepper(
         FilledTonalIconButton(
             onClick = onIncrement,
             enabled = enabled,
-            modifier = Modifier.defaultMinSize(minWidth = 56.dp, minHeight = 56.dp),
+            modifier = Modifier
+                .defaultMinSize(minWidth = 56.dp, minHeight = 56.dp)
+                .then(if (incrementTestTag != null) Modifier.testTag(incrementTestTag) else Modifier),
             colors = IconButtonDefaults.filledTonalIconButtonColors(),
         ) {
             Icon(

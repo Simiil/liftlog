@@ -26,11 +26,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.ui.UiTestTags
 import java.time.Duration
 import java.time.Instant
 
@@ -75,7 +77,8 @@ fun HomeScreen(
                         onClick = { onOpenSession(resume.sessionId) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .testTag(UiTestTags.HOME_RESUME_CARD),
                     )
                 }
             }
@@ -94,6 +97,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { viewModel.startOrResume(onOpenSession) }
+                        .testTag(UiTestTags.HOME_START_EMPTY)
                         .padding(horizontal = 0.dp),
                 )
             }

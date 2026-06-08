@@ -28,12 +28,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.R
+import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
@@ -303,7 +305,8 @@ private fun ActiveCard(
                     onCollapse = onCollapseEdit,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp),
+                        .padding(top = 4.dp)
+                        .testTag(UiTestTags.LOGGED_SET_ROW),
                 )
             }
 
@@ -332,6 +335,8 @@ private fun ActiveCard(
                         onDecrement = onWeightDecrement,
                         onIncrement = onWeightIncrement,
                         onValueClick = { onOpenNumpad(NumpadTarget.WEIGHT) },
+                        valueTestTag = UiTestTags.WEIGHT_VALUE,
+                        incrementTestTag = UiTestTags.WEIGHT_INCREMENT,
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -352,7 +357,8 @@ private fun ActiveCard(
                     enabled = entry.weightKg != null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 56.dp),
+                        .heightIn(min = 56.dp)
+                        .testTag(UiTestTags.LOG_SET_BUTTON),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
