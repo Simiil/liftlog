@@ -1,0 +1,116 @@
+package de.simiil.liftlog.data.mapper
+
+import de.simiil.liftlog.data.dao.SessionWithDetailsRelation
+import de.simiil.liftlog.data.entity.ExerciseEntity
+import de.simiil.liftlog.data.entity.LoggedSetEntity
+import de.simiil.liftlog.data.entity.PlanDayTemplateEntity
+import de.simiil.liftlog.data.entity.SessionEntity
+import de.simiil.liftlog.data.entity.SessionExerciseEntity
+import de.simiil.liftlog.data.entity.TemplateExerciseEntity
+import de.simiil.liftlog.data.entity.WorkoutPlanEntity
+import de.simiil.liftlog.domain.model.Exercise
+import de.simiil.liftlog.domain.model.LoggedSet
+import de.simiil.liftlog.domain.model.PlanDayTemplate
+import de.simiil.liftlog.domain.model.Session
+import de.simiil.liftlog.domain.model.SessionExercise
+import de.simiil.liftlog.domain.model.SessionExerciseWithSets
+import de.simiil.liftlog.domain.model.SessionWithDetails
+import de.simiil.liftlog.domain.model.TemplateExercise
+import de.simiil.liftlog.domain.model.WorkoutPlan
+import java.time.Instant
+
+private fun Long.toInstant(): Instant = Instant.ofEpochMilli(this)
+private fun Long?.toInstantOrNull(): Instant? = this?.let(Instant::ofEpochMilli)
+private fun Instant.toMillis(): Long = toEpochMilli()
+private fun Instant?.toMillisOrNull(): Long? = this?.toEpochMilli()
+
+fun ExerciseEntity.toDomain() = Exercise(
+    id, name, muscleGroup, equipment, isBuiltIn, isHidden,
+    createdAt.toInstant(), updatedAt.toInstant(), deletedAt.toInstantOrNull(),
+)
+
+fun Exercise.toEntity() = ExerciseEntity(
+    id, name, muscleGroup, equipment, isBuiltIn, isHidden,
+    createdAt.toMillis(), updatedAt.toMillis(), deletedAt.toMillisOrNull(),
+)
+
+fun WorkoutPlanEntity.toDomain() = WorkoutPlan(
+    id, name, position,
+    createdAt.toInstant(), updatedAt.toInstant(), deletedAt.toInstantOrNull(),
+)
+
+fun WorkoutPlan.toEntity() = WorkoutPlanEntity(
+    id, name, position,
+    createdAt.toMillis(), updatedAt.toMillis(), deletedAt.toMillisOrNull(),
+)
+
+fun PlanDayTemplateEntity.toDomain() = PlanDayTemplate(
+    id, planId, name, position,
+    createdAt.toInstant(), updatedAt.toInstant(), deletedAt.toInstantOrNull(),
+)
+
+fun PlanDayTemplate.toEntity() = PlanDayTemplateEntity(
+    id, planId, name, position,
+    createdAt.toMillis(), updatedAt.toMillis(), deletedAt.toMillisOrNull(),
+)
+
+fun TemplateExerciseEntity.toDomain() = TemplateExercise(
+    id, templateId, exerciseId, position,
+    targetSets, targetRepsMin, targetRepsMax,
+    createdAt.toInstant(), updatedAt.toInstant(), deletedAt.toInstantOrNull(),
+)
+
+fun TemplateExercise.toEntity() = TemplateExerciseEntity(
+    id, templateId, exerciseId, position,
+    targetSets, targetRepsMin, targetRepsMax,
+    createdAt.toMillis(), updatedAt.toMillis(), deletedAt.toMillisOrNull(),
+)
+
+fun SessionEntity.toDomain() = Session(
+    id, templateId, templateNameSnapshot,
+    startedAt.toInstant(), endedAt.toInstantOrNull(), note,
+    createdAt.toInstant(), updatedAt.toInstant(), deletedAt.toInstantOrNull(),
+)
+
+fun Session.toEntity() = SessionEntity(
+    id, templateId, templateNameSnapshot,
+    startedAt.toMillis(), endedAt.toMillisOrNull(), note,
+    createdAt.toMillis(), updatedAt.toMillis(), deletedAt.toMillisOrNull(),
+)
+
+fun SessionExerciseEntity.toDomain() = SessionExercise(
+    id, sessionId, exerciseId, position,
+    targetSets, targetRepsMin, targetRepsMax,
+    createdAt.toInstant(), updatedAt.toInstant(), deletedAt.toInstantOrNull(),
+)
+
+fun SessionExercise.toEntity() = SessionExerciseEntity(
+    id, sessionId, exerciseId, position,
+    targetSets, targetRepsMin, targetRepsMax,
+    createdAt.toMillis(), updatedAt.toMillis(), deletedAt.toMillisOrNull(),
+)
+
+fun LoggedSetEntity.toDomain() = LoggedSet(
+    id, sessionExerciseId, weightKg, reps, position,
+    completedAt.toInstant(), rpe, note,
+    createdAt.toInstant(), updatedAt.toInstant(), deletedAt.toInstantOrNull(),
+)
+
+fun LoggedSet.toEntity() = LoggedSetEntity(
+    id, sessionExerciseId, weightKg, reps, position,
+    completedAt.toMillis(), rpe, note,
+    createdAt.toMillis(), updatedAt.toMillis(), deletedAt.toMillisOrNull(),
+)
+
+fun SessionWithDetailsRelation.toDomain() = SessionWithDetails(
+    session = session.toDomain(),
+    exercises = exercises
+        .filter { it.sessionExercise.deletedAt == null }
+        .sortedBy { it.sessionExercise.position }
+        .map { se ->
+            SessionExerciseWithSets(
+                sessionExercise = se.sessionExercise.toDomain(),
+                sets = se.sets.filter { it.deletedAt == null }.sortedBy { it.position }.map { it.toDomain() },
+            )
+        },
+)

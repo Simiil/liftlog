@@ -29,3 +29,44 @@ jobs:
         run: yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
       - name: Lint, unit tests, assemble
         run: ./gradlew lint testDebugUnitTest assembleDebug
+
+  instrumented:
+    name: Instrumented tests (Room DAOs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Free disk space for the emulator
+        # The AVD needs a ~7.4 GB userdata partition; the runner's / has too little
+        # free by default. Drop preinstalled toolchains we don't use (keeps the JDK
+        # tool cache and the Android SDK intact, only removes the unused NDK).
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/local/lib/android/sdk/ndk
+          sudo docker image prune --all --force || true
+          df -h /
+      - uses: gradle/actions/setup-gradle@v4
+      # 01-architecture §8 named a Gradle-managed device (pixelApi34DebugAndroidTest),
+      # but its snapshot emulator fails to boot on GitHub's headless runners. This is
+      # the documented fallback: the emulator-runner action boots a headless ATD
+      # emulator reliably and runs the standard connectedDebugAndroidTest task.
+      - name: Run DAO + seeder tests on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: aosp_atd
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
+          disable-animations: true
+          script: ./gradlew connectedDebugAndroidTest
