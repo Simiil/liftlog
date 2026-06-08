@@ -1,0 +1,200 @@
+package de.simiil.liftlog.data.dao
+
+import app.cash.turbine.test
+import de.simiil.liftlog.data.entity.ExerciseEntity
+import de.simiil.liftlog.data.entity.LoggedSetEntity
+import de.simiil.liftlog.data.entity.SessionEntity
+import de.simiil.liftlog.data.entity.SessionExerciseEntity
+import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.model.MuscleGroup
+import de.simiil.liftlog.testing.newInMemoryDb
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+
+/**
+ * Tests for [AnalyticsDao.observeSetsForExercise].
+ *
+ * Graph setup (FK order must be: exercise → session → sessionExercise → loggedSet):
+ *  - Exercise "ex1"
+ *  - Session A: completed, startedAt=1000
+ *  - Session B: completed, startedAt=2000
+ *  - Session C: in-progress (endedAt=null), startedAt=3000
+ *  - Each session has one SessionExercise for "ex1"
+ *  - Session A's SE has 1 live set
+ *  - Session B's SE has 1 live set
+ *  - Session C's SE has 1 live set (should be excluded: session not completed)
+ *  - Session A's SE also has 1 soft-deleted set (should always be excluded)
+ *
+ * Expected: observeSetsForExercise(ex1, fromMillis=0) returns exactly 2 rows
+ *           (A's live set, B's live set) in startedAt ASC order.
+ */
+class AnalyticsDaoTest {
+    private lateinit var db: de.simiil.liftlog.data.db.AppDatabase
+    private lateinit var analyticsDao: AnalyticsDao
+    private lateinit var sessionDao: SessionDao
+    private lateinit var exerciseDao: ExerciseDao
+
+    // -- builders --
+
+    private fun exercise(id: String) =
+        ExerciseEntity(id, "Exercise $id", MuscleGroup.CHEST, Equipment.BARBELL,
+            isBuiltIn = true, isHidden = false, createdAt = 1L, updatedAt = 1L, deletedAt = null)
+
+    private fun session(
+        id: String,
+        startedAt: Long,
+        endedAt: Long? = startedAt + 3600_000L,
+        deleted: Long? = null
+    ) = SessionEntity(
+        id = id,
+        templateId = null,
+        templateNameSnapshot = null,
+        startedAt = startedAt,
+        endedAt = endedAt,
+        note = null,
+        createdAt = startedAt,
+        updatedAt = startedAt,
+        deletedAt = deleted,
+    )
+
+    private fun sessionExercise(id: String, sessionId: String, exerciseId: String) =
+        SessionExerciseEntity(
+            id = id,
+            sessionId = sessionId,
+            exerciseId = exerciseId,
+            position = 1,
+            targetSets = null,
+            targetRepsMin = null,
+            targetRepsMax = null,
+            createdAt = 1L,
+            updatedAt = 1L,
+            deletedAt = null,
+        )
+
+    private fun loggedSet(
+        id: String,
+        sessionExerciseId: String,
+        weightKg: Double = 80.0,
+        reps: Int = 8,
+        deleted: Long? = null,
+    ) = LoggedSetEntity(
+        id = id,
+        sessionExerciseId = sessionExerciseId,
+        weightKg = weightKg,
+        reps = reps,
+        position = 1,
+        completedAt = 1000L,
+        rpe = null,
+        note = null,
+        createdAt = 1L,
+        updatedAt = 1L,
+        deletedAt = deleted,
+    )
+
+    @Before fun setUp() {
+        db = newInMemoryDb()
+        analyticsDao = db.analyticsDao()
+        sessionDao = db.sessionDao()
+        exerciseDao = db.exerciseDao()
+    }
+
+    @After fun tearDown() = db.close()
+
+    /**
+     * Insert the full graph described in the class KDoc.
+     * Returns the IDs of session exercises for each session.
+     */
+    private suspend fun insertFullGraph(): Triple<String, String, String> {
+        exerciseDao.insert(exercise("ex1"))
+
+        // Session A — completed, startedAt=1000
+        sessionDao.insertSession(session("sA", startedAt = 1000L, endedAt = 2000L))
+        sessionDao.insertSessionExercise(sessionExercise("seA", "sA", "ex1"))
+        sessionDao.insertLoggedSet(loggedSet("lsA_live", "seA", weightKg = 60.0, reps = 10))
+        // Soft-deleted set — must never appear
+        sessionDao.insertLoggedSet(loggedSet("lsA_dead", "seA", weightKg = 70.0, reps = 5, deleted = 99L))
+
+        // Session B — completed, startedAt=2000
+        sessionDao.insertSession(session("sB", startedAt = 2000L, endedAt = 3000L))
+        sessionDao.insertSessionExercise(sessionExercise("seB", "sB", "ex1"))
+        sessionDao.insertLoggedSet(loggedSet("lsB_live", "seB", weightKg = 80.0, reps = 8))
+
+        // Session C — in-progress (endedAt=null); its sets must be excluded
+        sessionDao.insertSession(session("sC", startedAt = 3000L, endedAt = null))
+        sessionDao.insertSessionExercise(sessionExercise("seC", "sC", "ex1"))
+        sessionDao.insertLoggedSet(loggedSet("lsC_live", "seC", weightKg = 90.0, reps = 6))
+
+        return Triple("seA", "seB", "seC")
+    }
+
+    @Test fun observeSetsForExercise_excludesInProgressAndDeleted_orderedByStartedAt() = runTest {
+        insertFullGraph()
+
+        analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
+            val rows = awaitItem()
+            // Only 2 rows: sA's live set and sB's live set
+            assertEquals(2, rows.size)
+            // Ordered by startedAt ASC: sA (1000) before sB (2000)
+            assertEquals("sA", rows[0].sessionId)
+            assertEquals("sB", rows[1].sessionId)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test fun observeSetsForExercise_fromMillis_filtersEarlySession() = runTest {
+        insertFullGraph()
+
+        // fromMillis=1500 excludes sA (startedAt=1000 < 1500)
+        analyticsDao.observeSetsForExercise("ex1", fromMillis = 1500L).test {
+            val rows = awaitItem()
+            assertEquals(1, rows.size)
+            assertEquals("sB", rows[0].sessionId)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test fun observeSetsForExercise_softDeletedSet_isExcluded() = runTest {
+        insertFullGraph()
+
+        // The soft-deleted set in sA (lsA_dead) must not appear
+        analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
+            val rows = awaitItem()
+            // Neither row should be the dead set
+            assertTrue(rows.none { it.weightKg == 70.0 && it.reps == 5 })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test fun observeSetsForExercise_returnsCorrectWeightAndReps() = runTest {
+        insertFullGraph()
+
+        analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
+            val rows = awaitItem()
+            // sA live set
+            assertEquals(60.0, rows[0].weightKg, 0.001)
+            assertEquals(10, rows[0].reps)
+            // sB live set
+            assertEquals(80.0, rows[1].weightKg, 0.001)
+            assertEquals(8, rows[1].reps)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test fun observeSetsForExercise_noSetsForExercise_returnsEmpty() = runTest {
+        exerciseDao.insert(exercise("ex2"))
+        sessionDao.insertSession(session("sX", startedAt = 1000L, endedAt = 2000L))
+        sessionDao.insertSessionExercise(sessionExercise("seX", "sX", "ex2"))
+        sessionDao.insertLoggedSet(loggedSet("lsX", "seX"))
+
+        // Query for a different exercise that has no rows
+        exerciseDao.insert(exercise("exEmpty"))
+        analyticsDao.observeSetsForExercise("exEmpty", fromMillis = 0L).test {
+            val rows = awaitItem()
+            assertTrue(rows.isEmpty())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+}
