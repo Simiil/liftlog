@@ -46,6 +46,15 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+      - name: Free disk space for the emulator
+        # The AVD needs a ~7.4 GB userdata partition; the runner's / has too little
+        # free by default. Drop preinstalled toolchains we don't use (keeps the JDK
+        # tool cache and the Android SDK intact, only removes the unused NDK).
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/local/lib/android/sdk/ndk
+          sudo docker image prune --all --force || true
+          df -h /
       - uses: gradle/actions/setup-gradle@v4
       # 01-architecture §8 named a Gradle-managed device (pixelApi34DebugAndroidTest),
       # but its snapshot emulator fails to boot on GitHub's headless runners. This is
