@@ -94,6 +94,7 @@
     <string name="session_replace_exercise">Replace exercise</string>
     <string name="session_finish_summary">%1$s — %2$d sets</string>
     <string name="session_overflow">More options</string>
+    <string name="more_options">More options</string>
     <string name="ghost_last">last: %1$s</string>
     <string name="session_progress">%1$d/%2$s</string>
     <string name="cd_close_session">Close session</string>
