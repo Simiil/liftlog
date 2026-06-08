@@ -1,34 +1,60 @@
 package de.simiil.liftlog.ui.home
 
 import android.text.format.DateUtils
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +73,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val firstLaunch = uiState.resume == null && uiState.recent.isEmpty()
 
     Scaffold(
         modifier = modifier,
@@ -64,73 +91,85 @@ fun HomeScreen(
             )
         },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            // Resume card
-            uiState.resume?.let { resume ->
-                item(key = "resume_card") {
-                    ResumeCard(
-                        resume = resume,
-                        onClick = { onOpenSession(resume.sessionId) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .testTag(UiTestTags.HOME_RESUME_CARD),
-                    )
-                }
-            }
+        if (firstLaunch) {
+            FirstLaunch(
+                onStart = { viewModel.startOrResume(onOpenSession) },
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+            )
+        } else {
+            HomeContent(
+                uiState = uiState,
+                onResume = { id -> onOpenSession(id) },
+                onStartEmpty = { viewModel.startOrResume(onOpenSession) },
+                onOpenSessionDetail = onOpenSessionDetail,
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+            )
+        }
+    }
+}
 
-            // Start training section
-            item(key = "start_section_header") {
-                SectionHeader(
-                    text = stringResource(R.string.home_start_training),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
-
-            item(key = "start_empty") {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.home_start_empty)) },
+@Composable
+private fun HomeContent(
+    uiState: HomeUiState,
+    onResume: (String) -> Unit,
+    onStartEmpty: () -> Unit,
+    onOpenSessionDetail: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
+    ) {
+        uiState.resume?.let { resume ->
+            item(key = "resume_card") {
+                ResumeCard(
+                    resume = resume,
+                    onClick = { onResume(resume.sessionId) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { viewModel.startOrResume(onOpenSession) }
-                        .testTag(UiTestTags.HOME_START_EMPTY)
-                        .padding(horizontal = 0.dp),
+                        .padding(top = 12.dp)
+                        .testTag(UiTestTags.HOME_RESUME_CARD),
                 )
             }
+        }
 
-            // Recent section
-            item(key = "recent_section_header") {
-                SectionHeader(
-                    text = stringResource(R.string.home_recent),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        item(key = "start_section_header") {
+            SectionHeader(stringResource(R.string.home_start_training))
+        }
+
+        item(key = "start_empty") {
+            EmptySessionCard(
+                onClick = onStartEmpty,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(UiTestTags.HOME_START_EMPTY),
+            )
+        }
+
+        item(key = "recent_section_header") {
+            SectionHeader(stringResource(R.string.home_recent))
+        }
+
+        if (uiState.recent.isEmpty()) {
+            item(key = "no_history") {
+                Text(
+                    text = stringResource(R.string.home_no_history),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
                 )
             }
-
-            if (uiState.recent.isEmpty()) {
-                item(key = "no_history") {
-                    Text(
-                        text = stringResource(R.string.home_no_history),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-            } else {
-                items(uiState.recent, key = { it.sessionId }) { session ->
-                    RecentSessionItem(
-                        session = session,
-                        onClick = { onOpenSessionDetail(session.sessionId) },
-                    )
-                }
-            }
-
-            item(key = "bottom_spacer") {
-                Spacer(modifier = Modifier.height(16.dp))
+        } else {
+            itemsIndexed(uiState.recent, key = { _, s -> s.sessionId }) { index, session ->
+                RecentSessionItem(
+                    session = session,
+                    showDivider = index < uiState.recent.lastIndex,
+                    onClick = { onOpenSessionDetail(session.sessionId) },
+                )
             }
         }
     }
@@ -148,21 +187,99 @@ private fun ResumeCard(
     Card(
         onClick = onClick,
         modifier = modifier,
+        shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "${stringResource(R.string.home_resume)} — $name",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.PlayArrow,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                )
+            }
+            Spacer(Modifier.size(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.home_resume_label, name),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = stringResource(
+                        R.string.home_resume_meta,
+                        resume.exerciseCount,
+                        elapsedMinutes,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
+                )
+            }
+            Spacer(Modifier.size(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                )
+                Spacer(Modifier.size(6.dp))
+                Text(
+                    text = stringResource(R.string.home_live),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptySessionCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(20.dp)
+    Box(
+        modifier = modifier
+            .heightIn(min = 96.dp)
+            .clip(shape)
+            .dashedBorder(
+                color = MaterialTheme.colorScheme.outline,
+                width = 1.5.dp,
+                cornerRadius = 20.dp,
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(26.dp),
+            )
+            Spacer(Modifier.size(8.dp))
             Text(
-                text = stringResource(R.string.home_resume_summary, resume.exerciseCount, elapsedMinutes),
+                text = stringResource(R.string.home_start_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -176,15 +293,18 @@ private fun SectionHeader(
     Text(
         text = text,
         style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.Medium,
         color = MaterialTheme.colorScheme.primary,
-        modifier = modifier,
+        modifier = modifier.padding(start = 4.dp, end = 4.dp, top = 22.dp, bottom = 12.dp),
     )
 }
 
 @Composable
 private fun RecentSessionItem(
     session: RecentSessionUi,
+    showDivider: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val name = session.name ?: stringResource(R.string.session_untitled)
     val relativeDate = DateUtils.getRelativeTimeSpanString(
@@ -192,13 +312,128 @@ private fun RecentSessionItem(
         Instant.now().toEpochMilli(),
         DateUtils.DAY_IN_MILLIS,
     ).toString()
-    val supportingText = "$relativeDate · ${pluralStringResource(R.plurals.set_count, session.setCount, session.setCount)}"
 
-    ListItem(
-        headlineContent = { Text(name) },
-        supportingContent = { Text(supportingText) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 6.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.size(12.dp))
+            Text(
+                text = relativeDate,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.size(12.dp))
+            Text(
+                text = pluralStringResource(R.plurals.set_count, session.setCount, session.setCount),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (showDivider) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        }
+    }
+}
+
+@Composable
+private fun FirstLaunch(
+    onStart: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 30.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(84.dp)
+                .clip(RoundedCornerShape(26.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.FitnessCenter,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(40.dp),
+            )
+        }
+        Spacer(Modifier.height(22.dp))
+        Text(
+            text = stringResource(R.string.home_first_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = stringResource(R.string.home_first_sub),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.widthIn(max = 280.dp),
+        )
+        Spacer(Modifier.height(30.dp))
+        Button(
+            onClick = onStart,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .testTag(UiTestTags.HOME_START_EMPTY),
+            shape = RoundedCornerShape(100.dp),
+            contentPadding = ButtonDefaults.ContentPadding,
+        ) {
+            Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.size(8.dp))
+            Text(
+                text = stringResource(R.string.home_first_start),
+                style = MaterialTheme.typography.titleSmall,
+            )
+        }
+        Spacer(Modifier.height(18.dp))
+        Text(
+            text = stringResource(R.string.home_first_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/**
+ * Draws a dashed rounded-rect border (Compose has no first-class dashed border).
+ * Used by the empty-session tile to match the mockup's `.template-chip.empty` affordance.
+ */
+private fun Modifier.dashedBorder(
+    color: Color,
+    width: Dp,
+    cornerRadius: Dp,
+    on: Dp = 6.dp,
+    off: Dp = 4.dp,
+): Modifier = drawBehind {
+    val stroke = width.toPx()
+    val effect = Stroke(
+        width = stroke,
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(on.toPx(), off.toPx())),
+    )
+    drawRoundRect(
+        color = color,
+        topLeft = Offset(stroke / 2f, stroke / 2f),
+        size = Size(size.width - stroke, size.height - stroke),
+        cornerRadius = CornerRadius(cornerRadius.toPx()),
+        style = effect,
     )
 }
