@@ -96,6 +96,9 @@
     <string name="cd_close_session">Close session</string>
     <string name="cd_finish_session">Finish session</string>
 
+    <!-- History screen -->
+    <string name="history_empty">No finished workouts yet</string>
+
     <!-- LoggedSetRow -->
     <string name="rpe_label">RPE</string>
     <string name="set_note">Note</string>

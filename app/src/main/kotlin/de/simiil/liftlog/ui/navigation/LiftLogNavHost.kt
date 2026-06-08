@@ -29,7 +29,7 @@ fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifi
         }
         composable<PlansRoute> { PlansScreen() }
         composable<AnalyticsRoute> { AnalyticsScreen() }
-        composable<HistoryRoute> { HistoryScreen() }
+        composable<HistoryRoute> { HistoryScreen(onOpenSessionDetail = { navController.navigate(SessionDetailRoute(it)) }) }
         composable<SettingsRoute> {
             SettingsScreen(onBack = { navController.popBackStack() })
         }
