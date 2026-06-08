@@ -10,12 +10,12 @@ plugins {
 }
 
 android {
-    namespace = "de.sleisering.liftlog"
+    namespace = "de.simiil.liftlog"
     compileSdk = 36
 
     defaultConfig {
         // applicationId is TBD with the app name (01-architecture §2)
-        applicationId = "de.sleisering.liftlog"
+        applicationId = "de.simiil.liftlog"
         minSdk = 31
         targetSdk = 36
         versionCode = 1
