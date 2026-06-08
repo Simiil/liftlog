@@ -19,6 +19,10 @@ review gate at its exit criteria.
 - `./gradlew testDebugUnitTest` — JVM unit tests
 - `./gradlew lint` — Android lint
 - `./gradlew lint testDebugUnitTest assembleDebug` — exactly what CI runs
+- `./gradlew pixelApi34DebugAndroidTest` — instrumented Room/DAO + seeder tests on
+  a Gradle-managed device (aosp-atd, API 34). Requires KVM; this dev machine has
+  none, so these run only in CI. Verify locally with `./gradlew assembleDebugAndroidTest`
+  (compile only).
 - Needs JDK 17+ and an Android SDK (`local.properties` → `sdk.dir`); the
   Gradle wrapper is committed. No emulator on this machine — instrumented
   tests (from M1 on) run via Gradle-managed devices in CI.
