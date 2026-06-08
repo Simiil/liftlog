@@ -74,6 +74,7 @@ interface SessionDao {
         SELECT se.sessionId AS sessionId, COUNT(ls.id) AS setCount
         FROM session_exercises se
         JOIN logged_sets ls ON ls.sessionExerciseId = se.id AND ls.deletedAt IS NULL
+        JOIN sessions s     ON s.id = se.sessionId           AND s.deletedAt IS NULL
         WHERE se.deletedAt IS NULL
         GROUP BY se.sessionId
     """)

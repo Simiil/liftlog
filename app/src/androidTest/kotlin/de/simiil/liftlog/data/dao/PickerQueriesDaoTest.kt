@@ -23,10 +23,10 @@ import org.junit.runner.RunWith
  *
  * Graph overview:
  *  - Exercise "ex1", "ex2"
- *  - Session A: finished, two session-exercises (ex1 @ completedAt=1000, ex2 @ completedAt=2000)
- *  - Session B: finished, one session-exercise (ex1 @ completedAt=3000)
- *  → ex1 was most recently used at t=3000 (session B); ex2 at t=2000 (session A)
- *  → order must be: ex1 first, ex2 second
+ *  - Session A: finished, two session-exercises (ex1 @ completedAt=2000, ex2 @ completedAt=1000)
+ *  - Session B: finished, one session-exercise (ex2 @ completedAt=3000)
+ *  → ex2 was most recently used at t=3000 (session B); ex1 at t=2000 (session A)
+ *  → order must be: ex2 first, ex1 second (ex2 is alphabetically later, making ORDER BY load-bearing)
  *
  * Soft-delete discrimination cases are tested in separate methods.
  */
@@ -119,36 +119,39 @@ class PickerQueriesDaoTest {
 
     /**
      * Base case: two exercises used across two sessions.
-     * ex1 last used at t=3000, ex2 last used at t=2000 → ex1 must come first.
-     * Sessions were inserted in reverse order (B before A) to ensure the ORDER BY
+     * ex2 last used at t=3000, ex1 last used at t=2000 → ex2 must come first.
+     * Crucially, ex2 is alphabetically later than ex1, so a dropped ORDER BY that
+     * fell back to key/insertion order would return [ex1, ex2] — the wrong answer.
+     * Sessions are also inserted in reverse order (B before A) to ensure ORDER BY
      * on MAX(completedAt) is genuinely load-bearing.
      */
     @Test fun recentlyUsed_orderedByMostRecentCompletedAtDesc() = runTest {
         exerciseDao.insert(exercise("ex1"))
         exerciseDao.insert(exercise("ex2"))
 
-        // Session B inserted first (most recent for ex1)
+        // Session B inserted first (most recent for ex2)
         sessionDao.insertSession(session("sB", startedAt = 2000L, endedAt = 3600L))
-        val seB_ex1 = sessionExercise("seB_ex1", "sB", "ex1")
-        sessionDao.insertSessionExercise(seB_ex1)
-        sessionDao.insertLoggedSet(loggedSet("lsB1", "seB_ex1", completedAt = 3000L))
+        val seB_ex2 = sessionExercise("seB_ex2", "sB", "ex2")
+        sessionDao.insertSessionExercise(seB_ex2)
+        sessionDao.insertLoggedSet(loggedSet("lsB1", "seB_ex2", completedAt = 3000L))
 
-        // Session A inserted second; ex2 last used at t=2000, ex1 at t=1000
+        // Session A inserted second; ex1 last used at t=2000, ex2 at t=1000
         sessionDao.insertSession(session("sA", startedAt = 500L, endedAt = 2500L))
         val seA_ex1 = sessionExercise("seA_ex1", "sA", "ex1")
         val seA_ex2 = sessionExercise("seA_ex2", "sA", "ex2")
         sessionDao.insertSessionExercise(seA_ex1)
         sessionDao.insertSessionExercise(seA_ex2)
-        sessionDao.insertLoggedSet(loggedSet("lsA1", "seA_ex1", completedAt = 1000L))
-        sessionDao.insertLoggedSet(loggedSet("lsA2", "seA_ex2", completedAt = 2000L))
+        sessionDao.insertLoggedSet(loggedSet("lsA1", "seA_ex1", completedAt = 2000L))
+        sessionDao.insertLoggedSet(loggedSet("lsA2", "seA_ex2", completedAt = 1000L))
 
         exerciseDao.observeRecentlyUsedExerciseIds().test {
             val rows = awaitItem()
             // One row per exercise
             assertEquals(2, rows.size)
-            // ex1 most recent (t=3000) → first; ex2 (t=2000) → second
-            assertEquals("ex1", rows[0].exerciseId)
-            assertEquals("ex2", rows[1].exerciseId)
+            // ex2 most recent (t=3000) → first; ex1 (t=2000) → second
+            // (ex2 is alphabetically later, so a missing ORDER BY would give the wrong order)
+            assertEquals("ex2", rows[0].exerciseId)
+            assertEquals("ex1", rows[1].exerciseId)
             // lastUsed timestamps must match the MAX completedAt for each exercise
             assertEquals(3000L, rows[0].lastUsed)
             assertEquals(2000L, rows[1].lastUsed)
@@ -334,6 +337,63 @@ class PickerQueriesDaoTest {
             val bySession = rows.associateBy { it.sessionId }
             assertEquals(1, bySession["sA"]!!.setCount)
             assertEquals(3, bySession["sB"]!!.setCount)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    /**
+     * Sets under a soft-deleted session_exercise must not count toward any session.
+     * This test would fail if the `se.deletedAt IS NULL` WHERE clause were removed
+     * from [SessionDao.observeSetCountsBySession].
+     */
+    @Test fun setCountsBySession_setsUnderSoftDeletedSessionExercise_doNotCount() = runTest {
+        exerciseDao.insert(exercise("ex1"))
+        exerciseDao.insert(exercise("ex2"))
+
+        sessionDao.insertSession(session("sA", startedAt = 1000L))
+        // ex1: live session_exercise with a live set → counts
+        sessionDao.insertSessionExercise(sessionExercise("seA_ex1", "sA", "ex1"))
+        sessionDao.insertLoggedSet(loggedSet("ls_live", "seA_ex1", completedAt = 1000L))
+        // ex2: soft-deleted session_exercise with a live set → must NOT count
+        sessionDao.insertSessionExercise(
+            sessionExercise("seA_ex2", "sA", "ex2", deleted = 99L)
+        )
+        sessionDao.insertLoggedSet(loggedSet("ls_under_dead_se", "seA_ex2", completedAt = 2000L))
+
+        sessionDao.observeSetCountsBySession().test {
+            val rows = awaitItem()
+            // sA appears, but only the live set under the live session_exercise is counted
+            assertEquals(1, rows.size)
+            assertEquals("sA", rows[0].sessionId)
+            assertEquals(1, rows[0].setCount)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    /**
+     * A soft-deleted session must be absent from [SessionDao.observeSetCountsBySession].
+     * This test would fail if the `s.deletedAt IS NULL` join condition were removed
+     * from the query.
+     */
+    @Test fun setCountsBySession_softDeletedSession_isAbsent() = runTest {
+        exerciseDao.insert(exercise("ex1"))
+
+        // sA: live session with live sets → present
+        sessionDao.insertSession(session("sA", startedAt = 1000L))
+        sessionDao.insertSessionExercise(sessionExercise("seA", "sA", "ex1"))
+        sessionDao.insertLoggedSet(loggedSet("lsA1", "seA", completedAt = 1000L))
+
+        // sB: soft-deleted session with live sets and live session_exercise → must be absent
+        sessionDao.insertSession(session("sB", startedAt = 2000L, deleted = 99L))
+        sessionDao.insertSessionExercise(sessionExercise("seB", "sB", "ex1"))
+        sessionDao.insertLoggedSet(loggedSet("lsB1", "seB", completedAt = 2000L))
+
+        sessionDao.observeSetCountsBySession().test {
+            val rows = awaitItem()
+            // Only sA appears; sB is soft-deleted
+            assertEquals(1, rows.size)
+            assertEquals("sA", rows[0].sessionId)
+            assertEquals(1, rows[0].setCount)
             cancelAndIgnoreRemainingEvents()
         }
     }

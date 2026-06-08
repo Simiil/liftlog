@@ -112,10 +112,9 @@ class SessionLoggingDaoTest {
     }
 
     @Test fun maxSetPosition_returnsMaxNotInsertionOrder() = runTest {
-        // Insert out of order: 2, 1, 3 — MAX must be 3, not the last inserted (3)
-        // The discriminating part is that if we inserted 2 then 1 then 3, a naive
-        // "last inserted" approach would also return 3; insert 2 then 3 then 1 instead
-        // so insertion-order-last would give 1, but MAX gives 3.
+        // Insert out of order: 2, 3, 1 — MAX must be 3, not the last inserted value.
+        // Insertion order ends with 1, so a naive "last inserted" approach would return 1;
+        // MAX must return 3.
         exerciseDao.insert(exercise("ex1"))
         dao.insertSession(session("s1"))
         dao.insertSessionExercise(sessionExercise("se1", "s1", "ex1"))
