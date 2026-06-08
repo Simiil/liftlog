@@ -1,5 +1,6 @@
 package de.simiil.liftlog.data.repository
 
+import de.simiil.liftlog.data.dao.RecentExercise
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.testing.fakes.FakeExerciseDao
@@ -8,6 +9,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -104,5 +106,30 @@ class ExerciseRepositoryTest {
         // Should not throw
         repo.setHidden("non-existent-id", true)
         assertEquals(0, dao.rows.size)
+    }
+
+    // ─── observeRecentlyUsedIds ───────────────────────────────────────────────
+
+    @Test
+    fun `observeRecentlyUsedIds maps rows to exerciseId list preserving order`() = runTest {
+        // Pre-load fake DAO with three rows in a known order (most-recent first)
+        dao.recentlyUsed.value = listOf(
+            RecentExercise(exerciseId = "ex-c", lastUsed = 3000L),
+            RecentExercise(exerciseId = "ex-a", lastUsed = 2000L),
+            RecentExercise(exerciseId = "ex-b", lastUsed = 1000L),
+        )
+
+        val result = repo.observeRecentlyUsedIds().first()
+
+        assertEquals(listOf("ex-c", "ex-a", "ex-b"), result)
+    }
+
+    @Test
+    fun `observeRecentlyUsedIds returns empty list when no rows exist`() = runTest {
+        dao.recentlyUsed.value = emptyList()
+
+        val result = repo.observeRecentlyUsedIds().first()
+
+        assertTrue(result.isEmpty())
     }
 }

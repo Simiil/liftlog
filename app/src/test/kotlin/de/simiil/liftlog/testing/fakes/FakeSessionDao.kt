@@ -1,15 +1,20 @@
 package de.simiil.liftlog.testing.fakes
 
 import de.simiil.liftlog.data.dao.SessionDao
+import de.simiil.liftlog.data.dao.SessionSetCount
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.data.entity.SessionEntity
 import de.simiil.liftlog.data.entity.SessionExerciseEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeSessionDao : SessionDao {
     val sessions = linkedMapOf<String, SessionEntity>()
     val sessionExercises = linkedMapOf<String, SessionExerciseEntity>()
     val loggedSets = linkedMapOf<String, LoggedSetEntity>()
+
+    /** Settable backing store for set-count projection; preload in tests to drive observeSetCountsBySession(). */
+    val setCounts = MutableStateFlow<List<SessionSetCount>>(emptyList())
 
     override fun observeActiveSession(): Flow<SessionEntity?> = TODO("not used in repository write tests")
     override fun observeHistory(): Flow<List<SessionEntity>> = TODO("not used in repository write tests")
@@ -97,4 +102,6 @@ class FakeSessionDao : SessionDao {
             }
         }
     }
+
+    override fun observeSetCountsBySession(): Flow<List<SessionSetCount>> = setCounts
 }

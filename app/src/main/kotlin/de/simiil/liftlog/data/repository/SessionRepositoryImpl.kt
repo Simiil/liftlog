@@ -16,6 +16,7 @@ import java.time.Clock
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 @Singleton
@@ -128,4 +129,7 @@ class SessionRepositoryImpl @Inject constructor(
         val sessionId = prefillDao.lastCompletedSessionIdFor(exerciseId) ?: return emptyList()
         return prefillDao.setsForExerciseInSession(sessionId, exerciseId).map { it.toDomain() }
     }
+
+    override fun observeSetCountsBySession(): Flow<Map<String, Int>> =
+        dao.observeSetCountsBySession().map { rows -> rows.associate { it.sessionId to it.setCount } }
 }

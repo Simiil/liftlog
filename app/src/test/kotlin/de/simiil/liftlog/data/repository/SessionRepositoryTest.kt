@@ -1,5 +1,6 @@
 package de.simiil.liftlog.data.repository
 
+import de.simiil.liftlog.data.dao.SessionSetCount
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.data.entity.SessionEntity
 import de.simiil.liftlog.data.entity.SessionExerciseEntity
@@ -10,6 +11,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -418,5 +420,28 @@ class SessionRepositoryTest {
         assertEquals(5, result[0].reps)
         assertEquals("ls-b", result[1].id)
         assertEquals(4, result[1].reps)
+    }
+
+    // ─── observeSetCountsBySession ────────────────────────────────────────────
+
+    @Test
+    fun `observeSetCountsBySession maps rows to sessionId-to-setCount map`() = runTest {
+        dao.setCounts.value = listOf(
+            SessionSetCount(sessionId = "sess-1", setCount = 3),
+            SessionSetCount(sessionId = "sess-2", setCount = 7),
+        )
+
+        val result = repo.observeSetCountsBySession().first()
+
+        assertEquals(mapOf("sess-1" to 3, "sess-2" to 7), result)
+    }
+
+    @Test
+    fun `observeSetCountsBySession returns empty map when no rows exist`() = runTest {
+        dao.setCounts.value = emptyList()
+
+        val result = repo.observeSetCountsBySession().first()
+
+        assertTrue(result.isEmpty())
     }
 }

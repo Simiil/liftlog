@@ -69,4 +69,13 @@ interface SessionDao {
     @Query("""UPDATE logged_sets SET deletedAt = :now, updatedAt = :now
               WHERE sessionExerciseId = :sessionExerciseId AND deletedAt IS NULL""")
     suspend fun softDeleteLoggedSetsForSessionExercise(sessionExerciseId: String, now: Long)
+
+    @Query("""
+        SELECT se.sessionId AS sessionId, COUNT(ls.id) AS setCount
+        FROM session_exercises se
+        JOIN logged_sets ls ON ls.sessionExerciseId = se.id AND ls.deletedAt IS NULL
+        WHERE se.deletedAt IS NULL
+        GROUP BY se.sessionId
+    """)
+    fun observeSetCountsBySession(): Flow<List<SessionSetCount>>
 }

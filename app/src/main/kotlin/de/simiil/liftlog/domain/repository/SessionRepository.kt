@@ -22,4 +22,6 @@ interface SessionRepository {
     suspend fun removeExercise(sessionExerciseId: String)                  // soft + cascade its sets
     suspend fun replaceExercise(sessionExerciseId: String, newExerciseId: String): SessionExercise
     suspend fun lastPerformance(exerciseId: String): List<LoggedSet>
+    /** Returns a map of sessionId → live set count for all sessions with at least one live set. */
+    fun observeSetCountsBySession(): Flow<Map<String, Int>>
 }
