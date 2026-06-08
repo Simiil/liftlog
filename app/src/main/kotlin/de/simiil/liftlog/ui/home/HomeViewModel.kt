@@ -10,6 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -81,7 +82,12 @@ class HomeViewModel @Inject constructor(
     fun startOrResume(onReady: (String) -> Unit) {
         viewModelScope.launch {
             val existing = uiState.value.resume?.sessionId
-            onReady(existing ?: sessionRepository.startEmptySession().id)
+            if (existing != null) { onReady(existing); return@launch }
+            try { onReady(sessionRepository.startEmptySession().id) }
+            catch (e: IllegalStateException) {
+                // lost the race: a session became active — resume it
+                sessionRepository.observeActiveSession().first()?.id?.let(onReady)
+            }
         }
     }
 }

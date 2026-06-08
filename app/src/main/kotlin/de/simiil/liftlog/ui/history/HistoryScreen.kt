@@ -1,5 +1,6 @@
 package de.simiil.liftlog.ui.history
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,15 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,8 +95,13 @@ private fun HistorySessionCard(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            val relativeDate = DateUtils.getRelativeTimeSpanString(
+                session.startedAt.toEpochMilli(),
+                System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS,
+            ).toString()
             Text(
-                text = "${formatRelativeDate(session.startedAt)} · ${stringResource(R.string.home_set_count, session.setCount)}",
+                text = "$relativeDate · ${pluralStringResource(R.plurals.set_count, session.setCount, session.setCount)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -106,18 +109,3 @@ private fun HistorySessionCard(
     }
 }
 
-private val DATE_FORMATTER: DateTimeFormatter =
-    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-
-private fun formatRelativeDate(instant: Instant): String {
-    val now = Instant.now()
-    val diffSeconds = now.epochSecond - instant.epochSecond
-    return when {
-        diffSeconds < 60 -> "just now"
-        diffSeconds < 3600 -> "${diffSeconds / 60} min ago"
-        diffSeconds < 86400 -> "${diffSeconds / 3600} hr ago"
-        diffSeconds < 86400 * 2 -> "yesterday"
-        diffSeconds < 86400 * 7 -> "${diffSeconds / 86400} days ago"
-        else -> instant.atZone(ZoneId.systemDefault()).format(DATE_FORMATTER)
-    }
-}

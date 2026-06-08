@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -191,7 +192,7 @@ private fun RecentSessionItem(
         Instant.now().toEpochMilli(),
         DateUtils.DAY_IN_MILLIS,
     ).toString()
-    val supportingText = "$relativeDate · ${stringResource(R.string.home_set_count, session.setCount)}"
+    val supportingText = "$relativeDate · ${pluralStringResource(R.plurals.set_count, session.setCount, session.setCount)}"
 
     ListItem(
         headlineContent = { Text(name) },

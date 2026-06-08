@@ -30,6 +30,7 @@ data class SessionDetailUiState(
 )
 
 data class DetailExerciseUi(
+    val sessionExerciseId: String,
     val name: String,
     val equipment: Equipment,
     val sets: List<LoggedSet>,
@@ -63,6 +64,7 @@ class SessionDetailViewModel @Inject constructor(
         val exerciseUis = details.exercises.map { ews ->
             val exercise = exerciseMap[ews.sessionExercise.exerciseId]
             DetailExerciseUi(
+                sessionExerciseId = ews.sessionExercise.id,
                 name = exercise?.name.orEmpty(),
                 equipment = exercise?.equipment ?: Equipment.MACHINE,
                 sets = ews.sets,

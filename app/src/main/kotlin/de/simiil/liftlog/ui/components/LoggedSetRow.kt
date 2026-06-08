@@ -109,7 +109,13 @@ private fun CollapsedSetRow(
     }
     val weightFormatted = Weights.format(set.weightKg, unit)
     val unitLabel = Weights.label(unit)
-    val cd = stringResource(R.string.cd_set_logged, index, weightFormatted, unitLong, set.reps)
+    val rpeFormatted = set.rpe?.let { rpe ->
+        if (rpe == rpe.toLong().toDouble()) rpe.toLong().toString() else "%.1f".format(rpe)
+    }
+    val cdBase = stringResource(R.string.cd_set_logged, index, weightFormatted, unitLong, set.reps)
+    val cdRpe = rpeFormatted?.let { stringResource(R.string.cd_set_has_rpe, it) } ?: ""
+    val cdNote = if (set.note != null) stringResource(R.string.cd_set_has_note) else ""
+    val cd = cdBase + cdRpe + cdNote
     val editLabel = stringResource(R.string.cd_edit_set)
 
     Row(
@@ -143,8 +149,8 @@ private fun CollapsedSetRow(
         // Small RPE/note indicator
         if (set.rpe != null || set.note != null) {
             val indicator = buildString {
-                if (set.rpe != null) {
-                    append("RPE ${set.rpe}")
+                if (rpeFormatted != null) {
+                    append(stringResource(R.string.rpe_value, rpeFormatted))
                 }
                 if (set.note != null) {
                     if (isNotEmpty()) append(" · ")
@@ -188,7 +194,7 @@ private fun ExpandedSetRow(
 
     Column(modifier = modifier.padding(vertical = 8.dp)) {
         Text(
-            text = "Set $index",
+            text = stringResource(R.string.set_number, index),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp),

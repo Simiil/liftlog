@@ -22,7 +22,6 @@
     <string name="home_no_history">No workouts yet</string>
     <string name="home_resume">Resume</string>
     <string name="home_resume_summary">%1$d exercises · %2$d min</string>
-    <string name="home_set_count">%1$d sets</string>
 
     <!-- WeightStepper / RepsStepper content descriptions -->
     <string name="cd_decrease_weight">Decrease weight, %1$s %2$s</string>
@@ -81,8 +80,6 @@
     <!-- Active Session screen -->
     <string name="session_log_set">LOG SET</string>
     <string name="session_add_exercise">Add exercise</string>
-    <string name="session_finish">Finish session</string>
-    <string name="session_discard">Discard session</string>
     <string name="session_discard_confirm_title">Discard workout?</string>
     <string name="session_discard_confirm_message">This deletes the current session and its logged sets.</string>
     <string name="session_discard_confirm">Discard</string>
@@ -99,12 +96,24 @@
     <!-- History screen -->
     <string name="history_empty">No finished workouts yet</string>
 
+    <!-- Session Detail screen -->
+    <string name="session_detail_empty">No sets logged</string>
+
     <!-- LoggedSetRow -->
     <string name="rpe_label">RPE</string>
+    <string name="rpe_value">RPE %1$s</string>
+    <string name="set_number">Set %1$d</string>
     <string name="set_note">Note</string>
     <string name="set_delete">Delete</string>
     <string name="set_save">Save</string>
     <string name="rpe_none">—</string>
     <string name="cd_set_logged">Set %1$d logged: %2$s %3$s, %4$d reps</string>
+    <string name="cd_set_has_rpe">, RPE %1$s</string>
+    <string name="cd_set_has_note">, has note</string>
     <string name="cd_edit_set">Edit set</string>
+
+    <plurals name="set_count">
+        <item quantity="one">%1$d set</item>
+        <item quantity="other">%1$d sets</item>
+    </plurals>
 </resources>
