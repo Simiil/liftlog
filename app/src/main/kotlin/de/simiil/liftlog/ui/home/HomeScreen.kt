@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,10 +37,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,10 +61,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.ui.UiTestTags
+import de.simiil.liftlog.ui.theme.LiftLogTheme
 import java.time.Duration
 import java.time.Instant
 
@@ -103,6 +110,9 @@ fun HomeScreen(
                 uiState = uiState,
                 onResume = { id -> onOpenSession(id) },
                 onStartEmpty = { viewModel.startOrResume(onOpenSession) },
+                onStartFromTemplate = { templateId ->
+                    viewModel.startFromTemplate(templateId, onOpenSession)
+                },
                 onOpenSessionDetail = onOpenSessionDetail,
                 modifier = Modifier
                     .padding(innerPadding)
@@ -112,11 +122,13 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HomeContent(
     uiState: HomeUiState,
     onResume: (String) -> Unit,
     onStartEmpty: () -> Unit,
+    onStartFromTemplate: (String) -> Unit,
     onOpenSessionDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -141,12 +153,11 @@ private fun HomeContent(
             SectionHeader(stringResource(R.string.home_start_training))
         }
 
-        item(key = "start_empty") {
-            EmptySessionCard(
-                onClick = onStartEmpty,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(UiTestTags.HOME_START_EMPTY),
+        item(key = "start_grid") {
+            TemplateChipGrid(
+                chips = uiState.templates,
+                onChipClick = onStartFromTemplate,
+                onStartEmpty = onStartEmpty,
             )
         }
 
@@ -285,6 +296,73 @@ private fun EmptySessionCard(
     }
 }
 
+/**
+ * 2-column grid of template chips + the trailing empty-session card.
+ * When [chips] is empty the grid contains only the empty-session card
+ * (preserving the current behavior exactly).
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TemplateChipGrid(
+    chips: List<TemplateChipUi>,
+    onChipClick: (String) -> Unit,
+    onStartEmpty: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        maxItemsInEachRow = 2,
+    ) {
+        chips.forEach { chip ->
+            TemplateChip(
+                chip = chip,
+                onClick = { onChipClick(chip.templateId) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        EmptySessionCard(
+            onClick = onStartEmpty,
+            modifier = Modifier
+                .weight(1f)
+                .testTag(UiTestTags.HOME_START_EMPTY),
+        )
+    }
+}
+
+@Composable
+private fun TemplateChip(
+    chip: TemplateChipUi,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val cd = stringResource(R.string.home_template_chip_cd, chip.name)
+    Surface(
+        onClick = onClick,
+        modifier = modifier
+            .heightIn(min = 56.dp)
+            .testTag(UiTestTags.HOME_TEMPLATE_CHIP)
+            .semantics { contentDescription = cd },
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = chip.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
 @Composable
 private fun SectionHeader(
     text: String,
@@ -409,6 +487,52 @@ private fun FirstLaunch(
             text = stringResource(R.string.home_first_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Previews
+// ──────────────────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalLayoutApi::class)
+@Preview(name = "Home – chips + empty card (light)", showBackground = true)
+@Composable
+private fun PreviewHomeWithChips() {
+    LiftLogTheme {
+        HomeContent(
+            uiState = HomeUiState(
+                templates = listOf(
+                    TemplateChipUi("t1", "Push"),
+                    TemplateChipUi("t2", "Pull"),
+                    TemplateChipUi("t3", "Legs"),
+                ),
+                recent = emptyList(),
+            ),
+            onResume = {},
+            onStartEmpty = {},
+            onStartFromTemplate = {},
+            onOpenSessionDetail = {},
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Preview(name = "Home – no plans, empty card only (light)", showBackground = true)
+@Composable
+private fun PreviewHomeNoPlans() {
+    LiftLogTheme {
+        HomeContent(
+            uiState = HomeUiState(
+                templates = emptyList(),
+                recent = emptyList(),
+            ),
+            onResume = {},
+            onStartEmpty = {},
+            onStartFromTemplate = {},
+            onOpenSessionDetail = {},
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
