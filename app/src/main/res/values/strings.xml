@@ -13,4 +13,107 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="placeholder_coming_soon">Coming soon</string>
+
+    <!-- Home screen -->
+    <string name="session_untitled">Quick workout</string>
+    <string name="home_start_training">Start training</string>
+    <string name="home_start_empty">Empty session</string>
+    <string name="home_recent">Recent</string>
+    <string name="home_no_history">No workouts yet</string>
+    <string name="home_resume">Resume</string>
+    <string name="home_resume_summary">%1$d exercises · %2$d min</string>
+
+    <!-- WeightStepper / RepsStepper content descriptions -->
+    <string name="cd_decrease_weight">Decrease weight, %1$s %2$s</string>
+    <string name="cd_increase_weight">Increase weight, %1$s %2$s</string>
+    <string name="cd_weight_value">Weight %1$s %2$s, tap to enter exactly</string>
+    <string name="cd_decrease_reps">Decrease reps</string>
+    <string name="cd_increase_reps">Increase reps</string>
+    <string name="cd_reps_value">Reps %1$d, tap to enter exactly</string>
+    <string name="weight_kilograms">kilograms</string>
+    <string name="weight_pounds">pounds</string>
+    <string name="weight_placeholder">—</string>
+
+    <!-- InlineNumpad content descriptions -->
+    <string name="cd_digit">Digit %1$d</string>
+    <string name="cd_decimal">Decimal point</string>
+    <string name="cd_backspace">Backspace</string>
+    <string name="cd_numpad_add">Add %1$s</string>
+    <string name="cd_confirm">Confirm</string>
+    <string name="numpad_confirm">Done</string>
+    <string name="numpad_dismiss">Cancel</string>
+
+    <!-- Exercise Picker -->
+    <string name="picker_title">Exercises</string>
+    <string name="picker_search">Search exercises</string>
+    <string name="picker_recent">Recent</string>
+    <string name="picker_create">Create exercise</string>
+    <string name="picker_create_name">Name</string>
+    <string name="picker_create_muscle">Muscle group</string>
+    <string name="picker_create_equipment">Equipment</string>
+    <string name="picker_create_confirm">Create</string>
+    <string name="picker_error_blank">Enter a name</string>
+    <string name="picker_duplicate_name">An exercise with this name already exists</string>
+    <string name="picker_cancel">Close</string>
+
+    <!-- MuscleGroup display labels -->
+    <string name="muscle_chest">Chest</string>
+    <string name="muscle_back">Back</string>
+    <string name="muscle_shoulders">Shoulders</string>
+    <string name="muscle_biceps">Biceps</string>
+    <string name="muscle_triceps">Triceps</string>
+    <string name="muscle_quads">Quads</string>
+    <string name="muscle_hamstrings">Hamstrings</string>
+    <string name="muscle_glutes">Glutes</string>
+    <string name="muscle_calves">Calves</string>
+    <string name="muscle_abs">Abs</string>
+    <string name="muscle_forearms">Forearms</string>
+    <string name="muscle_other">Other</string>
+
+    <!-- Equipment display labels -->
+    <string name="equipment_barbell">Barbell</string>
+    <string name="equipment_dumbbell">Dumbbell</string>
+    <string name="equipment_machine">Machine</string>
+    <string name="equipment_cable">Cable</string>
+    <string name="equipment_bodyweight">Bodyweight</string>
+
+    <!-- Active Session screen -->
+    <string name="session_log_set">LOG SET</string>
+    <string name="session_add_exercise">Add exercise</string>
+    <string name="session_discard_confirm_title">Discard workout?</string>
+    <string name="session_discard_confirm_message">This deletes the current session and its logged sets.</string>
+    <string name="session_discard_confirm">Discard</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="session_remove_exercise">Remove exercise</string>
+    <string name="session_replace_exercise">Replace exercise</string>
+    <string name="session_finish_summary">%1$s — %2$d sets</string>
+    <string name="session_overflow">More options</string>
+    <string name="ghost_last">last: %1$s</string>
+    <string name="session_progress">%1$d/%2$s</string>
+    <string name="cd_close_session">Close session</string>
+    <string name="cd_finish_session">Finish session</string>
+
+    <!-- History screen -->
+    <string name="history_empty">No finished workouts yet</string>
+
+    <!-- Session Detail screen -->
+    <string name="session_detail_empty">No sets logged</string>
+
+    <!-- LoggedSetRow -->
+    <string name="rpe_label">RPE</string>
+    <string name="rpe_value">RPE %1$s</string>
+    <string name="set_number">Set %1$d</string>
+    <string name="set_note">Note</string>
+    <string name="set_delete">Delete</string>
+    <string name="set_save">Save</string>
+    <string name="rpe_none">—</string>
+    <string name="cd_set_logged">Set %1$d logged: %2$s %3$s, %4$d reps</string>
+    <string name="cd_set_has_rpe">, RPE %1$s</string>
+    <string name="cd_set_has_note">, has note</string>
+    <string name="cd_edit_set">Edit set</string>
+
+    <plurals name="set_count">
+        <item quantity="one">%1$d set</item>
+        <item quantity="other">%1$d sets</item>
+    </plurals>
 </resources>

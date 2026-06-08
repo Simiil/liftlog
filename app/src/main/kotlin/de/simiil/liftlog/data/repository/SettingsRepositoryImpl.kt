@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import de.simiil.liftlog.domain.model.ThemePreference
+import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.SettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,6 +22,11 @@ class SettingsRepositoryImpl @Inject constructor(
             ThemePreference.fromStorageValue(preferences[KEY_THEME])
         }
 
+    override val weightUnit: Flow<WeightUnit> =
+        dataStore.data.map { preferences ->
+            WeightUnit.fromStorageValue(preferences[KEY_WEIGHT_UNIT])
+        }
+
     override suspend fun setThemePreference(preference: ThemePreference) {
         dataStore.edit { preferences ->
             preferences[KEY_THEME] = preference.name
@@ -30,5 +36,6 @@ class SettingsRepositoryImpl @Inject constructor(
     private companion object {
         // Key name mirrors the export format's settings object (02-data-spec §6)
         val KEY_THEME = stringPreferencesKey("theme")
+        val KEY_WEIGHT_UNIT = stringPreferencesKey("weight_unit")
     }
 }

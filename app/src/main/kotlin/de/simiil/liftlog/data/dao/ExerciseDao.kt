@@ -30,4 +30,15 @@ interface ExerciseDao {
     @Update suspend fun update(exercise: ExerciseEntity)
 
     @Query("SELECT COUNT(*) FROM exercises WHERE deletedAt IS NULL") suspend fun countLive(): Int
+
+    @Query("""
+        SELECT se.exerciseId AS exerciseId, MAX(ls.completedAt) AS lastUsed
+        FROM session_exercises se
+        JOIN logged_sets ls ON ls.sessionExerciseId = se.id AND ls.deletedAt IS NULL
+        JOIN sessions s     ON s.id = se.sessionId           AND s.deletedAt IS NULL
+        WHERE se.deletedAt IS NULL
+        GROUP BY se.exerciseId
+        ORDER BY lastUsed DESC
+    """)
+    fun observeRecentlyUsedExerciseIds(): Flow<List<RecentExercise>>
 }

@@ -9,9 +9,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Current phase: implementation
 
 Docs under `/docs` are approved (owner green-lit implementation 2026-06-07).
-Implementation follows the milestones in `docs/05-roadmap.md`; M0 (scaffold) is
-done, M1 (data layer) is next. Each milestone is a reviewable PR series with a
-review gate at its exit criteria.
+Implementation follows the milestones in `docs/05-roadmap.md`; M0 (scaffold) and
+M1 (data layer) are done and merged. M2 (logging flow — Home, Active Session,
+Exercise Picker, History) is next. Each milestone is a reviewable PR series with
+a review gate at its exit criteria.
 
 ## Build & test
 

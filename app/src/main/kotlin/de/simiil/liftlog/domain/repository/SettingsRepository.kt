@@ -1,6 +1,7 @@
 package de.simiil.liftlog.domain.repository
 
 import de.simiil.liftlog.domain.model.ThemePreference
+import de.simiil.liftlog.domain.model.WeightUnit
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -9,5 +10,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface SettingsRepository {
     val themePreference: Flow<ThemePreference>
+    val weightUnit: Flow<WeightUnit>
+    // setWeightUnit + the Settings toggle UI are deferred to M5 (flagged decision #1).
     suspend fun setThemePreference(preference: ThemePreference)
 }

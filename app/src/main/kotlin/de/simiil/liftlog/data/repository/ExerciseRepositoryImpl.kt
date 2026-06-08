@@ -12,6 +12,7 @@ import java.time.Clock
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 @Singleton
@@ -44,4 +45,7 @@ class ExerciseRepositoryImpl @Inject constructor(
         val current = dao.findById(id) ?: return
         dao.update(current.copy(isHidden = hidden, updatedAt = clock.millis()))
     }
+
+    override fun observeRecentlyUsedIds(): Flow<List<String>> =
+        dao.observeRecentlyUsedExerciseIds().map { rows -> rows.map { it.exerciseId } }
 }
