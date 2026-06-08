@@ -77,4 +77,30 @@
     <string name="equipment_machine">Machine</string>
     <string name="equipment_cable">Cable</string>
     <string name="equipment_bodyweight">Bodyweight</string>
+
+    <!-- Active Session screen -->
+    <string name="session_log_set">LOG SET</string>
+    <string name="session_add_exercise">Add exercise</string>
+    <string name="session_finish">Finish session</string>
+    <string name="session_discard">Discard session</string>
+    <string name="session_discard_confirm_title">Discard workout?</string>
+    <string name="session_discard_confirm_message">This deletes the current session and its logged sets.</string>
+    <string name="session_discard_confirm">Discard</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="session_remove_exercise">Remove exercise</string>
+    <string name="session_replace_exercise">Replace exercise</string>
+    <string name="session_finish_summary">%1$s — %2$d sets</string>
+    <string name="session_overflow">More options</string>
+    <string name="ghost_last">last: %1$s</string>
+    <string name="session_progress">%1$d/%2$s</string>
+    <string name="cd_close_session">Close session</string>
+    <string name="cd_finish_session">Finish session</string>
+
+    <!-- LoggedSetRow -->
+    <string name="rpe_label">RPE</string>
+    <string name="set_note">Note</string>
+    <string name="set_delete">Delete</string>
+    <string name="set_save">Save</string>
+    <string name="rpe_none">—</string>
+    <string name="cd_set_logged">Set %1$d logged: %2$s %3$s, %4$d reps, double-tap to edit</string>
 </resources>

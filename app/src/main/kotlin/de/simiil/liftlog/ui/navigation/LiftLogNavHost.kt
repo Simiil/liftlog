@@ -1,15 +1,18 @@
 package de.simiil.liftlog.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.ui.analytics.AnalyticsScreen
 import de.simiil.liftlog.ui.exercises.ExercisePickerScreen
 import de.simiil.liftlog.ui.history.HistoryScreen
 import de.simiil.liftlog.ui.home.HomeScreen
 import de.simiil.liftlog.ui.plans.PlansScreen
+import de.simiil.liftlog.ui.session.ActiveSessionScreen
 import de.simiil.liftlog.ui.settings.SettingsScreen
 
 @Composable
@@ -29,6 +32,18 @@ fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifi
         composable<HistoryRoute> { HistoryScreen() }
         composable<SettingsRoute> {
             SettingsScreen(onBack = { navController.popBackStack() })
+        }
+        composable<ActiveSessionRoute> { entry ->
+            val pickedId by entry.savedStateHandle
+                .getStateFlow<String?>(PICKED_EXERCISE_ID, null)
+                .collectAsStateWithLifecycle()
+            ActiveSessionScreen(
+                onFinished = { navController.popBackStack() },
+                onDiscarded = { navController.popBackStack() },
+                onAddExercise = { navController.navigate(ExercisePickerRoute) },
+                pickedExerciseId = pickedId,
+                onPickedExerciseConsumed = { entry.savedStateHandle[PICKED_EXERCISE_ID] = null },
+            )
         }
         composable<ExercisePickerRoute> {
             ExercisePickerScreen(
