@@ -9,10 +9,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Current phase: implementation
 
 Docs under `/docs` are approved (owner green-lit implementation 2026-06-07).
-Implementation follows the milestones in `docs/05-roadmap.md`; M0 (scaffold) and
-M1 (data layer) are done and merged. M2 (logging flow — Home, Active Session,
-Exercise Picker, History) is next. Each milestone is a reviewable PR series with
-a review gate at its exit criteria.
+Implementation follows the milestones in `docs/05-roadmap.md`; M0 (scaffold),
+M1 (data layer), and M2 (logging flow — Home, Active Session, Exercise Picker,
+History) are done and merged. M3 (Plans) is next. Each milestone is a reviewable
+PR series with a review gate at its exit criteria.
 
 ## Build & test
 
@@ -20,16 +20,24 @@ a review gate at its exit criteria.
 - `./gradlew testDebugUnitTest` — JVM unit tests
 - `./gradlew lint` — Android lint
 - `./gradlew lint testDebugUnitTest assembleDebug` — exactly what CI runs
-- `./gradlew connectedDebugAndroidTest` — instrumented Room/DAO + seeder tests on a
-  connected device/emulator. CI runs these on a headless emulator via the
-  `reactivecircus/android-emulator-runner` action. (A Gradle-managed device,
-  `pixelApi34DebugAndroidTest`, is also configured and works locally with KVM, but its
-  snapshot emulator fails to boot on GitHub's hosted runners — hence the action.)
-  This dev machine has no KVM, so verify locally with `./gradlew assembleDebugAndroidTest`
-  (compile only); the tests themselves run in CI.
-- Needs JDK 17+ and an Android SDK (`local.properties` → `sdk.dir`); the
-  Gradle wrapper is committed. No emulator on this machine — instrumented
-  tests (from M1 on) run via Gradle-managed devices in CI.
+- `./gradlew connectedDebugAndroidTest` — instrumented Room/DAO + seeder tests. **These run
+  locally now**: KVM works on this machine and an emulator is usually up (`emulator-5554`, a
+  Pixel 9 Pro XL AVD); a physical Pixel 9 is sometimes attached over adb too. Note this task
+  fans out to **every** attached device — scope it with
+  `-Pandroid.testInstrumentationRunnerArguments.class=<FQCN>`. CI runs the same tests on a
+  headless **API-34** emulator via the `reactivecircus/android-emulator-runner` action. (A
+  Gradle-managed device `pixelApi34DebugAndroidTest` is also configured but its snapshot
+  emulator won't boot on GitHub's hosted runners — hence the action.)
+- **Compose UI tests remain CI-only.** `createAndroidComposeRule` tests (e.g.
+  `CriticalLoggingPathTest`) crash on this machine's **Android 16** targets — both the
+  API-36 emulator and the physical Pixel 9 — with `NoSuchMethodException:
+  android.hardware.input.InputManager.getInstance` (a known Espresso/API-36 incompatibility).
+  They pass in CI (API 34). So for UI work: drive the app + screenshot via `adb` for local
+  visual checks, and let CI run the Compose UI test.
+- Needs JDK 17+ and an Android SDK (`local.properties` → `sdk.dir`); the Gradle wrapper is
+  committed. To see a change on-device: `./gradlew installDebug` (or `assembleDebug` then
+  `adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk`), launch, and
+  drive with `adb shell` (tap/screencap; resolve element bounds via `uiautomator dump`).
 
 ## Fixed technical decisions (do not relitigate)
 
