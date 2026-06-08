@@ -1,0 +1,34 @@
+package de.simiil.liftlog.data.repository
+
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import de.simiil.liftlog.domain.model.ThemePreference
+import de.simiil.liftlog.domain.repository.SettingsRepository
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+@Singleton
+class SettingsRepositoryImpl @Inject constructor(
+    private val dataStore: DataStore<Preferences>,
+) : SettingsRepository {
+
+    override val themePreference: Flow<ThemePreference> =
+        dataStore.data.map { preferences ->
+            ThemePreference.fromStorageValue(preferences[KEY_THEME])
+        }
+
+    override suspend fun setThemePreference(preference: ThemePreference) {
+        dataStore.edit { preferences ->
+            preferences[KEY_THEME] = preference.name
+        }
+    }
+
+    private companion object {
+        // Key name mirrors the export format's settings object (02-data-spec §6)
+        val KEY_THEME = stringPreferencesKey("theme")
+    }
+}

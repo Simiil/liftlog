@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!--
+        mipmap-anydpi-v26 keeps the -v26 qualifier intentionally.
+        AAPT2 requires it for adaptive-icon XML files: dropping it to
+        mipmap-anydpi causes a resource-linking failure ("resource
+        mipmap/ic_launcher not found") with AGP 8.x, so the lint
+        suggestion to merge into mipmap-anydpi cannot be followed here.
+        minSdk 31 >= 26 makes the qualifier technically redundant for
+        SDK version gating, but it is load-bearing for the build toolchain.
+    -->
+    <issue id="ObsoleteSdkInt" severity="ignore"
+           path="src/main/res/mipmap-anydpi-v26" />
+</lint>

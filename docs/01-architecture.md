@@ -40,7 +40,7 @@ Rules that make this real (enforced in review, lint-able later):
 **Single Gradle module (`:app`).** A solo-developer app of this size gains nothing from multi-module builds except configuration overhead; the package boundaries below mirror the layers exactly, so extracting modules later (e.g. `:domain` for build-time isolation) is mechanical. Revisit if build times or team size grow.
 
 ```
-de.sleisering.liftlog/          (applicationId TBD with app name)
+de.simiil.liftlog/          (applicationId TBD with app name)
 ├── data/
 │   ├── db/            AppDatabase, type converters
 │   ├── entity/        Room entities (suffix: *Entity)
