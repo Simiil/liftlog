@@ -104,4 +104,7 @@ dependencies {
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // espresso 3.7.0 fixes the API-36 InputManager.getInstance reflection crash, so Compose UI
+    // tests now run on local Android-16 devices too (previously CI-only). See CLAUDE.md.
+    androidTestImplementation(libs.androidx.test.espresso.core)
 }
