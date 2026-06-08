@@ -14,6 +14,16 @@
     <string name="theme_dark">Dark</string>
     <string name="placeholder_coming_soon">Coming soon</string>
 
+    <!-- Home screen -->
+    <string name="session_untitled">Quick workout</string>
+    <string name="home_start_training">Start training</string>
+    <string name="home_start_empty">Empty session</string>
+    <string name="home_recent">Recent</string>
+    <string name="home_no_history">No workouts yet</string>
+    <string name="home_resume">Resume</string>
+    <string name="home_resume_summary">%1$d exercises · %2$d min</string>
+    <string name="home_set_count">%1$d sets</string>
+
     <!-- WeightStepper / RepsStepper content descriptions -->
     <string name="cd_decrease_weight">Decrease weight, %1$s %2$s</string>
     <string name="cd_increase_weight">Increase weight, %1$s %2$s</string>

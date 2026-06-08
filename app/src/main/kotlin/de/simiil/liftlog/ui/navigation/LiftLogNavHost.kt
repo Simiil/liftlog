@@ -19,6 +19,8 @@ fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifi
                 onOpenSettings = {
                     navController.navigate(SettingsRoute) { launchSingleTop = true }
                 },
+                onOpenSession = { id -> navController.navigate(ActiveSessionRoute(id)) },
+                onOpenSessionDetail = { id -> navController.navigate(SessionDetailRoute(id)) },
             )
         }
         composable<PlansRoute> { PlansScreen() }
