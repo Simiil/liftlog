@@ -1,5 +1,6 @@
 package de.simiil.liftlog.data.dao
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import de.simiil.liftlog.data.entity.ExerciseEntity
 import de.simiil.liftlog.data.entity.LoggedSetEntity
@@ -13,6 +14,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * Tests for [AnalyticsDao.observeSetsForExercise].
@@ -28,9 +30,14 @@ import org.junit.Test
  *  - Session C's SE has 1 live set (should be excluded: session not completed)
  *  - Session A's SE also has 1 soft-deleted set (should always be excluded)
  *
+ * Note: sessions B (startedAt=2000) and A (startedAt=1000) are inserted in THAT order
+ * (later first) so that the ORDER BY s.startedAt clause is exercised; without it the
+ * natural insertion order would accidentally produce a passing test.
+ *
  * Expected: observeSetsForExercise(ex1, fromMillis=0) returns exactly 2 rows
  *           (A's live set, B's live set) in startedAt ASC order.
  */
+@RunWith(AndroidJUnit4::class)
 class AnalyticsDaoTest {
     private lateinit var db: de.simiil.liftlog.data.db.AppDatabase
     private lateinit var analyticsDao: AnalyticsDao
@@ -105,22 +112,25 @@ class AnalyticsDaoTest {
 
     /**
      * Insert the full graph described in the class KDoc.
+     * Sessions B (startedAt=2000) and A (startedAt=1000) are inserted in reverse chronological
+     * order so that ORDER BY s.startedAt is genuinely load-bearing — without the clause the
+     * result order would match insertion order only accidentally.
      * Returns the IDs of session exercises for each session.
      */
     private suspend fun insertFullGraph(): Triple<String, String, String> {
         exerciseDao.insert(exercise("ex1"))
 
-        // Session A — completed, startedAt=1000
+        // Session B inserted FIRST (startedAt=2000) — reverses natural insertion order
+        sessionDao.insertSession(session("sB", startedAt = 2000L, endedAt = 3000L))
+        sessionDao.insertSessionExercise(sessionExercise("seB", "sB", "ex1"))
+        sessionDao.insertLoggedSet(loggedSet("lsB_live", "seB", weightKg = 80.0, reps = 8))
+
+        // Session A inserted SECOND (startedAt=1000) — earlier timestamp, inserted later
         sessionDao.insertSession(session("sA", startedAt = 1000L, endedAt = 2000L))
         sessionDao.insertSessionExercise(sessionExercise("seA", "sA", "ex1"))
         sessionDao.insertLoggedSet(loggedSet("lsA_live", "seA", weightKg = 60.0, reps = 10))
         // Soft-deleted set — must never appear
         sessionDao.insertLoggedSet(loggedSet("lsA_dead", "seA", weightKg = 70.0, reps = 5, deleted = 99L))
-
-        // Session B — completed, startedAt=2000
-        sessionDao.insertSession(session("sB", startedAt = 2000L, endedAt = 3000L))
-        sessionDao.insertSessionExercise(sessionExercise("seB", "sB", "ex1"))
-        sessionDao.insertLoggedSet(loggedSet("lsB_live", "seB", weightKg = 80.0, reps = 8))
 
         // Session C — in-progress (endedAt=null); its sets must be excluded
         sessionDao.insertSession(session("sC", startedAt = 3000L, endedAt = null))
@@ -137,7 +147,8 @@ class AnalyticsDaoTest {
             val rows = awaitItem()
             // Only 2 rows: sA's live set and sB's live set
             assertEquals(2, rows.size)
-            // Ordered by startedAt ASC: sA (1000) before sB (2000)
+            // Ordered by startedAt ASC: sA (1000) before sB (2000).
+            // Sessions were inserted B-then-A, so this assertion would fail without ORDER BY.
             assertEquals("sA", rows[0].sessionId)
             assertEquals("sB", rows[1].sessionId)
             cancelAndIgnoreRemainingEvents()
@@ -173,7 +184,7 @@ class AnalyticsDaoTest {
 
         analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
             val rows = awaitItem()
-            // sA live set
+            // sA live set (comes first due to ORDER BY startedAt ASC)
             assertEquals(60.0, rows[0].weightKg, 0.001)
             assertEquals(10, rows[0].reps)
             // sB live set

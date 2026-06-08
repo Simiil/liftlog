@@ -1,5 +1,6 @@
 package de.simiil.liftlog.data.dao
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.simiil.liftlog.data.entity.ExerciseEntity
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.data.entity.SessionEntity
@@ -12,6 +13,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * Tests for [PrefillDao].
@@ -22,10 +24,15 @@ import org.junit.Test
  *  - Session B: completed, startedAt=2000 — 3 sets (pos 1, 2, 3) for "ex1" + 1 soft-deleted set
  *  - Session C: in-progress (endedAt=null), startedAt=3000 — 1 set for "ex1"
  *
+ * Note: session B's 3 live sets are inserted in OUT-OF-POSITION order (pos 3, then 1, then 2)
+ * so that the ORDER BY ls.position clause is genuinely tested; without it the natural insertion
+ * order would not match position order and the assertions would fail.
+ *
  * Expected:
  *  - lastCompletedSessionIdFor("ex1") == "sB" (most recent completed, ignoring in-progress C)
- *  - setsForExerciseInSession("sB", "ex1") returns 3 sets in position order, excluding deleted set
+ *  - setsForExerciseInSession("sB", "ex1") returns 3 sets in position order 1,2,3, excluding deleted set
  */
+@RunWith(AndroidJUnit4::class)
 class PrefillDaoTest {
     private lateinit var db: de.simiil.liftlog.data.db.AppDatabase
     private lateinit var prefillDao: PrefillDao
@@ -97,7 +104,9 @@ class PrefillDaoTest {
 
     @After fun tearDown() = db.close()
 
-    /** Insert the full graph described in the class KDoc. */
+    /** Insert the full graph described in the class KDoc.
+     *  Session B's live sets are inserted in order: position 3, then 1, then 2
+     *  (out of ascending order) so that ORDER BY ls.position is genuinely exercised. */
     private suspend fun insertFullGraph() {
         exerciseDao.insert(exercise("ex1"))
 
@@ -107,12 +116,13 @@ class PrefillDaoTest {
         sessionDao.insertLoggedSet(loggedSet("lsA1", "seA", position = 1))
         sessionDao.insertLoggedSet(loggedSet("lsA2", "seA", position = 2))
 
-        // Session B — completed, startedAt=2000, 3 live sets + 1 deleted set
+        // Session B — completed, startedAt=2000, 3 live sets + 1 deleted set.
+        // Live sets inserted OUT OF position order (3, then 1, then 2) to make ORDER BY load-bearing.
         sessionDao.insertSession(session("sB", startedAt = 2000L, endedAt = 3000L))
         sessionDao.insertSessionExercise(sessionExercise("seB", "sB", "ex1"))
-        sessionDao.insertLoggedSet(loggedSet("lsB1", "seB", position = 1))
-        sessionDao.insertLoggedSet(loggedSet("lsB2", "seB", position = 2))
-        sessionDao.insertLoggedSet(loggedSet("lsB3", "seB", position = 3))
+        sessionDao.insertLoggedSet(loggedSet("lsB3", "seB", position = 3))   // inserted first
+        sessionDao.insertLoggedSet(loggedSet("lsB1", "seB", position = 1))   // inserted second
+        sessionDao.insertLoggedSet(loggedSet("lsB2", "seB", position = 2))   // inserted third
         // Soft-deleted set in session B — must be excluded from setsForExerciseInSession
         sessionDao.insertLoggedSet(loggedSet("lsB_dead", "seB", position = 4, deleted = 99L))
 
@@ -165,9 +175,10 @@ class PrefillDaoTest {
     @Test fun setsForExerciseInSession_returnsLiveSetsInPositionOrder() = runTest {
         insertFullGraph()
         val sets = prefillDao.setsForExerciseInSession("sB", "ex1")
-        // 3 live sets; the soft-deleted one (lsB_dead) is excluded
+        // 3 live sets; the soft-deleted one (lsB_dead) is excluded.
+        // Sets were inserted out of order (pos 3, 1, 2) so this assertion is genuinely testing ORDER BY.
         assertEquals(3, sets.size)
-        // Ordered by position
+        // Ordered by position ASC: 1, 2, 3
         assertEquals(listOf(1, 2, 3), sets.map { it.position })
         assertEquals(listOf("lsB1", "lsB2", "lsB3"), sets.map { it.id })
     }

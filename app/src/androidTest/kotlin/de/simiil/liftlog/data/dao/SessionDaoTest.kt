@@ -1,5 +1,6 @@
 package de.simiil.liftlog.data.dao
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import de.simiil.liftlog.data.entity.ExerciseEntity
 import de.simiil.liftlog.data.entity.LoggedSetEntity
@@ -8,12 +9,19 @@ import de.simiil.liftlog.data.entity.SessionExerciseEntity
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.testing.newInMemoryDb
+import de.simiil.liftlog.testing.tombstoneOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+/** Timestamp used for soft-delete calls; differs from row-creation updatedAt=1L so that
+ *  an updatedAt==NOW assertion genuinely proves the write occurred. */
+private const val NOW = 7000L
+
+@RunWith(AndroidJUnit4::class)
 class SessionDaoTest {
     private lateinit var db: de.simiil.liftlog.data.db.AppDatabase
     private lateinit var dao: SessionDao
@@ -201,28 +209,20 @@ class SessionDaoTest {
         dao.insertSession(session("s2"))
         dao.insertSessionExercise(sessionExercise("se1", "s1", "ex1"))
         dao.insertSessionExercise(sessionExercise("se2", "s2", "ex1"))
+        // Inserted with updatedAt=1L (default builder); NOW=7000L differs — so updatedAt==NOW proves the write
         dao.insertLoggedSet(loggedSet("ls1", "se1"))
         dao.insertLoggedSet(loggedSet("ls2", "se1"))
         // Set belonging to another session — must NOT be touched
         dao.insertLoggedSet(loggedSet("ls3", "se2"))
 
-        val now = 5000L
-        dao.softDeleteLoggedSetsForSession("s1", now)
+        dao.softDeleteLoggedSetsForSession("s1", NOW)
 
-        // Verify via observeSessionWithDetails: @Relation loads everything including tombstoned,
-        // so we verify the soft-delete worked by checking findSession still works and
-        // confirming via the direct soft-delete queries that sets are now tombstoned.
-        // We use the prefill DAO approach: query sets for session exercise directly would
-        // require PrefillDao. Instead, confirm using the relation that s2's set is untouched.
-        dao.observeSessionWithDetails("s2").test {
-            val details = awaitItem()
-            assertNotNull(details)
-            // s2's set is NOT tombstoned — it still appears in the relation
-            val s2Sets = details!!.exercises.flatMap { it.sets }
-            assertEquals(1, s2Sets.size)
-            assertEquals("ls3", s2Sets[0].id)
-            cancelAndIgnoreRemainingEvents()
-        }
+        // s1's sets must be tombstoned with both timestamps set to NOW
+        assertEquals(NOW to NOW, db.tombstoneOf("logged_sets", "ls1"))
+        assertEquals(NOW to NOW, db.tombstoneOf("logged_sets", "ls2"))
+
+        // s2's set must NOT be touched — deletedAt should still be null
+        assertEquals(null, db.tombstoneOf("logged_sets", "ls3")!!.first)
     }
 
     // -------------------------------------------------------------------------
@@ -237,27 +237,22 @@ class SessionDaoTest {
         dao.insertSessionExercise(sessionExercise("se2", "s1", "ex1", position = 2))
         dao.insertSessionExercise(sessionExercise("se3", "s2", "ex1", position = 1))
 
-        val now = 6000L
-        dao.softDeleteSessionExercisesFor("s1", now)
+        dao.softDeleteSessionExercisesFor("s1", NOW)
 
-        // @Relation loads all (no filter), but the soft-deleted ones will have deletedAt set.
-        // We verify the effect by checking that s2's exercise is untouched via the relation.
+        // s1's exercises must be tombstoned with both timestamps set to NOW
+        assertEquals(NOW to NOW, db.tombstoneOf("session_exercises", "se1"))
+        assertEquals(NOW to NOW, db.tombstoneOf("session_exercises", "se2"))
+
+        // s2's exercise must NOT be touched — deletedAt should still be null
+        assertEquals(null, db.tombstoneOf("session_exercises", "se3")!!.first)
+
+        // Double-check via @Relation that s2's exercise is still live
         dao.observeSessionWithDetails("s2").test {
             val details = awaitItem()
             assertNotNull(details)
             val liveExercises = details!!.exercises.filter { it.sessionExercise.deletedAt == null }
             assertEquals(1, liveExercises.size)
             assertEquals("se3", liveExercises[0].sessionExercise.id)
-            cancelAndIgnoreRemainingEvents()
-        }
-
-        // s1's exercises must be tombstoned — verify deletedAt is set
-        dao.observeSessionWithDetails("s1").test {
-            val details = awaitItem()
-            assertNotNull(details)
-            val allExercises = details!!.exercises
-            assertTrue("all s1 exercises should be tombstoned",
-                allExercises.all { it.sessionExercise.deletedAt == now })
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -267,11 +262,16 @@ class SessionDaoTest {
     // -------------------------------------------------------------------------
 
     @Test fun softDeleteSession_makesSessionInvisibleToObservers() = runTest {
-        dao.insertSession(session("s1", endedAt = 2000L))
-        dao.insertSession(session("s2", endedAt = 3000L))
+        dao.insertSession(session("s1", startedAt = 1000L, endedAt = 2000L))
+        dao.insertSession(session("s2", startedAt = 3000L, endedAt = 4000L))
 
-        val now = 7000L
-        dao.softDeleteSession("s1", now)
+        dao.softDeleteSession("s1", NOW)
+
+        // Tombstoned session must have both timestamps set to NOW
+        assertEquals(NOW to NOW, db.tombstoneOf("sessions", "s1"))
+
+        // Sibling session s2 must NOT be touched — deletedAt should still be null
+        assertEquals(null, db.tombstoneOf("sessions", "s2")!!.first)
 
         // observeHistory excludes deleted sessions
         dao.observeHistory().test {
