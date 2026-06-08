@@ -50,4 +50,6 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
       - name: Run DAO + seeder tests on a Gradle-managed device
-        run: ./gradlew pixelApi34DebugAndroidTest
+        # Force software GPU: headless runners reject the emulator's default
+        # 'auto-no-window' mode (it falls back to 'auto', which needs a real GPU).
+        run: ./gradlew pixelApi34DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
