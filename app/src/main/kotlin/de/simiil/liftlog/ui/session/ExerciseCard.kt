@@ -9,10 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,6 +39,7 @@ import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.InlineNumpad
+import de.simiil.liftlog.ui.components.LoggedSetRow
 import de.simiil.liftlog.ui.components.RepsStepper
 import de.simiil.liftlog.ui.components.WeightStepper
 import de.simiil.liftlog.ui.theme.LiftLogTheme
@@ -290,14 +288,19 @@ private fun ActiveCard(
                 )
             }
 
-            // ── Logged-set rows (minimal collapsed, commit 1) ────────────
-            // Full inline-edit UI (LoggedSetRow) arrives in commit 2.
+            // ── Logged-set rows ──────────────────────────────────────────
             card.sets.forEachIndexed { index, set ->
-                MinimalLoggedSetRow(
+                LoggedSetRow(
                     index = index + 1,
                     set = set,
                     unit = unit,
+                    expanded = card.editingSetId == set.id,
                     onLongPress = { onLongPressSet(set.id) },
+                    onSave = { w, r, rpe, note ->
+                        onEditSetSave(set.id, w, r, rpe, note)
+                    },
+                    onDelete = { onDeleteSet(set.id) },
+                    onCollapse = onCollapseEdit,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 4.dp),
@@ -366,46 +369,6 @@ private fun ActiveCard(
                 Spacer(modifier = Modifier.height(48.dp))
             }
         }
-    }
-}
-
-// ─── Minimal logged-set row (commit 1 placeholder) ───────────────────────────
-// Replaced in commit 2 by the full LoggedSetRow component (inline edit + RPE/note).
-
-@Composable
-private fun MinimalLoggedSetRow(
-    index: Int,
-    set: LoggedSet,
-    unit: WeightUnit,
-    onLongPress: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val weightFormatted = Weights.format(set.weightKg, unit)
-    val unitLabel = Weights.label(unit)
-    Row(
-        modifier = modifier
-            .combinedClickable(onLongClick = onLongPress, onClick = {})
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = "$index",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(20.dp),
-        )
-        Text(
-            text = "$weightFormatted $unitLabel × ${set.reps}",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f),
-        )
-        Icon(
-            imageVector = Icons.Filled.Check,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-        )
     }
 }
 
