@@ -43,4 +43,38 @@
     <string name="cd_confirm">Confirm</string>
     <string name="numpad_confirm">Done</string>
     <string name="numpad_dismiss">Cancel</string>
+
+    <!-- Exercise Picker -->
+    <string name="picker_title">Exercises</string>
+    <string name="picker_search">Search exercises</string>
+    <string name="picker_recent">Recent</string>
+    <string name="picker_create">Create exercise</string>
+    <string name="picker_create_name">Name</string>
+    <string name="picker_create_muscle">Muscle group</string>
+    <string name="picker_create_equipment">Equipment</string>
+    <string name="picker_create_confirm">Create</string>
+    <string name="picker_error_blank">Enter a name</string>
+    <string name="picker_duplicate_name">An exercise with this name already exists</string>
+    <string name="picker_cancel">Close</string>
+
+    <!-- MuscleGroup display labels -->
+    <string name="muscle_chest">Chest</string>
+    <string name="muscle_back">Back</string>
+    <string name="muscle_shoulders">Shoulders</string>
+    <string name="muscle_biceps">Biceps</string>
+    <string name="muscle_triceps">Triceps</string>
+    <string name="muscle_quads">Quads</string>
+    <string name="muscle_hamstrings">Hamstrings</string>
+    <string name="muscle_glutes">Glutes</string>
+    <string name="muscle_calves">Calves</string>
+    <string name="muscle_abs">Abs</string>
+    <string name="muscle_forearms">Forearms</string>
+    <string name="muscle_other">Other</string>
+
+    <!-- Equipment display labels -->
+    <string name="equipment_barbell">Barbell</string>
+    <string name="equipment_dumbbell">Dumbbell</string>
+    <string name="equipment_machine">Machine</string>
+    <string name="equipment_cable">Cable</string>
+    <string name="equipment_bodyweight">Bodyweight</string>
 </resources>

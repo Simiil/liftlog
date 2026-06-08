@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import de.simiil.liftlog.ui.analytics.AnalyticsScreen
+import de.simiil.liftlog.ui.exercises.ExercisePickerScreen
 import de.simiil.liftlog.ui.history.HistoryScreen
 import de.simiil.liftlog.ui.home.HomeScreen
 import de.simiil.liftlog.ui.plans.PlansScreen
@@ -28,6 +29,15 @@ fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifi
         composable<HistoryRoute> { HistoryScreen() }
         composable<SettingsRoute> {
             SettingsScreen(onBack = { navController.popBackStack() })
+        }
+        composable<ExercisePickerRoute> {
+            ExercisePickerScreen(
+                onSelected = { exerciseId ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set(PICKED_EXERCISE_ID, exerciseId)
+                    navController.popBackStack()
+                },
+                onCancel = { navController.popBackStack() },
+            )
         }
     }
 }
