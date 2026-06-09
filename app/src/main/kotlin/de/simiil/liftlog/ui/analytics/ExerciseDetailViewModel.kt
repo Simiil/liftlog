@@ -8,11 +8,14 @@ import de.simiil.liftlog.domain.analytics.Aggregation
 import de.simiil.liftlog.domain.analytics.ExerciseSummary
 import de.simiil.liftlog.domain.analytics.SessionPoint
 import de.simiil.liftlog.domain.analytics.TrendPoint
+import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.domain.analytics.downsample
+import de.simiil.liftlog.domain.analytics.trend
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
 import de.simiil.liftlog.ui.components.charts.ChartPoint
+import java.time.Clock
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,6 +43,8 @@ data class ExerciseDetailUiState(
     /** True for cumulative metrics (volume / total reps) → zero-based Y; else Y zooms to data. */
     val chartZeroBased: Boolean = false,
     val currentValueLabel: String = "",
+    /** Trend over the selected range (primary metric). Shown for weighted exercises only. */
+    val trend: TrendResult? = null,
     val recent: List<RecentSessionRow> = emptyList(),
     val unit: WeightUnit = WeightUnit.KG,
     val notEnoughData: Boolean = false,
@@ -50,6 +55,7 @@ class ExerciseDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val analyticsRepository: AnalyticsRepository,
     private val settingsRepository: SettingsRepository,
+    private val clock: Clock,
 ) : ViewModel() {
 
     private val exerciseId: String = checkNotNull(savedStateHandle["exerciseId"])
@@ -93,6 +99,12 @@ class ExerciseDetailViewModel @Inject constructor(
             ds.map { ChartPoint(dayX(it.timeMillis), it.value.toFloat(), false) }
         }
 
+        // Trend over the selected window (primary metric), so the badge tracks the range pills.
+        val rangeTrend = trend(
+            summary.sessions.map { TrendPoint(it.timeMillis, it.primary) },
+            clock.millis(),
+            windowDays = range.days,
+        )
         val last = summary.sessions.last()
         ExerciseDetailUiState(
             name = name,
@@ -103,6 +115,7 @@ class ExerciseDetailViewModel @Inject constructor(
             chartPoints = pts,
             chartZeroBased = zeroBased,
             currentValueLabel = label(valueOf(last, metric), metric, unit),
+            trend = rangeTrend,
             recent = rangeFiltered.reversed().map { sp ->
                 RecentSessionRow(
                     sessionId = sp.sessionId,

@@ -11,23 +11,24 @@ sealed interface TrendResult {
     data class Ok(val percent: Double, val direction: TrendDirection) : TrendResult
     /** Not trained recently (> 21 days since the last point). */
     data class Stale(val weeks: Int) : TrendResult
-    /** Fewer than 3 points in the 90-day window. */
+    /** Fewer than 3 points in the trend window. */
     data object Insufficient : TrendResult
 }
 
 private const val DAY = 86_400_000.0
 
 /**
- * OLS trend over the trailing 90 days of the LAST point (04-analytics-spec §3).
- * Stale if the last point is > 21 days before [nowMillis]; insufficient if < 3 points in-window.
+ * OLS trend over the trailing [windowDays] days of the LAST point (04-analytics-spec §3 uses 90).
+ * Stale if the last point is > 21 days before [nowMillis] (recency signal, independent of the
+ * window); insufficient if < 3 points in-window.
  */
-fun trend(points: List<TrendPoint>, nowMillis: Long): TrendResult {
+fun trend(points: List<TrendPoint>, nowMillis: Long, windowDays: Long = 90): TrendResult {
     if (points.isEmpty()) return TrendResult.Insufficient
     val lastT = points.maxOf { it.timeMillis }
     val daysSinceLast = (nowMillis - lastT) / DAY
     if (daysSinceLast > 21) return TrendResult.Stale((daysSinceLast / 7).roundToInt())
 
-    val window = points.filter { it.timeMillis >= lastT - 90 * DAY }.sortedBy { it.timeMillis }
+    val window = points.filter { it.timeMillis >= lastT - windowDays * DAY }.sortedBy { it.timeMillis }
     if (window.size < 3) return TrendResult.Insufficient
 
     val t0 = window.first().timeMillis

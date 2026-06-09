@@ -143,7 +143,8 @@ fun ExerciseDetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(ui.currentValueLabel, fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
-                    ui.summary?.let { if (!it.bodyweight) TrendBadge(it.trend, large = true) }
+                    // Trend tracks the selected range; shown for weighted exercises only.
+                    if (ui.summary?.bodyweight == false) ui.trend?.let { TrendBadge(it, large = true) }
                 }
             }
             item {

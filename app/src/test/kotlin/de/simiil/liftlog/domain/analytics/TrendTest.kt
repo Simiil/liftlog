@@ -33,6 +33,14 @@ class TrendTest {
         assertEquals(TrendResult.Insufficient, trend(pts, now))
     }
 
+    @Test fun windowDays_restrictsTheWindow() {
+        // 5 weekly points span 28 days. A 90-day window sees all 5 (Ok); a 7-day window
+        // sees only the last two (< 3) ⇒ Insufficient. Drives the detail range selector.
+        val pts = pointsEndingNow(listOf(100.0, 101.0, 102.0, 103.0, 104.0), everyDays = 7)
+        assertTrue(trend(pts, now, windowDays = 90) is TrendResult.Ok)
+        assertEquals(TrendResult.Insufficient, trend(pts, now, windowDays = 7))
+    }
+
     @Test fun lastPointThirtyDaysOld_isStale() {
         // newest point 30 days ago ⇒ stale, ~4 weeks
         val pts = listOf(

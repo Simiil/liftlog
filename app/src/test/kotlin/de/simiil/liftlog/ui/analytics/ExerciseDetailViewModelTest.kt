@@ -15,6 +15,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 class ExerciseDetailViewModelTest {
 
@@ -46,6 +49,7 @@ class ExerciseDetailViewModelTest {
             override fun observeExerciseSummary(exerciseId: String) = flowOf(summary)
         },
         FakeSettings(),
+        Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC),
     )
 
     private class FakeSettings : de.simiil.liftlog.domain.repository.SettingsRepository {
