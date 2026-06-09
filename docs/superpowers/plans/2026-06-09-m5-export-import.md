@@ -909,7 +909,7 @@ class BackupRoundTripTest {
     @Before fun setUp() { db = newInMemoryDb() }
     @After fun tearDown() { db.close() }
 
-    private fun seed() = runTest {
+    private suspend fun seed() {
         val dao = db.backupDao()
         dao.insertExercises(listOf(
             ExerciseEntity("ex1", "Bench", MuscleGroup.CHEST, Equipment.BARBELL, true, false, 1, 2, null),
