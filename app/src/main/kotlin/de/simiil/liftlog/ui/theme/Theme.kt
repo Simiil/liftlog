@@ -31,5 +31,9 @@ fun LiftLogTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalLiftLogColors provides extendedColorsFor(darkTheme),
+    ) {
+        MaterialTheme(colorScheme = colorScheme, content = content)
+    }
 }
