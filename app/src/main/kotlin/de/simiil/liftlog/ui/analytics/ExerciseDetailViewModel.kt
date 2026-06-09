@@ -72,7 +72,10 @@ class ExerciseDetailViewModel @Inject constructor(
         val metric = metricOrNull?.takeIf { it in metrics } ?: metrics.first()
 
         val cutoff = nowFallbackCutoff(summary, range)
-        var inRange = summary.sessions.filter { it.timeMillis >= cutoff }
+        val rangeFiltered = summary.sessions.filter { it.timeMillis >= cutoff }
+        // The chart needs >=2 points; fall back to the last two when the range is too sparse.
+        // The sessions list below uses rangeFiltered directly (honest to the selected window).
+        var inRange = rangeFiltered
         if (inRange.size < 2) inRange = summary.sessions.takeLast(2)
 
         val zeroBased = metric == Metric.VOLUME || metric == Metric.TOTAL_REPS
@@ -100,7 +103,7 @@ class ExerciseDetailViewModel @Inject constructor(
             chartPoints = pts,
             chartZeroBased = zeroBased,
             currentValueLabel = label(valueOf(last, metric), metric, unit),
-            recent = summary.sessions.reversed().map { sp ->
+            recent = rangeFiltered.reversed().map { sp ->
                 RecentSessionRow(
                     sessionId = sp.sessionId,
                     dateMillis = sp.timeMillis,
