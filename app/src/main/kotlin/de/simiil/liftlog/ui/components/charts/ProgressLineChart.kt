@@ -42,7 +42,7 @@ fun ProgressLineChart(points: List<ChartPoint>, zeroBased: Boolean, modifier: Mo
     // Filled with the chart-card color so each regular session reads as a hollow cut-out on the
     // line in both light and dark (PR sessions get the prominent tertiary dot below).
     val regularPoint = LineCartesianLayer.Point(
-        rememberShapeComponent(fill = Fill(MaterialTheme.colorScheme.surfaceContainerHigh.toArgb()), shape = CorneredShape.Pill),
+        rememberShapeComponent(fill = Fill(MaterialTheme.colorScheme.tertiary.toArgb()), shape = CorneredShape.Pill),
         sizeDp = 7f,
     )
     val prPoint = LineCartesianLayer.Point(
