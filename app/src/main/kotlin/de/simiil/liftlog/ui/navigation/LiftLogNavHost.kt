@@ -37,7 +37,7 @@ fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifi
                 onOpenSession = { id -> navController.navigate(ActiveSessionRoute(id)) },
             )
         }
-        composable<AnalyticsRoute> { AnalyticsScreen() }
+        composable<AnalyticsRoute> { AnalyticsScreen(onOpenExercise = {}) }
         composable<HistoryRoute> { HistoryScreen(onOpenSessionDetail = { navController.navigate(SessionDetailRoute(it)) }) }
         composable<SettingsRoute> {
             SettingsScreen(onBack = { navController.popBackStack() })

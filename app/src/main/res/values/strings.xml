@@ -183,4 +183,15 @@
     <string name="trend_flat">→ %1$s%%</string>
     <string name="trend_stale">not trained in %1$d wk</string>
     <string name="trend_insufficient">need 3+ sessions</string>
+
+    <!-- Analytics browser screen -->
+    <string name="analytics_week_head">This week</string>
+    <string name="analytics_stat_sessions">sessions</string>
+    <string name="analytics_stat_sets">sets</string>
+    <string name="analytics_stat_volume">volume</string>
+    <string name="analytics_week_delta">%1$s%% volume vs last week</string>
+    <string name="analytics_search_hint">Search exercises</string>
+    <string name="analytics_empty">Log a session to see progress</string>
+    <string name="analytics_e1rm_value">e1RM %1$s %2$s</string>
+    <string name="analytics_reps_value">%1$d reps</string>
 </resources>
