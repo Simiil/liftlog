@@ -19,8 +19,7 @@ import kotlinx.coroutines.flow.map
  * all observe-methods emit whenever state changes — ViewModels under test see
  * real emissions without needing Room.
  *
- * Shared across PlansViewModelTest, PlanDetailViewModelTest, TemplateEditorViewModelTest,
- * and HomeViewModelTest (M3).
+ * Shared across PlansViewModelTest, PlanEditorViewModelTest, and HomeViewModelTest (M3 redesign).
  *
  * **Seeding:** use the suspend API (createPlan / createDayTemplate / addExerciseToTemplate …).
  * The read-only snapshot properties ([plans], [dayTemplates], [templateExercises]) are exposed
