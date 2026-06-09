@@ -33,9 +33,8 @@ data class ExerciseSummary(
 fun summarize(equipment: Equipment, sets: List<DatedSet>, nowMillis: Long): ExerciseSummary? {
     if (sets.isEmpty()) return null
     // Group by session, preserving chronological order by the session's startedAt.
-    val grouped = sets.groupBy { it.sessionId }
-        .map { (id, rows) -> id to rows }
-        .sortedBy { (_, rows) -> rows.first().startedAt }
+    val grouped = sets.groupBy { it.sessionId }.entries
+        .sortedBy { it.value.first().startedAt }
 
     val bodyweight = equipment == Equipment.BODYWEIGHT && sets.all { it.weightKg == 0.0 }
 

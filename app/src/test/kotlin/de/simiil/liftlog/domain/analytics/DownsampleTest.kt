@@ -33,11 +33,9 @@ class DownsampleTest {
     }
 
     @Test fun bucketsAreChronological() {
-        val week = 7L * day
         val pts = (0 until 400).map { TrendPoint(it.toLong() * day, it.toDouble()) }
         val out = downsample(pts, Aggregation.MAX, maxPoints = 200)
         assertTrue(out.size < pts.size)
         assertTrue(out.zipWithNext().all { (a, b) -> a.timeMillis < b.timeMillis })
-        assertTrue(week > 0) // sanity
     }
 }
