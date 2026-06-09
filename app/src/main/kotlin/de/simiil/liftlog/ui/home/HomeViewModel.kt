@@ -34,6 +34,8 @@ data class HomeUiState(
     val resume: ResumeCardUi? = null,
     val recent: List<RecentSessionUi> = emptyList(),
     val templates: List<TemplateChipUi> = emptyList(),
+    /** True when at least one plan is defined. Drives the first-launch state with [recent]. */
+    val hasPlans: Boolean = false,
 )
 
 data class ResumeCardUi(
@@ -110,7 +112,8 @@ class HomeViewModel @Inject constructor(
         sessionRepository.observeHistory(),
         sessionRepository.observeSetCountsBySession(),
         templates,
-    ) { resumeCard, history, counts, chips ->
+        planRepository.observePlans(),
+    ) { resumeCard, history, counts, chips, plans ->
         HomeUiState(
             resume = resumeCard,
             recent = history
@@ -125,6 +128,7 @@ class HomeViewModel @Inject constructor(
                     )
                 },
             templates = chips,
+            hasPlans = plans.isNotEmpty(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 

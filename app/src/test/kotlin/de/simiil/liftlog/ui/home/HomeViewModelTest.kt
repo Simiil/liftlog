@@ -341,6 +341,28 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `hasPlans is false when no plans exist`() = runTest {
+        val vm = makeVm(planRepo = FakePlanRepository())
+
+        vm.uiState.test {
+            assertTrue("hasPlans should be false with no plans", !awaitItem().hasPlans)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `hasPlans is true once a plan is defined (even with no days)`() = runTest {
+        val planRepo = FakePlanRepository()
+        planRepo.createPlan("PPL")
+        val vm = makeVm(planRepo = planRepo)
+
+        vm.uiState.test {
+            assertTrue("hasPlans should be true when a plan exists", awaitItem().hasPlans)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `startFromTemplate with no active session calls startSessionFromTemplate and invokes onOpenSession`() = runTest {
         val sessionRepo = FakeSessionRepository()
         val planRepo = FakePlanRepository()

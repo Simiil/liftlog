@@ -75,7 +75,9 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val firstLaunch = uiState.resume == null && uiState.recent.isEmpty()
+    // First-launch only when there's nothing to act on: no live/finished sessions AND no plans.
+    // Once a plan exists, show the normal Home so its template chips are reachable.
+    val firstLaunch = uiState.resume == null && uiState.recent.isEmpty() && !uiState.hasPlans
 
     Scaffold(
         modifier = modifier,
