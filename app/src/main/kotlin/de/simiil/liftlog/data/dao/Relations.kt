@@ -27,3 +27,6 @@ data class RecentExercise(val exerciseId: String, val lastUsed: Long)
 
 /** Picker query projection: per-session count of live logged sets. */
 data class SessionSetCount(val sessionId: String, val setCount: Int)
+
+/** Analytics browser projection: an exercise that has ≥1 logged set, with its most-recent session start. */
+data class TrainedExerciseRow(val exerciseId: String, val lastTrainedAt: Long)

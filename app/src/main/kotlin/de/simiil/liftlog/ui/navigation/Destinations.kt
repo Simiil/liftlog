@@ -18,6 +18,9 @@ import kotlinx.serialization.Serializable
 /** Draft plan editor. [planId] null = new plan; else edit the existing plan. */
 @Serializable data class PlanEditorRoute(val planId: String? = null)
 
+/** Analytics exercise detail. Reached from the Analytics browser; not a top-level tab. */
+@Serializable data class AnalyticsExerciseDetailRoute(val exerciseId: String)
+
 /** savedStateHandle key the Exercise Picker writes its single selected exercise id to,
  *  read by the caller (e.g. Active Session) after popBackStack. */
 const val PICKED_EXERCISE_ID = "picked_exercise_id"

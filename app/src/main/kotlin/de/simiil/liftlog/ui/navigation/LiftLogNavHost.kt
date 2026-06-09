@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import de.simiil.liftlog.ui.analytics.AnalyticsScreen
+import de.simiil.liftlog.ui.analytics.ExerciseDetailScreen
 import de.simiil.liftlog.ui.exercises.ExercisePickerScreen
 import de.simiil.liftlog.ui.history.HistoryScreen
 import de.simiil.liftlog.ui.home.HomeScreen
@@ -37,7 +38,15 @@ fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifi
                 onOpenSession = { id -> navController.navigate(ActiveSessionRoute(id)) },
             )
         }
-        composable<AnalyticsRoute> { AnalyticsScreen() }
+        composable<AnalyticsRoute> {
+            AnalyticsScreen(onOpenExercise = { id -> navController.navigate(AnalyticsExerciseDetailRoute(id)) })
+        }
+        composable<AnalyticsExerciseDetailRoute> {
+            ExerciseDetailScreen(
+                onBack = { navController.popBackStack() },
+                onOpenSession = { id -> navController.navigate(SessionDetailRoute(id)) },
+            )
+        }
         composable<HistoryRoute> { HistoryScreen(onOpenSessionDetail = { navController.navigate(SessionDetailRoute(it)) }) }
         composable<SettingsRoute> {
             SettingsScreen(onBack = { navController.popBackStack() })

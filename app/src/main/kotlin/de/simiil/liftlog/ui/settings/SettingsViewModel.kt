@@ -3,6 +3,7 @@ package de.simiil.liftlog.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.simiil.liftlog.data.seed.SyntheticHistorySeeder
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.domain.repository.SettingsRepository
 import javax.inject.Inject
@@ -19,6 +20,7 @@ data class SettingsUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
+    private val syntheticHistorySeeder: SyntheticHistorySeeder,
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = settingsRepository.themePreference
@@ -27,5 +29,9 @@ class SettingsViewModel @Inject constructor(
 
     fun onThemeSelected(preference: ThemePreference) {
         viewModelScope.launch { settingsRepository.setThemePreference(preference) }
+    }
+
+    fun seedDemoData() {
+        viewModelScope.launch { syntheticHistorySeeder.seed() }
     }
 }
