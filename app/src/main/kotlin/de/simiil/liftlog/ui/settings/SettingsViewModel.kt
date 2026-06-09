@@ -14,7 +14,6 @@ import de.simiil.liftlog.domain.repository.ParseResult
 import de.simiil.liftlog.domain.repository.ParsedBackup
 import de.simiil.liftlog.domain.repository.SettingsRepository
 import java.time.Clock
-import java.time.LocalDate
 import java.time.ZoneOffset
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,7 +69,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun defaultExportFileName(): String =
-        "liftlog-backup-${LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC)}.json"
+        "liftlog-backup-${clock.instant().atZone(ZoneOffset.UTC).toLocalDate()}.json"
 
     fun export(uri: Uri) {
         viewModelScope.launch {
