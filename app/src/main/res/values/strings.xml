@@ -12,6 +12,24 @@
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="settings_data_label">Data</string>
+    <string name="settings_export">Export data</string>
+    <string name="settings_export_desc">Save a backup file</string>
+    <string name="settings_import">Import data</string>
+    <string name="settings_import_desc">Restore from a backup file</string>
+    <string name="backup_exported">Backup exported</string>
+    <string name="backup_export_failed">Couldn\'t export backup</string>
+    <string name="backup_imported">Backup imported</string>
+    <string name="backup_import_confirm_title">Replace all data?</string>
+    <!-- %1$s = backup date, %2$d = sessions, %3$d = exercises -->
+    <string name="backup_import_confirm_message">Replace all current data with the backup from %1$s? %2$d sessions · %3$d exercises. This can\'t be undone.</string>
+    <string name="backup_import_confirm_button">Replace</string>
+    <string name="backup_cancel">Cancel</string>
+    <string name="backup_error_title">Couldn\'t import backup</string>
+    <string name="backup_error_live_session">Finish or discard your active session before importing.</string>
+    <string name="backup_error_newer">This backup was created by a newer version of LiftLog. Update the app, then try again.</string>
+    <string name="backup_error_corrupt">This file isn\'t a valid LiftLog backup, or it\'s incomplete.</string>
+    <string name="backup_dialog_ok">OK</string>
     <string name="placeholder_coming_soon">Coming soon</string>
 
     <!-- Home screen -->
