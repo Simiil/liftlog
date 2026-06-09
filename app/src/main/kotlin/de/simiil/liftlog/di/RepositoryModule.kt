@@ -16,6 +16,8 @@ import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
+import de.simiil.liftlog.ui.settings.AndroidDocumentIo
+import de.simiil.liftlog.ui.settings.DocumentIo
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -29,4 +31,5 @@ abstract class RepositoryModule {
     @Binds abstract fun bindSessionRepository(impl: SessionRepositoryImpl): SessionRepository
     @Binds abstract fun bindAnalyticsRepository(impl: AnalyticsRepositoryImpl): AnalyticsRepository
     @Binds abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
+    @Binds abstract fun bindDocumentIo(impl: AndroidDocumentIo): DocumentIo
 }
