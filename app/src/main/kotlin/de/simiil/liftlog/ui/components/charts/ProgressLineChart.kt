@@ -8,11 +8,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
-import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
@@ -33,11 +31,12 @@ fun ProgressLineChart(points: List<ChartPoint>, modifier: Modifier = Modifier) {
             lineSeries { series(points.map { it.x }, points.map { it.y }) }
         }
     }
+    // Y axis only for now: x is epoch-ms, so a default bottom axis renders raw millis
+    // labels. Real date labels on x are a deferred refinement (M4 "simple Vico" decision).
     CartesianChartHost(
         chart = rememberCartesianChart(
             rememberLineCartesianLayer(),
             startAxis = VerticalAxis.rememberStart(),
-            bottomAxis = HorizontalAxis.rememberBottom(),
         ),
         modelProducer = modelProducer,
         modifier = modifier.fillMaxWidth().height(188.dp),
