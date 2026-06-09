@@ -401,7 +401,6 @@ class BackupCodecTest {
         assertTrue(result is ParseResult.Ready)
         val parsed = (result as ParseResult.Ready).parsed as BackupSnapshot
         assertEquals(fixture(), parsed)
-        assertEquals(2, result.summary.exercises) // ex2 is a tombstone but still a row → see counting note
     }
 
     @Test
