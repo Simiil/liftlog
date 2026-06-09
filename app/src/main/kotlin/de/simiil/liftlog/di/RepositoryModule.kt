@@ -5,11 +5,13 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.simiil.liftlog.data.repository.AnalyticsRepositoryImpl
+import de.simiil.liftlog.data.repository.BackupRepositoryImpl
 import de.simiil.liftlog.data.repository.ExerciseRepositoryImpl
 import de.simiil.liftlog.data.repository.PlanRepositoryImpl
 import de.simiil.liftlog.data.repository.SessionRepositoryImpl
 import de.simiil.liftlog.data.repository.SettingsRepositoryImpl
 import de.simiil.liftlog.domain.repository.AnalyticsRepository
+import de.simiil.liftlog.domain.repository.BackupRepository
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
@@ -26,4 +28,5 @@ abstract class RepositoryModule {
     @Binds abstract fun bindPlanRepository(impl: PlanRepositoryImpl): PlanRepository
     @Binds abstract fun bindSessionRepository(impl: SessionRepositoryImpl): SessionRepository
     @Binds abstract fun bindAnalyticsRepository(impl: AnalyticsRepositoryImpl): AnalyticsRepository
+    @Binds abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
 }
