@@ -25,4 +25,7 @@ object UiTestTags {
     const val TEMPLATE_ADD_EXERCISE = "template_add_exercise"
     const val TEMPLATE_EXERCISE_ROW = "template_exercise_row"
     const val HOME_TEMPLATE_CHIP = "home_template_chip"
+
+    // Exercise Picker multi-select
+    const val PICKER_ADD_SELECTED = "picker_add_selected"
 }

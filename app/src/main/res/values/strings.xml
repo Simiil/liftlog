@@ -51,9 +51,11 @@
 
     <!-- Exercise Picker -->
     <string name="picker_title">Exercises</string>
+    <string name="picker_title_add">Add exercise</string>
     <string name="picker_search">Search exercises</string>
     <string name="picker_recent">Recent</string>
     <string name="picker_create">Create exercise</string>
+    <string name="picker_create_with_query">Create new exercise \"%1$s\"</string>
     <string name="picker_create_name">Name</string>
     <string name="picker_create_muscle">Muscle group</string>
     <string name="picker_create_equipment">Equipment</string>
@@ -61,6 +63,8 @@
     <string name="picker_error_blank">Enter a name</string>
     <string name="picker_duplicate_name">An exercise with this name already exists</string>
     <string name="picker_cancel">Close</string>
+    <string name="picker_add_selected">Add %1$d</string>
+    <string name="picker_added">Added</string>
 
     <!-- MuscleGroup display labels -->
     <string name="muscle_chest">Chest</string>
