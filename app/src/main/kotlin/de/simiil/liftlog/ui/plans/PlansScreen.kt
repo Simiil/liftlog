@@ -1,7 +1,9 @@
 package de.simiil.liftlog.ui.plans
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box // used by DropdownMenu anchor
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,92 +11,105 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FitnessCenter
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.ui.UiTestTags
+import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+
+// ─── Screen ─────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlansScreen(
-    onOpenPlan: (String) -> Unit,
+    onEditPlan: (String) -> Unit,
+    onNewPlan: () -> Unit,
+    onOpenSession: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlansViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    PlansContent(
+        plans = uiState.plans,
+        loading = uiState.loading,
+        onEditPlan = onEditPlan,
+        onNewPlan = onNewPlan,
+        onStartDay = { templateId -> viewModel.startDay(templateId, onOpenSession) },
+        modifier = modifier,
+    )
+}
 
-    // ── dialog state ──────────────────────────────────────────────────────
-    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
-    var renameTarget by rememberSaveable { mutableStateOf<PlanRowUi?>(null) }
-    var deleteTarget by rememberSaveable { mutableStateOf<PlanRowUi?>(null) }
+// ─── Stateless content (easier to preview) ───────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PlansContent(
+    plans: List<PlanCardUi>,
+    loading: Boolean,
+    onEditPlan: (String) -> Unit,
+    onNewPlan: () -> Unit,
+    onStartDay: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.tab_plans)) })
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showCreateDialog = true },
-                modifier = Modifier.testTag(UiTestTags.PLANS_CREATE),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.plans_create),
-                )
-            }
+            TopAppBar(
+                title = { Text(stringResource(R.string.tab_plans)) },
+                actions = {
+                    IconButton(
+                        onClick = onNewPlan,
+                        modifier = Modifier.testTag(UiTestTags.PLANS_CREATE),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.plans_create),
+                        )
+                    }
+                },
+            )
         },
     ) { innerPadding ->
-        if (!uiState.loading && uiState.plans.isEmpty()) {
+        if (!loading && plans.isEmpty()) {
             PlansEmptyState(
+                onNewPlan = onNewPlan,
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize(),
@@ -106,162 +121,195 @@ fun PlansScreen(
                     start = 16.dp,
                     end = 16.dp,
                     top = 8.dp,
-                    bottom = 96.dp,
+                    bottom = 24.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                items(uiState.plans, key = { it.id }) { plan ->
-                    PlanCard(
+                items(plans, key = { it.id }) { plan ->
+                    PlanGroupCard(
                         plan = plan,
-                        onClick = { onOpenPlan(plan.id) },
-                        onRename = { renameTarget = plan },
-                        onDelete = { deleteTarget = plan },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag(UiTestTags.PLAN_ROW),
+                        onEditPlan = { onEditPlan(plan.id) },
+                        onStartDay = onStartDay,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                item {
+                    NewPlanButton(
+                        onClick = onNewPlan,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
         }
     }
-
-    // ── Create dialog ─────────────────────────────────────────────────────
-    if (showCreateDialog) {
-        NameInputDialog(
-            title = stringResource(R.string.plans_create),
-            hint = stringResource(R.string.plan_name_hint),
-            confirmLabel = stringResource(R.string.dialog_save),
-            onConfirm = { name ->
-                viewModel.createPlan(name)
-                showCreateDialog = false
-            },
-            onDismiss = { showCreateDialog = false },
-        )
-    }
-
-    // ── Rename dialog ─────────────────────────────────────────────────────
-    renameTarget?.let { target ->
-        NameInputDialog(
-            title = stringResource(R.string.plan_rename),
-            hint = stringResource(R.string.plan_name_hint),
-            initialValue = target.name,
-            confirmLabel = stringResource(R.string.dialog_save),
-            onConfirm = { name ->
-                viewModel.renamePlan(target.id, name)
-                renameTarget = null
-            },
-            onDismiss = { renameTarget = null },
-        )
-    }
-
-    // ── Delete confirm dialog ─────────────────────────────────────────────
-    deleteTarget?.let { target ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            title = { Text(stringResource(R.string.plan_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.plan_delete_confirm_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deletePlan(target.id)
-                        deleteTarget = null
-                    },
-                ) {
-                    Text(
-                        text = stringResource(R.string.plan_delete),
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) {
-                    Text(stringResource(R.string.dialog_cancel))
-                }
-            },
-        )
-    }
 }
 
-// ── Plan card ─────────────────────────────────────────────────────────────────
+// ─── Plan group card (header + day rows) ──────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlanCard(
-    plan: PlanRowUi,
-    onClick: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
+private fun PlanGroupCard(
+    plan: PlanCardUi,
+    onEditPlan: () -> Unit,
+    onStartDay: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
-
-    Card(
-        onClick = onClick,
+    // .plan-group: surfaceContainerHigh, radius 22dp, padding 8/8/12dp.
+    Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-        ),
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 12.dp),
         ) {
-            Text(
-                text = plan.name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.weight(1f),
-            )
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Box {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = stringResource(R.string.more_options),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            // .plan-group-head — whole-width button → edit plan
+            val editCd = stringResource(R.string.plan_edit_cd, plan.name)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .clickable(onClick = onEditPlan)
+                    .testTag(UiTestTags.PLAN_ROW)
+                    .semantics { contentDescription = editCd }
+                    .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = plan.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.plan_group_sub,
+                            pluralStringResource(R.plurals.plan_days_count, plan.days.size, plan.days.size),
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.plan_rename)) },
-                        onClick = {
-                            menuExpanded = false
-                            onRename()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(R.string.plan_delete),
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onDelete()
-                        },
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = null, // group head already carries the "Edit X" description
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(19.dp),
+                )
+            }
+
+            // .plan-row per day
+            plan.days.forEach { day ->
+                PlanDayRow(
+                    day = day,
+                    onStart = { onStartDay(day.templateId) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+@Composable
+private fun PlanDayRow(
+    day: PlanDayUi,
+    onStart: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val startCd = stringResource(R.string.plan_start_day_cd, day.name)
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .testTag(UiTestTags.PLAN_DAY_ROW)
+            .padding(start = 12.dp, top = 6.dp, bottom = 6.dp, end = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        // .plan-row-main → start day
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onStart)
+                .padding(vertical = 10.dp),
+        ) {
+            Text(
+                text = day.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = daySubtitle(day),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        // .row-play — 44dp circular primary/onPrimary play button → start day
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable(onClick = onStart)
+                .testTag(UiTestTags.PLAN_DAY_START)
+                .semantics { contentDescription = startCd },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+}
+
+/** "N exercises[ · group · group · group]" — mirrors the mockup's plan-row-sub. */
+@Composable
+private fun daySubtitle(day: PlanDayUi): String {
+    val count = pluralStringResource(R.plurals.exercise_count, day.exerciseCount, day.exerciseCount)
+    if (day.muscleGroups.isEmpty()) return count
+    val groups = day.muscleGroups.map { muscleGroupLabel(it) }.joinToString(" · ")
+    return "$count · $groups"
+}
+
+// ─── New-plan ghost button ────────────────────────────────────────────────────
 
 @Composable
-private fun PlansEmptyState(modifier: Modifier = Modifier) {
+private fun NewPlanButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(100.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = stringResource(R.string.plans_create),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+// ─── Empty state ───────────────────────────────────────────────────────────────
+
+@Composable
+private fun PlansEmptyState(
+    onNewPlan: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier.padding(horizontal = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -287,65 +335,41 @@ private fun PlansEmptyState(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.widthIn(max = 300.dp),
         )
+        Spacer(Modifier.height(24.dp))
+        NewPlanButton(
+            onClick = onNewPlan,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
-// ── Reusable name-input dialog ────────────────────────────────────────────────
+// ─── Previews ──────────────────────────────────────────────────────────────────
 
-@Composable
-private fun NameInputDialog(
-    title: String,
-    hint: String,
-    confirmLabel: String,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit,
-    initialValue: String = "",
-) {
-    var text by rememberSaveable(initialValue) { mutableStateOf(initialValue) }
-    val focusRequester = remember { FocusRequester() }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                placeholder = { Text(hint) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = { if (text.isNotBlank()) onConfirm(text) },
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .onGloballyPositioned { focusRequester.requestFocus() },
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { if (text.isNotBlank()) onConfirm(text) },
-                enabled = text.isNotBlank(),
-            ) {
-                Text(confirmLabel)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.dialog_cancel))
-            }
-        },
-    )
-}
-
-// ── Previews ──────────────────────────────────────────────────────────────────
+private val previewPlans = listOf(
+    PlanCardUi(
+        id = "1",
+        name = "Push Pull Legs",
+        days = listOf(
+            PlanDayUi("d1", "Push Day", 5, listOf(MuscleGroup.CHEST, MuscleGroup.SHOULDERS, MuscleGroup.TRICEPS)),
+            PlanDayUi("d2", "Pull Day", 5, listOf(MuscleGroup.BACK, MuscleGroup.BICEPS)),
+            PlanDayUi("d3", "Leg Day", 4, listOf(MuscleGroup.QUADS, MuscleGroup.HAMSTRINGS, MuscleGroup.GLUTES)),
+        ),
+    ),
+    PlanCardUi(
+        id = "2",
+        name = "Upper / Lower",
+        days = listOf(
+            PlanDayUi("d4", "Upper A", 6, listOf(MuscleGroup.CHEST, MuscleGroup.BACK)),
+            PlanDayUi("d5", "Lower A", 0, emptyList()),
+        ),
+    ),
+)
 
 @Preview(name = "Plans — empty (light)", showBackground = true)
 @Composable
 private fun PreviewPlansEmptyLight() {
     LiftLogTheme(themePreference = ThemePreference.LIGHT, dynamicColor = false) {
-        PlansScreenPreviewContent(plans = emptyList())
+        PlansContent(plans = emptyList(), loading = false, onEditPlan = {}, onNewPlan = {}, onStartDay = {})
     }
 }
 
@@ -353,7 +377,7 @@ private fun PreviewPlansEmptyLight() {
 @Composable
 private fun PreviewPlansEmptyDark() {
     LiftLogTheme(themePreference = ThemePreference.DARK, dynamicColor = false) {
-        PlansScreenPreviewContent(plans = emptyList())
+        PlansContent(plans = emptyList(), loading = false, onEditPlan = {}, onNewPlan = {}, onStartDay = {})
     }
 }
 
@@ -361,13 +385,7 @@ private fun PreviewPlansEmptyDark() {
 @Composable
 private fun PreviewPlansPopulatedLight() {
     LiftLogTheme(themePreference = ThemePreference.LIGHT, dynamicColor = false) {
-        PlansScreenPreviewContent(
-            plans = listOf(
-                PlanRowUi("1", "Push Pull Legs"),
-                PlanRowUi("2", "Upper / Lower"),
-                PlanRowUi("3", "Full Body"),
-            ),
-        )
+        PlansContent(plans = previewPlans, loading = false, onEditPlan = {}, onNewPlan = {}, onStartDay = {})
     }
 }
 
@@ -375,56 +393,6 @@ private fun PreviewPlansPopulatedLight() {
 @Composable
 private fun PreviewPlansPopulatedDark() {
     LiftLogTheme(themePreference = ThemePreference.DARK, dynamicColor = false) {
-        PlansScreenPreviewContent(
-            plans = listOf(
-                PlanRowUi("1", "Push Pull Legs"),
-                PlanRowUi("2", "Upper / Lower"),
-                PlanRowUi("3", "Full Body"),
-            ),
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PlansScreenPreviewContent(plans: List<PlanRowUi>) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.tab_plans)) })
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = {}) {
-                Icon(Icons.Default.Add, contentDescription = null)
-            }
-        },
-    ) { innerPadding ->
-        if (plans.isEmpty()) {
-            PlansEmptyState(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.padding(innerPadding),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 8.dp,
-                    bottom = 96.dp,
-                ),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(plans, key = { it.id }) { plan ->
-                    PlanCard(
-                        plan = plan,
-                        onClick = {},
-                        onRename = {},
-                        onDelete = {},
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-        }
+        PlansContent(plans = previewPlans, loading = false, onEditPlan = {}, onNewPlan = {}, onStartDay = {})
     }
 }

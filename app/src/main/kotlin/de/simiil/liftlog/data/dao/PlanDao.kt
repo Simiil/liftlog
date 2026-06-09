@@ -51,6 +51,13 @@ interface PlanDao {
     @Query("SELECT * FROM template_exercises WHERE templateId = :templateId AND deletedAt IS NULL ORDER BY position")
     fun observeTemplateExercisesFor(templateId: String): Flow<List<TemplateExerciseEntity>>
 
+    // ── all-rows reactive reads for the Plans list (plans-with-days) ───
+    @Query("SELECT * FROM plan_day_templates WHERE deletedAt IS NULL ORDER BY position")
+    fun observeAllDayTemplates(): Flow<List<PlanDayTemplateEntity>>
+
+    @Query("SELECT * FROM template_exercises WHERE deletedAt IS NULL ORDER BY position")
+    fun observeAllTemplateExercises(): Flow<List<TemplateExerciseEntity>>
+
     // ── single-row finders (for rename/targets/snapshot title) ─────────
     @Query("SELECT * FROM plan_day_templates WHERE id = :id AND deletedAt IS NULL")
     suspend fun findDayTemplate(id: String): PlanDayTemplateEntity?

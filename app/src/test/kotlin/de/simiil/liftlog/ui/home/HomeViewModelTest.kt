@@ -1,9 +1,13 @@
 package de.simiil.liftlog.ui.home
 
 import app.cash.turbine.test
+import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.model.Exercise
+import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.model.SessionExerciseWithSets
 import de.simiil.liftlog.domain.model.SessionWithDetails
+import de.simiil.liftlog.testing.FakeExerciseRepository
 import de.simiil.liftlog.testing.FakePlanRepository
 import de.simiil.liftlog.testing.FakeSessionRepository
 import de.simiil.liftlog.testing.MainDispatcherRule
@@ -27,7 +31,20 @@ class HomeViewModelTest {
     private fun makeVm(
         sessionRepo: FakeSessionRepository = FakeSessionRepository(),
         planRepo: FakePlanRepository = FakePlanRepository(),
-    ) = HomeViewModel(sessionRepo, planRepo)
+        exerciseRepo: FakeExerciseRepository = FakeExerciseRepository(),
+    ) = HomeViewModel(sessionRepo, planRepo, exerciseRepo)
+
+    private fun exercise(id: String, group: MuscleGroup) = Exercise(
+        id = id,
+        name = id,
+        muscleGroup = group,
+        equipment = Equipment.BARBELL,
+        isBuiltIn = true,
+        isHidden = false,
+        createdAt = Instant.EPOCH,
+        updatedAt = Instant.EPOCH,
+        deletedAt = null,
+    )
 
     private fun makeSession(
         id: String,
@@ -290,6 +307,57 @@ class HomeViewModelTest {
             assertEquals("should have 2 chips", 2, state.templates.size)
             assertEquals("Push", state.templates[0].name)
             assertEquals("Pull", state.templates[1].name)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `template chip carries exercise count and up to 3 distinct muscle groups`() = runTest {
+        val planRepo = FakePlanRepository()
+        val exerciseRepo = FakeExerciseRepository()
+        val plan = planRepo.createPlan("PPL")
+        val day = planRepo.createDayTemplate(plan.id, "Push")
+        planRepo.addExerciseToTemplate(day.id, "ex-bench")
+        planRepo.addExerciseToTemplate(day.id, "ex-incline")
+        planRepo.addExerciseToTemplate(day.id, "ex-ohp")
+        // bench + incline are both CHEST → distinct collapses to [CHEST, SHOULDERS]
+        exerciseRepo.all.value = listOf(
+            exercise("ex-bench", MuscleGroup.CHEST),
+            exercise("ex-incline", MuscleGroup.CHEST),
+            exercise("ex-ohp", MuscleGroup.SHOULDERS),
+        )
+
+        val vm = makeVm(planRepo = planRepo, exerciseRepo = exerciseRepo)
+
+        vm.uiState.test {
+            val state = awaitItem()
+            assertEquals(1, state.templates.size)
+            val chip = state.templates.first()
+            assertEquals("Push", chip.name)
+            assertEquals(3, chip.exerciseCount)
+            assertEquals(listOf(MuscleGroup.CHEST, MuscleGroup.SHOULDERS), chip.muscleGroups)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `hasPlans is false when no plans exist`() = runTest {
+        val vm = makeVm(planRepo = FakePlanRepository())
+
+        vm.uiState.test {
+            assertTrue("hasPlans should be false with no plans", !awaitItem().hasPlans)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `hasPlans is true once a plan is defined (even with no days)`() = runTest {
+        val planRepo = FakePlanRepository()
+        planRepo.createPlan("PPL")
+        val vm = makeVm(planRepo = planRepo)
+
+        vm.uiState.test {
+            assertTrue("hasPlans should be true when a plan exists", awaitItem().hasPlans)
             cancelAndIgnoreRemainingEvents()
         }
     }

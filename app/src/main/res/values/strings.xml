@@ -51,9 +51,11 @@
 
     <!-- Exercise Picker -->
     <string name="picker_title">Exercises</string>
+    <string name="picker_title_add">Add exercise</string>
     <string name="picker_search">Search exercises</string>
     <string name="picker_recent">Recent</string>
     <string name="picker_create">Create exercise</string>
+    <string name="picker_create_with_query">Create new exercise \"%1$s\"</string>
     <string name="picker_create_name">Name</string>
     <string name="picker_create_muscle">Muscle group</string>
     <string name="picker_create_equipment">Equipment</string>
@@ -61,6 +63,8 @@
     <string name="picker_error_blank">Enter a name</string>
     <string name="picker_duplicate_name">An exercise with this name already exists</string>
     <string name="picker_cancel">Close</string>
+    <string name="picker_add_selected">Add %1$d</string>
+    <string name="picker_added">Added</string>
 
     <!-- MuscleGroup display labels -->
     <string name="muscle_chest">Chest</string>
@@ -124,32 +128,52 @@
         <item quantity="other">%1$d sets</item>
     </plurals>
 
-    <!-- Plans screens (M3) -->
+    <plurals name="exercise_count">
+        <item quantity="one">%1$d exercise</item>
+        <item quantity="other">%1$d exercises</item>
+    </plurals>
+
+    <plurals name="plan_days_count">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+
+    <!-- Plans list (M3 redesign) -->
     <string name="plans_empty_title">No plans yet</string>
     <string name="plans_empty_sub">Create a plan to build reusable day templates and start sessions in one tap.</string>
     <string name="plans_create">New plan</string>
-    <string name="plan_name_hint">Plan name</string>
-    <string name="plan_rename">Rename</string>
-    <string name="plan_delete">Delete plan</string>
-    <string name="plan_delete_confirm_title">Delete plan?</string>
-    <string name="plan_delete_confirm_message">This removes the plan and all its day templates. Past sessions are not affected.</string>
-    <string name="plan_detail_add_day">Add day</string>
-    <string name="plan_detail_empty_title">No days yet</string>
-    <string name="plan_detail_empty_sub">Add a day to start building your template — Push, Pull, Legs, or whatever fits your split.</string>
-    <string name="day_name_hint">Day name (Push, Legs…)</string>
-    <string name="day_rename">Rename</string>
-    <string name="day_delete">Delete day</string>
-    <string name="day_delete_confirm_title">Delete day?</string>
-    <string name="day_delete_confirm_message">This removes the day template and its exercises. Past sessions are not affected.</string>
-    <string name="day_template_empty">No exercises yet</string>
+    <string name="plan_group_sub">%1$s · tap to edit</string>
+    <string name="plan_start_day_cd">Start %1$s</string>
+    <string name="plan_edit_cd">Edit %1$s</string>
+
+    <!-- Plan editor (M3 redesign) -->
+    <string name="plan_editor_new">New plan</string>
+    <string name="plan_editor_edit">Edit plan</string>
+    <string name="plan_name_field_label">Plan name</string>
+    <string name="plan_name_field_hint">e.g. Upper / Lower, PPL, 5×5</string>
+    <string name="plan_training_days">Training days</string>
+    <string name="plan_days_empty">No days yet. Add a training day to build your split.</string>
+    <string name="plan_add_day">Add training day</string>
+    <string name="plan_remove_day">Remove day</string>
+    <string name="plan_untitled_day">Untitled day</string>
+
+    <!-- Day editor (M3 redesign) -->
+    <string name="day_editor_new">New day</string>
+    <string name="day_editor_edit">Edit day</string>
+    <string name="day_name_field_label">Day name</string>
+    <string name="day_name_field_hint">e.g. Push Day, Lower A</string>
+    <string name="day_exercises">Exercises</string>
+    <string name="day_exercises_empty">No exercises yet. Add a few and set targets — these pre-fill your session.</string>
+
+    <string name="editor_save">Save</string>
+    <string name="editor_done">Done</string>
+
+    <!-- Exercise rows / steppers (shared with the day editor) -->
     <string name="template_add_exercise">Add exercise</string>
     <string name="template_remove_exercise">Remove</string>
     <string name="template_target_sets">Sets</string>
-    <string name="template_target_reps">Reps</string>
-    <string name="template_set_targets">Set targets</string>
-    <string name="template_targets_summary">%1$s · %2$s</string>
+    <string name="template_target_reps_min">Reps min</string>
+    <string name="template_target_reps_max">Reps max</string>
     <string name="template_drag_handle_cd">Reorder</string>
     <string name="home_template_chip_cd">Start %1$s</string>
-    <string name="dialog_save">Save</string>
-    <string name="dialog_cancel">Cancel</string>
 </resources>

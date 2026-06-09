@@ -10,10 +10,18 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class ActiveSessionRoute(val sessionId: String)
 @Serializable data class SessionDetailRoute(val sessionId: String)
-@Serializable data object ExercisePickerRoute
-@Serializable data class PlanDetailRoute(val planId: String)
-@Serializable data class TemplateEditorRoute(val templateId: String)
 
-/** savedStateHandle key the Exercise Picker writes its selected exercise id to,
+/** Exercise picker. [multiSelect] = true reaches the multi-select day-editor flow; false keeps the
+ *  single-select Active-Session flow (returns one id). */
+@Serializable data class ExercisePickerRoute(val multiSelect: Boolean = false)
+
+/** Draft plan editor. [planId] null = new plan; else edit the existing plan. */
+@Serializable data class PlanEditorRoute(val planId: String? = null)
+
+/** savedStateHandle key the Exercise Picker writes its single selected exercise id to,
  *  read by the caller (e.g. Active Session) after popBackStack. */
 const val PICKED_EXERCISE_ID = "picked_exercise_id"
+
+/** savedStateHandle key the Exercise Picker writes its multi-selected exercise ids to,
+ *  read by the PlanEditor (day mode) after popBackStack. */
+const val PICKED_EXERCISE_IDS = "picked_exercise_ids"

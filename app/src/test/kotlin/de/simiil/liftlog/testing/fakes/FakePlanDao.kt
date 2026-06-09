@@ -103,6 +103,16 @@ class FakePlanDao : PlanDao {
             map.values.filter { it.templateId == templateId && it.deletedAt == null }.sortedBy { it.position }
         }
 
+    override fun observeAllDayTemplates(): Flow<List<PlanDayTemplateEntity>> =
+        dayTemplatesFlow.map { map ->
+            map.values.filter { it.deletedAt == null }.sortedBy { it.position }
+        }
+
+    override fun observeAllTemplateExercises(): Flow<List<TemplateExerciseEntity>> =
+        templateExercisesFlow.map { map ->
+            map.values.filter { it.deletedAt == null }.sortedBy { it.position }
+        }
+
     override suspend fun findDayTemplate(id: String): PlanDayTemplateEntity? =
         dayTemplates[id]?.takeIf { it.deletedAt == null }
 
