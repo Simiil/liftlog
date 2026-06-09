@@ -1,9 +1,12 @@
 package de.simiil.liftlog.testing
 
 import de.simiil.liftlog.domain.model.PlanDayTemplate
+import de.simiil.liftlog.domain.model.PlanDraft
 import de.simiil.liftlog.domain.model.TemplateExercise
 import de.simiil.liftlog.domain.model.WorkoutPlan
+import de.simiil.liftlog.domain.repository.DaySummary
 import de.simiil.liftlog.domain.repository.PlanRepository
+import de.simiil.liftlog.domain.repository.PlanWithDays
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
@@ -98,7 +101,136 @@ class FakePlanRepository : PlanRepository {
                     ?.id
         }
 
+    override fun observePlansWithDays(): Flow<List<PlanWithDays>> =
+        combine(plansFlow, dayTemplatesFlow, templateExercisesFlow) { planMap, dayMap, teMap ->
+            val daysByPlan = dayMap.values
+                .filter { it.deletedAt == null }
+                .sortedBy { it.position }
+                .groupBy { it.planId }
+            val exercisesByTemplate = teMap.values
+                .filter { it.deletedAt == null }
+                .sortedBy { it.position }
+                .groupBy { it.templateId }
+            planMap.values
+                .filter { it.deletedAt == null }
+                .sortedBy { it.position }
+                .map { plan ->
+                    PlanWithDays(
+                        id = plan.id,
+                        name = plan.name,
+                        days = (daysByPlan[plan.id] ?: emptyList()).map { day ->
+                            val exercises = exercisesByTemplate[day.id] ?: emptyList()
+                            DaySummary(
+                                templateId = day.id,
+                                name = day.name,
+                                exerciseCount = exercises.size,
+                                exerciseIds = exercises.map { it.exerciseId },
+                            )
+                        },
+                    )
+                }
+        }
+
     // ── plan writes ───────────────────────────────────────────────────────
+
+    override suspend fun savePlanDraft(draft: PlanDraft): String {
+        val now = nowInstant()
+
+        // 1. Plan: insert new, or rename existing if the name changed.
+        val planId = if (draft.planId == null) {
+            val maxPos = _plans.values.filter { it.deletedAt == null }.maxOfOrNull { it.position } ?: -1
+            val plan = WorkoutPlan(
+                id = UUID.randomUUID().toString(), name = draft.name.trim(),
+                position = maxPos + 1, createdAt = now, updatedAt = now, deletedAt = null,
+            )
+            _plans[plan.id] = plan
+            plan.id
+        } else {
+            _plans[draft.planId]?.let { existing ->
+                if (existing.name != draft.name.trim()) {
+                    _plans[draft.planId] = existing.copy(name = draft.name.trim(), updatedAt = now)
+                }
+            }
+            draft.planId
+        }
+        notifyPlans()
+
+        // 2. Days: reconcile against the live day templates of this plan.
+        val existingDayIds = _dayTemplates.values
+            .filter { it.planId == planId && it.deletedAt == null }
+            .map { it.id }
+            .toSet()
+        val keptDayIds = mutableSetOf<String>()
+        draft.days.forEachIndexed { index, dayDraft ->
+            val templateId = if (dayDraft.templateId == null) {
+                val day = PlanDayTemplate(
+                    id = UUID.randomUUID().toString(), planId = planId, name = dayDraft.name.trim(),
+                    position = index, createdAt = now, updatedAt = now, deletedAt = null,
+                )
+                _dayTemplates[day.id] = day
+                day.id
+            } else {
+                _dayTemplates[dayDraft.templateId]?.let { existing ->
+                    _dayTemplates[dayDraft.templateId] =
+                        existing.copy(name = dayDraft.name.trim(), position = index, updatedAt = now)
+                }
+                dayDraft.templateId
+            }
+            keptDayIds += templateId
+
+            // Exercises for that day: insert new, update existing (position + targets).
+            val existingTeIds = _templateExercises.values
+                .filter { it.templateId == templateId && it.deletedAt == null }
+                .map { it.id }
+                .toSet()
+            val keptTeIds = mutableSetOf<String>()
+            dayDraft.items.forEachIndexed { pos, item ->
+                if (item.templateExerciseId == null) {
+                    val te = TemplateExercise(
+                        id = UUID.randomUUID().toString(), templateId = templateId,
+                        exerciseId = item.exerciseId, position = pos,
+                        targetSets = item.targetSets, targetRepsMin = item.targetRepsMin,
+                        targetRepsMax = item.targetRepsMax,
+                        createdAt = now, updatedAt = now, deletedAt = null,
+                    )
+                    _templateExercises[te.id] = te
+                    keptTeIds += te.id
+                } else {
+                    _templateExercises[item.templateExerciseId]?.let { existing ->
+                        _templateExercises[item.templateExerciseId] = existing.copy(
+                            position = pos, targetSets = item.targetSets,
+                            targetRepsMin = item.targetRepsMin, targetRepsMax = item.targetRepsMax,
+                            updatedAt = now,
+                        )
+                    }
+                    keptTeIds += item.templateExerciseId
+                }
+            }
+            // Soft-delete template-exercises removed from this day.
+            existingTeIds.forEach { id ->
+                if (id !in keptTeIds) {
+                    _templateExercises[id]?.let { _templateExercises[id] = it.copy(deletedAt = now, updatedAt = now) }
+                }
+            }
+        }
+
+        // 3. Removed days: soft-delete (cascading to their template-exercises first).
+        existingDayIds.forEach { dayId ->
+            if (dayId !in keptDayIds) {
+                _templateExercises.keys.toList().forEach { teId ->
+                    val te = _templateExercises[teId]!!
+                    if (te.templateId == dayId && te.deletedAt == null) {
+                        _templateExercises[teId] = te.copy(deletedAt = now, updatedAt = now)
+                    }
+                }
+                _dayTemplates[dayId]?.let { _dayTemplates[dayId] = it.copy(deletedAt = now, updatedAt = now) }
+            }
+        }
+
+        notifyDayTemplates()
+        notifyTemplateExercises()
+        return planId
+    }
 
     override suspend fun createPlan(name: String): WorkoutPlan {
         val maxPos = _plans.values.filter { it.deletedAt == null }
