@@ -17,11 +17,14 @@ object UiTestTags {
     const val LOGGED_SET_ROW = "logged_set_row" // applied to EACH logged-set row
     const val ADD_EXERCISE = "add_exercise"
 
-    // Plans screens (M3)
+    // Plans screens (M3 redesign)
     const val PLANS_CREATE = "plans_create"
-    const val PLAN_ROW = "plan_row"
-    const val PLAN_DETAIL_ADD_DAY = "plan_detail_add_day"
-    const val DAY_TEMPLATE_ROW = "day_template_row"
+    const val PLAN_ROW = "plan_row" // plan-group header on the Plans list (→ edit plan)
+    const val PLAN_DAY_ROW = "plan_day_row" // a day row (Plans list day rows + PlanEditor day rows)
+    const val PLAN_DAY_START = "plan_day_start" // the play button that starts a day's session
+    const val PLAN_EDITOR_SAVE = "plan_editor_save"
+    const val PLAN_EDITOR_CANCEL = "plan_editor_cancel"
+    const val DAY_EDITOR_DONE = "day_editor_done"
     const val TEMPLATE_ADD_EXERCISE = "template_add_exercise"
     const val TEMPLATE_EXERCISE_ROW = "template_exercise_row"
     const val HOME_TEMPLATE_CHIP = "home_template_chip"
