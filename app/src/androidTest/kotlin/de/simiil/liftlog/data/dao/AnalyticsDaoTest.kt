@@ -208,4 +208,38 @@ class AnalyticsDaoTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test fun observeAllSetsSince_completedOnly_excludesInProgressAndDeleted() = runTest {
+        insertFullGraph()
+        analyticsDao.observeAllSetsSince(fromMillis = 0L).test {
+            val rows = awaitItem()
+            // sA live + sB live only (sC in-progress excluded; sA dead set excluded)
+            assertEquals(2, rows.size)
+            assertTrue(rows.none { it.weightKg == 70.0 && it.reps == 5 })  // dead
+            assertTrue(rows.none { it.weightKg == 90.0 })                  // sC in-progress
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test fun observeAllSetsSince_fromMillis_filtersEarlySession() = runTest {
+        insertFullGraph()
+        analyticsDao.observeAllSetsSince(fromMillis = 1500L).test {
+            val rows = awaitItem()
+            assertEquals(1, rows.size)
+            assertEquals("sB", rows[0].sessionId)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test fun observeTrainedExercises_groupsAndTakesMaxStartedAt() = runTest {
+        insertFullGraph()
+        analyticsDao.observeTrainedExercises().test {
+            val rows = awaitItem()
+            assertEquals(1, rows.size)
+            assertEquals("ex1", rows[0].exerciseId)
+            // MAX over completed sessions with live sets: sB (2000) > sA (1000); sC excluded
+            assertEquals(2000L, rows[0].lastTrainedAt)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }
