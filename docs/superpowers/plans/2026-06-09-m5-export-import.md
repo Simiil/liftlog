@@ -1144,10 +1144,8 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -1166,13 +1164,6 @@ data class SettingsUiState(
     val message: SettingsMessage? = null,
 )
 
-private data class Transient(
-    val pendingParsed: ParsedBackup? = null,
-    val pendingImport: ImportSummary? = null,
-    val dialog: SettingsDialog? = null,
-    val message: SettingsMessage? = null,
-)
-
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
@@ -1182,12 +1173,19 @@ class SettingsViewModel @Inject constructor(
     private val clock: Clock,
 ) : ViewModel() {
 
-    private val transient = MutableStateFlow(Transient())
+    private val _uiState = MutableStateFlow(SettingsUiState())
+    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    val uiState: StateFlow<SettingsUiState> =
-        combine(settingsRepository.themePreference, transient) { theme, t ->
-            SettingsUiState(theme, t.pendingImport, t.dialog, t.message)
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
+    /** The validated backup awaiting confirmation. Opaque (not displayed) → kept off UiState. */
+    private var pendingParsed: ParsedBackup? = null
+
+    init {
+        viewModelScope.launch {
+            settingsRepository.themePreference.collect { theme ->
+                _uiState.update { it.copy(theme = theme) }
+            }
+        }
+    }
 
     fun onThemeSelected(preference: ThemePreference) {
         viewModelScope.launch { settingsRepository.setThemePreference(preference) }
@@ -1208,7 +1206,7 @@ class SettingsViewModel @Inject constructor(
             } catch (e: Exception) {
                 SettingsMessage.EXPORT_FAILED
             }
-            transient.update { it.copy(message = message) }
+            _uiState.update { it.copy(message = message) }
         }
     }
 
@@ -1225,29 +1223,33 @@ class SettingsViewModel @Inject constructor(
 
     /** Maps a parse result to dialog/confirm state. Public for unit testing (no Uri needed). */
     fun handleParseResult(result: ParseResult) {
-        transient.update {
-            when (result) {
-                is ParseResult.Ready -> it.copy(pendingParsed = result.parsed, pendingImport = result.summary)
-                ParseResult.BlockedByLiveSession -> it.copy(dialog = SettingsDialog.LiveSession)
-                is ParseResult.Newer -> it.copy(dialog = SettingsDialog.Newer(result.fileVersion))
-                is ParseResult.Invalid -> it.copy(dialog = SettingsDialog.Invalid(result.reason))
+        when (result) {
+            is ParseResult.Ready -> {
+                pendingParsed = result.parsed
+                _uiState.update { it.copy(pendingImport = result.summary, dialog = null) }
             }
+            ParseResult.BlockedByLiveSession -> _uiState.update { it.copy(dialog = SettingsDialog.LiveSession) }
+            is ParseResult.Newer -> _uiState.update { it.copy(dialog = SettingsDialog.Newer(result.fileVersion)) }
+            is ParseResult.Invalid -> _uiState.update { it.copy(dialog = SettingsDialog.Invalid(result.reason)) }
         }
     }
 
     fun confirmImport() {
-        val parsed = transient.value.pendingParsed ?: return
+        val parsed = pendingParsed ?: return
         viewModelScope.launch {
             backupRepository.applyImport(parsed)
-            transient.update {
-                it.copy(pendingParsed = null, pendingImport = null, message = SettingsMessage.IMPORTED)
-            }
+            pendingParsed = null
+            _uiState.update { it.copy(pendingImport = null, message = SettingsMessage.IMPORTED) }
         }
     }
 
-    fun dismissImport() { transient.update { it.copy(pendingParsed = null, pendingImport = null) } }
-    fun dismissDialog() { transient.update { it.copy(dialog = null) } }
-    fun consumeMessage() { transient.update { it.copy(message = null) } }
+    fun dismissImport() {
+        pendingParsed = null
+        _uiState.update { it.copy(pendingImport = null) }
+    }
+
+    fun dismissDialog() { _uiState.update { it.copy(dialog = null) } }
+    fun consumeMessage() { _uiState.update { it.copy(message = null) } }
 }
 ```
 
