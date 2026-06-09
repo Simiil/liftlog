@@ -3,15 +3,16 @@ package de.simiil.liftlog.ui.analytics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,6 +51,7 @@ fun ExerciseDetailScreen(
     viewModel: ExerciseDetailViewModel = hiltViewModel(),
 ) {
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
+    val fmt = rememberDateFormat()
     Scaffold(modifier = modifier, topBar = {
         TopAppBar(
             title = { Text(ui.name) },
@@ -63,122 +65,128 @@ fun ExerciseDetailScreen(
             },
         )
     }) { inner ->
-        Column(
-            Modifier
-                .padding(inner)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
+        // Single LazyColumn: the chips/range/chart/value are header items that scroll away above
+        // the full (lazy) session list, so the screen scrolls smoothly with a long history.
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(inner),
+            contentPadding = PaddingValues(horizontal = 16.dp),
         ) {
-            // Metric chips
-            Row(
-                Modifier.padding(vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                ui.metrics.forEach { m ->
-                    FilterChip(
-                        selected = m == ui.selectedMetric,
-                        onClick = { viewModel.onMetricChange(m) },
-                        label = { Text(metricLabel(m)) },
-                    )
+            item {
+                Row(
+                    Modifier.padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    ui.metrics.forEach { m ->
+                        FilterChip(
+                            selected = m == ui.selectedMetric,
+                            onClick = { viewModel.onMetricChange(m) },
+                            label = { Text(metricLabel(m)) },
+                        )
+                    }
                 }
             }
-            // Range selector row
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 14.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Range.entries.forEach { r ->
-                    val selected = r == ui.selectedRange
-                    Surface(
-                        onClick = { viewModel.onRangeChange(r) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(36.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        color = if (selected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceContainerHigh,
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                rangeLabel(r),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (selected) MaterialTheme.colorScheme.onPrimary
-                                        else MaterialTheme.colorScheme.onSurface,
-                            )
+            item {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Range.entries.forEach { r ->
+                        val selected = r == ui.selectedRange
+                        Surface(
+                            onClick = { viewModel.onRangeChange(r) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(36.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (selected) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    rangeLabel(r),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (selected) MaterialTheme.colorScheme.onPrimary
+                                            else MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
                         }
                     }
                 }
             }
-            // Chart or insufficient-data message
-            if (ui.notEnoughData) {
-                Text(
-                    stringResource(R.string.analytics_need_two),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 24.dp),
-                )
-            } else {
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = RoundedCornerShape(22.dp),
-                ) {
-                    Box(Modifier.padding(vertical = 14.dp, horizontal = 10.dp)) {
-                        ProgressLineChart(ui.chartPoints, zeroBased = ui.chartZeroBased)
+            item {
+                if (ui.notEnoughData) {
+                    Text(
+                        stringResource(R.string.analytics_need_two),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 24.dp),
+                    )
+                } else {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = RoundedCornerShape(22.dp),
+                    ) {
+                        Box(Modifier.padding(vertical = 14.dp, horizontal = 10.dp)) {
+                            ProgressLineChart(ui.chartPoints, zeroBased = ui.chartZeroBased)
+                        }
                     }
                 }
             }
-            // Current value + trend badge
-            Row(
-                Modifier.padding(vertical = 16.dp),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(ui.currentValueLabel, fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
-                ui.summary?.let { if (!it.bodyweight) TrendBadge(it.trend, large = true) }
-            }
-            // Recent sessions section header
-            Text(
-                stringResource(R.string.analytics_recent_sessions),
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
-            // Recent session rows
-            val fmt = rememberDateFormat()
-            ui.recent.forEach { row ->
+            item {
                 Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable { onOpenSession(row.sessionId) }
-                        .padding(vertical = 13.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    Modifier.padding(vertical = 16.dp),
+                    verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(
-                        fmt.format(Date(row.dateMillis)),
-                        fontSize = 14.sp,
-                        modifier = Modifier.width(92.dp),
-                    )
-                    Text(
-                        row.summary,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (row.isPr) {
-                        Text(
-                            stringResource(R.string.analytics_pr),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.tertiary,
-                        )
-                    }
+                    Text(ui.currentValueLabel, fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
+                    ui.summary?.let { if (!it.bodyweight) TrendBadge(it.trend, large = true) }
                 }
+            }
+            item {
+                Text(
+                    stringResource(R.string.analytics_sessions),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            }
+            items(ui.recent, key = { it.sessionId }) { row ->
+                SessionRow(row, fmt.format(Date(row.dateMillis)), onOpenSession)
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
+        }
+    }
+}
+
+@Composable
+private fun SessionRow(row: RecentSessionRow, dateLabel: String, onOpenSession: (String) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable { onOpenSession(row.sessionId) }
+            .padding(vertical = 13.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(dateLabel, fontSize = 14.sp, modifier = Modifier.width(92.dp))
+        Text(
+            row.summary,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        if (row.isPr) {
+            Text(
+                stringResource(R.string.analytics_pr),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
         }
     }
 }

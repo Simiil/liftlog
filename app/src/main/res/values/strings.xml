@@ -208,7 +208,7 @@
     <string name="range_90d">90d</string>
     <string name="range_1y">1y</string>
     <string name="range_all">all</string>
-    <string name="analytics_recent_sessions">Recent sessions</string>
+    <string name="analytics_sessions">Sessions</string>
     <string name="analytics_pr">PR</string>
     <string name="analytics_need_two">Need 2+ sessions for a chart</string>
 </resources>

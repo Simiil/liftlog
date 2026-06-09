@@ -100,7 +100,7 @@ class ExerciseDetailViewModel @Inject constructor(
             chartPoints = pts,
             chartZeroBased = zeroBased,
             currentValueLabel = label(valueOf(last, metric), metric, unit),
-            recent = summary.sessions.takeLast(5).reversed().map { sp ->
+            recent = summary.sessions.reversed().map { sp ->
                 RecentSessionRow(
                     sessionId = sp.sessionId,
                     dateMillis = sp.timeMillis,
