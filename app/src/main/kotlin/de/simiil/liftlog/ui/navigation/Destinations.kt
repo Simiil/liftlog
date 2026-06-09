@@ -11,6 +11,8 @@ import kotlinx.serialization.Serializable
 @Serializable data class ActiveSessionRoute(val sessionId: String)
 @Serializable data class SessionDetailRoute(val sessionId: String)
 @Serializable data object ExercisePickerRoute
+@Serializable data class PlanDetailRoute(val planId: String)
+@Serializable data class TemplateEditorRoute(val templateId: String)
 
 /** savedStateHandle key the Exercise Picker writes its selected exercise id to,
  *  read by the caller (e.g. Active Session) after popBackStack. */

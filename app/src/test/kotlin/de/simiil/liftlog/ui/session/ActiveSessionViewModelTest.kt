@@ -65,14 +65,16 @@ class ActiveSessionViewModelTest {
         exerciseId: String,
         position: Int = 0,
         targetSets: Int? = null,
+        targetRepsMin: Int? = null,
+        targetRepsMax: Int? = null,
     ): SessionExercise = SessionExercise(
         id = id,
         sessionId = "s1",
         exerciseId = exerciseId,
         position = position,
         targetSets = targetSets,
-        targetRepsMin = null,
-        targetRepsMax = null,
+        targetRepsMin = targetRepsMin,
+        targetRepsMax = targetRepsMax,
         createdAt = now,
         updatedAt = now,
         deletedAt = null,
@@ -285,6 +287,35 @@ class ActiveSessionViewModelTest {
             assertEquals("se2", active.sessionExerciseId)
             // se1 is now completed (has a set, no longer active)
             assertEquals(CardState.COMPLETED, state.cards.single { it.sessionExerciseId == "se1" }.state)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `card exposes targetRepsMin and targetRepsMax from session exercise`() = runTest {
+        val sessionRepo = FakeSessionRepository()
+        val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Squat")) }
+        sessionRepo.lastPerformanceResult = listOf(perf(100.0, 10))
+        sessionRepo.setSessionDetails(
+            "s1",
+            SessionWithDetails(
+                session("s1"),
+                listOf(
+                    SessionExerciseWithSets(
+                        sessionExercise("se1", "ex1", targetSets = 3, targetRepsMin = 8, targetRepsMax = 12),
+                        emptyList(),
+                    ),
+                ),
+            ),
+        )
+
+        val vm = createVm(sessionRepo, exerciseRepo)
+
+        vm.uiState.test {
+            val card = awaitItem().cards.single()
+            assertEquals(8, card.targetRepsMin)
+            assertEquals(12, card.targetRepsMax)
+            assertEquals(3, card.targetSets)
             cancelAndIgnoreRemainingEvents()
         }
     }

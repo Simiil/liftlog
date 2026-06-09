@@ -28,12 +28,14 @@ PR series with a review gate at its exit criteria.
   headless **API-34** emulator via the `reactivecircus/android-emulator-runner` action. (A
   Gradle-managed device `pixelApi34DebugAndroidTest` is also configured but its snapshot
   emulator won't boot on GitHub's hosted runners — hence the action.)
-- **Compose UI tests remain CI-only.** `createAndroidComposeRule` tests (e.g.
-  `CriticalLoggingPathTest`) crash on this machine's **Android 16** targets — both the
-  API-36 emulator and the physical Pixel 9 — with `NoSuchMethodException:
-  android.hardware.input.InputManager.getInstance` (a known Espresso/API-36 incompatibility).
-  They pass in CI (API 34). So for UI work: drive the app + screenshot via `adb` for local
-  visual checks, and let CI run the Compose UI test.
+- **Compose UI tests now run locally too** (since M3). They used to crash on this machine's
+  **Android 16** targets with `NoSuchMethodException:
+  android.hardware.input.InputManager.getInstance` (a known Espresso/API-36 incompatibility);
+  pinning **`espresso-core` 3.7.0** (`androidx-test-espresso-core` in the catalog) fixes that
+  reflection call, so `createAndroidComposeRule` tests (e.g. `CriticalLoggingPathTest`,
+  `TemplateStartPathTest`) pass on `emulator-5554` as well as in CI (API 34). Note: on the
+  Active Session screen (running 1s timer), poll-based `composeRule.waitUntil` reads a stale
+  tree — use `waitForIdle()` + re-check (see `TemplateStartPathTest`'s `await` helper).
 - Needs JDK 17+ and an Android SDK (`local.properties` → `sdk.dir`); the Gradle wrapper is
   committed. To see a change on-device: `./gradlew installDebug` (or `assembleDebug` then
   `adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk`), launch, and

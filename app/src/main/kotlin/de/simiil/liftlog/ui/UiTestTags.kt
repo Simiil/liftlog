@@ -16,4 +16,13 @@ object UiTestTags {
     const val WEIGHT_VALUE = "weight_value"
     const val LOGGED_SET_ROW = "logged_set_row" // applied to EACH logged-set row
     const val ADD_EXERCISE = "add_exercise"
+
+    // Plans screens (M3)
+    const val PLANS_CREATE = "plans_create"
+    const val PLAN_ROW = "plan_row"
+    const val PLAN_DETAIL_ADD_DAY = "plan_detail_add_day"
+    const val DAY_TEMPLATE_ROW = "day_template_row"
+    const val TEMPLATE_ADD_EXERCISE = "template_add_exercise"
+    const val TEMPLATE_EXERCISE_ROW = "template_exercise_row"
+    const val HOME_TEMPLATE_CHIP = "home_template_chip"
 }

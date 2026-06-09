@@ -24,4 +24,11 @@ interface SessionRepository {
     suspend fun lastPerformance(exerciseId: String): List<LoggedSet>
     /** Returns a map of sessionId → live set count for all sessions with at least one live set. */
     fun observeSetCountsBySession(): Flow<Map<String, Int>>
+
+    /**
+     * Starts a session by SNAPSHOTTING a day template (02-data-spec §1): copies the template's
+     * live exercises into session_exercises (order + targets frozen) and records templateNameSnapshot.
+     * Throws IllegalStateException if a session is already in progress.
+     */
+    suspend fun startSessionFromTemplate(templateId: String): Session
 }

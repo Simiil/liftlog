@@ -11,7 +11,9 @@ import de.simiil.liftlog.ui.analytics.AnalyticsScreen
 import de.simiil.liftlog.ui.exercises.ExercisePickerScreen
 import de.simiil.liftlog.ui.history.HistoryScreen
 import de.simiil.liftlog.ui.home.HomeScreen
+import de.simiil.liftlog.ui.plans.PlanDetailScreen
 import de.simiil.liftlog.ui.plans.PlansScreen
+import de.simiil.liftlog.ui.plans.TemplateEditorScreen
 import de.simiil.liftlog.ui.session.ActiveSessionScreen
 import de.simiil.liftlog.ui.session.SessionDetailScreen
 import de.simiil.liftlog.ui.settings.SettingsScreen
@@ -28,7 +30,9 @@ fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifi
                 onOpenSessionDetail = { id -> navController.navigate(SessionDetailRoute(id)) },
             )
         }
-        composable<PlansRoute> { PlansScreen() }
+        composable<PlansRoute> {
+            PlansScreen(onOpenPlan = { id -> navController.navigate(PlanDetailRoute(id)) })
+        }
         composable<AnalyticsRoute> { AnalyticsScreen() }
         composable<HistoryRoute> { HistoryScreen(onOpenSessionDetail = { navController.navigate(SessionDetailRoute(it)) }) }
         composable<SettingsRoute> {
@@ -41,6 +45,23 @@ fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifi
             ActiveSessionScreen(
                 onFinished = { navController.popBackStack() },
                 onDiscarded = { navController.popBackStack() },
+                onAddExercise = { navController.navigate(ExercisePickerRoute) },
+                pickedExerciseId = pickedId,
+                onPickedExerciseConsumed = { entry.savedStateHandle[PICKED_EXERCISE_ID] = null },
+            )
+        }
+        composable<PlanDetailRoute> {
+            PlanDetailScreen(
+                onBack = { navController.popBackStack() },
+                onOpenTemplate = { id -> navController.navigate(TemplateEditorRoute(id)) },
+            )
+        }
+        composable<TemplateEditorRoute> { entry ->
+            val pickedId by entry.savedStateHandle
+                .getStateFlow<String?>(PICKED_EXERCISE_ID, null)
+                .collectAsStateWithLifecycle()
+            TemplateEditorScreen(
+                onBack = { navController.popBackStack() },
                 onAddExercise = { navController.navigate(ExercisePickerRoute) },
                 pickedExerciseId = pickedId,
                 onPickedExerciseConsumed = { entry.savedStateHandle[PICKED_EXERCISE_ID] = null },

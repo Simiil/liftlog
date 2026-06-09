@@ -1,5 +1,6 @@
 package de.simiil.liftlog.data.repository
 
+import de.simiil.liftlog.data.dao.PlanDao
 import de.simiil.liftlog.data.dao.PrefillDao
 import de.simiil.liftlog.data.dao.SessionDao
 import de.simiil.liftlog.data.db.Transactor
@@ -25,6 +26,7 @@ class SessionRepositoryImpl @Inject constructor(
     private val transactor: Transactor,
     private val clock: Clock,
     private val prefillDao: PrefillDao,
+    private val planDao: PlanDao,
 ) : SessionRepository {
     override fun observeActiveSession() = dao.observeActiveSession().map { it?.toDomain() }
     override fun observeHistory() = dao.observeHistory().map { it.map(SessionEntity::toDomain) }
@@ -132,4 +134,34 @@ class SessionRepositoryImpl @Inject constructor(
 
     override fun observeSetCountsBySession(): Flow<Map<String, Int>> =
         dao.observeSetCountsBySession().map { rows -> rows.associate { it.sessionId to it.setCount } }
+
+    override suspend fun startSessionFromTemplate(templateId: String): Session = transactor.immediate {
+        check(dao.activeSessionId() == null) { "A session is already in progress" }
+        val template = planDao.findDayTemplate(templateId)
+            ?: error("day template not found: $templateId")
+        val now = clock.millis()
+        val session = SessionEntity(
+            id = UUID.randomUUID().toString(),
+            templateId = templateId,
+            templateNameSnapshot = template.name,
+            startedAt = now, endedAt = null, note = null,
+            createdAt = now, updatedAt = now, deletedAt = null,
+        )
+        dao.insertSession(session)
+        planDao.templateExercisesFor(templateId).forEach { te ->   // live, ordered by position
+            dao.insertSessionExercise(
+                SessionExerciseEntity(
+                    id = UUID.randomUUID().toString(),
+                    sessionId = session.id,
+                    exerciseId = te.exerciseId,
+                    position = te.position,
+                    targetSets = te.targetSets,
+                    targetRepsMin = te.targetRepsMin,
+                    targetRepsMax = te.targetRepsMax,
+                    createdAt = now, updatedAt = now, deletedAt = null,
+                ),
+            )
+        }
+        session.toDomain()
+    }
 }

@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.model.SessionExerciseWithSets
 import de.simiil.liftlog.domain.model.SessionWithDetails
+import de.simiil.liftlog.testing.FakePlanRepository
 import de.simiil.liftlog.testing.FakeSessionRepository
 import de.simiil.liftlog.testing.MainDispatcherRule
 import java.time.Instant
@@ -21,6 +22,12 @@ class HomeViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     // ---- helpers ----
+
+    /** Creates a [HomeViewModel] with optional plan and session repositories. */
+    private fun makeVm(
+        sessionRepo: FakeSessionRepository = FakeSessionRepository(),
+        planRepo: FakePlanRepository = FakePlanRepository(),
+    ) = HomeViewModel(sessionRepo, planRepo)
 
     private fun makeSession(
         id: String,
@@ -69,7 +76,7 @@ class HomeViewModelTest {
     @Test
     fun `resume is null when activeSession is null`() = runTest {
         val repo = FakeSessionRepository()
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -85,7 +92,7 @@ class HomeViewModelTest {
         repo.activeSession.value = session
         repo.setSessionDetails("sess-1", makeDetails(session, exerciseCount = 3))
 
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -106,7 +113,7 @@ class HomeViewModelTest {
         repo.activeSession.value = session
         repo.setSessionDetails("sess-2", makeDetails(session, exerciseCount = 0))
 
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -124,7 +131,7 @@ class HomeViewModelTest {
         // details flow exists but emits null
         repo.details["sess-3"] // don't set a value — will be null
 
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -143,7 +150,7 @@ class HomeViewModelTest {
         repo.activeSession.value = active
         repo.history.value = listOf(active, finished)
 
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -163,7 +170,7 @@ class HomeViewModelTest {
         }
         repo.history.value = sessions
 
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -182,7 +189,7 @@ class HomeViewModelTest {
         repo.history.value = listOf(s1, s2)
         repo.setCounts.value = mapOf("s-1" to 12, "s-2" to 7)
 
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -202,7 +209,7 @@ class HomeViewModelTest {
         repo.history.value = listOf(s1)
         // no entry for s-1 in setCounts
 
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -218,7 +225,7 @@ class HomeViewModelTest {
         repo.activeSession.value = session
         repo.setSessionDetails("existing-session", makeDetails(session, 0))
 
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         // Let uiState settle so resume is populated
         vm.uiState.test {
@@ -239,7 +246,7 @@ class HomeViewModelTest {
         val repo = FakeSessionRepository()
         // no active session
 
-        val vm = HomeViewModel(repo)
+        val vm = makeVm(sessionRepo = repo)
 
         vm.uiState.test {
             awaitItem()
@@ -252,5 +259,96 @@ class HomeViewModelTest {
         assertEquals(1, repo.startEmptySessionCalls.size)
         assertNotNull("should have received the new session id", receivedId)
         assertTrue("id should start with 'new-session'", receivedId!!.startsWith("new-session"))
+    }
+
+    // ── Template chip tests ───────────────────────────────────────────────────
+
+    @Test
+    fun `templates is empty when no plans exist`() = runTest {
+        val planRepo = FakePlanRepository()
+        // no plans seeded
+        val vm = makeVm(planRepo = planRepo)
+
+        vm.uiState.test {
+            val state = awaitItem()
+            assertTrue("templates should be empty when no plans", state.templates.isEmpty())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `templates has chips for each day template of the most-used plan`() = runTest {
+        val planRepo = FakePlanRepository()
+        val plan = planRepo.createPlan("PPL")
+        planRepo.createDayTemplate(plan.id, "Push")
+        planRepo.createDayTemplate(plan.id, "Pull")
+
+        val vm = makeVm(planRepo = planRepo)
+
+        vm.uiState.test {
+            val state = awaitItem()
+            assertEquals("should have 2 chips", 2, state.templates.size)
+            assertEquals("Push", state.templates[0].name)
+            assertEquals("Pull", state.templates[1].name)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `startFromTemplate with no active session calls startSessionFromTemplate and invokes onOpenSession`() = runTest {
+        val sessionRepo = FakeSessionRepository()
+        val planRepo = FakePlanRepository()
+        val plan = planRepo.createPlan("PPL")
+        val day = planRepo.createDayTemplate(plan.id, "Push")
+
+        val vm = makeVm(sessionRepo = sessionRepo, planRepo = planRepo)
+
+        // Settle uiState
+        vm.uiState.test {
+            awaitItem()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        var receivedId: String? = null
+        vm.startFromTemplate(day.id) { receivedId = it }
+
+        assertEquals("should have called startSessionFromTemplate once", 1, sessionRepo.startFromTemplateCalls.size)
+        assertEquals(day.id, sessionRepo.startFromTemplateCalls[0])
+        assertNotNull("onOpenSession should be invoked with the new session id", receivedId)
+        assertTrue("session id should be the new one", receivedId!!.startsWith("new-session"))
+    }
+
+    @Test
+    fun `startFromTemplate with active session reuses active session and does not start a new one`() = runTest {
+        val sessionRepo = FakeSessionRepository()
+        val planRepo = FakePlanRepository()
+        val plan = planRepo.createPlan("PPL")
+        val day = planRepo.createDayTemplate(plan.id, "Push")
+
+        // Seed an active session
+        val activeSession = makeSession(id = "active-sess")
+        sessionRepo.activeSession.value = activeSession
+        sessionRepo.setSessionDetails("active-sess", makeDetails(activeSession, 2))
+
+        val vm = makeVm(sessionRepo = sessionRepo, planRepo = planRepo)
+
+        // Settle uiState
+        vm.uiState.test {
+            awaitItem()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        var receivedId: String? = null
+        vm.startFromTemplate(day.id) { receivedId = it }
+
+        assertTrue(
+            "startSessionFromTemplate should NOT be called when a session is live",
+            sessionRepo.startFromTemplateCalls.isEmpty(),
+        )
+        assertEquals(
+            "onOpenSession should receive the active session id",
+            "active-sess",
+            receivedId,
+        )
     }
 }

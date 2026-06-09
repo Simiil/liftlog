@@ -1,7 +1,7 @@
 package de.simiil.liftlog.ui.plans
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box // used by DropdownMenu anchor
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,9 +19,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.FitnessCenter
+import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -64,37 +65,48 @@ import de.simiil.liftlog.ui.theme.LiftLogTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlansScreen(
-    onOpenPlan: (String) -> Unit,
+fun PlanDetailScreen(
+    onBack: () -> Unit,
+    onOpenTemplate: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PlansViewModel = hiltViewModel(),
+    viewModel: PlanDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // ── dialog state ──────────────────────────────────────────────────────
     var showCreateDialog by rememberSaveable { mutableStateOf(false) }
-    var renameTarget by rememberSaveable { mutableStateOf<PlanRowUi?>(null) }
-    var deleteTarget by rememberSaveable { mutableStateOf<PlanRowUi?>(null) }
+    var renameTarget by rememberSaveable { mutableStateOf<DayRowUi?>(null) }
+    var deleteTarget by rememberSaveable { mutableStateOf<DayRowUi?>(null) }
 
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.tab_plans)) })
+            TopAppBar(
+                title = { Text(uiState.planName) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.navigate_back),
+                        )
+                    }
+                },
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showCreateDialog = true },
-                modifier = Modifier.testTag(UiTestTags.PLANS_CREATE),
+                modifier = Modifier.testTag(UiTestTags.PLAN_DETAIL_ADD_DAY),
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.plans_create),
+                    contentDescription = stringResource(R.string.plan_detail_add_day),
                 )
             }
         },
     ) { innerPadding ->
-        if (!uiState.loading && uiState.plans.isEmpty()) {
-            PlansEmptyState(
+        if (!uiState.loading && uiState.days.isEmpty()) {
+            PlanDetailEmptyState(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize(),
@@ -110,15 +122,15 @@ fun PlansScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(uiState.plans, key = { it.id }) { plan ->
-                    PlanCard(
-                        plan = plan,
-                        onClick = { onOpenPlan(plan.id) },
-                        onRename = { renameTarget = plan },
-                        onDelete = { deleteTarget = plan },
+                items(uiState.days, key = { it.id }) { day ->
+                    DayTemplateCard(
+                        day = day,
+                        onClick = { onOpenTemplate(day.id) },
+                        onRename = { renameTarget = day },
+                        onDelete = { deleteTarget = day },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .testTag(UiTestTags.PLAN_ROW),
+                            .testTag(UiTestTags.DAY_TEMPLATE_ROW),
                     )
                 }
             }
@@ -128,11 +140,11 @@ fun PlansScreen(
     // ── Create dialog ─────────────────────────────────────────────────────
     if (showCreateDialog) {
         NameInputDialog(
-            title = stringResource(R.string.plans_create),
-            hint = stringResource(R.string.plan_name_hint),
+            title = stringResource(R.string.plan_detail_add_day),
+            hint = stringResource(R.string.day_name_hint),
             confirmLabel = stringResource(R.string.dialog_save),
             onConfirm = { name ->
-                viewModel.createPlan(name)
+                viewModel.createDay(name)
                 showCreateDialog = false
             },
             onDismiss = { showCreateDialog = false },
@@ -142,12 +154,12 @@ fun PlansScreen(
     // ── Rename dialog ─────────────────────────────────────────────────────
     renameTarget?.let { target ->
         NameInputDialog(
-            title = stringResource(R.string.plan_rename),
-            hint = stringResource(R.string.plan_name_hint),
+            title = stringResource(R.string.day_rename),
+            hint = stringResource(R.string.day_name_hint),
             initialValue = target.name,
             confirmLabel = stringResource(R.string.dialog_save),
             onConfirm = { name ->
-                viewModel.renamePlan(target.id, name)
+                viewModel.renameDay(target.id, name)
                 renameTarget = null
             },
             onDismiss = { renameTarget = null },
@@ -158,17 +170,17 @@ fun PlansScreen(
     deleteTarget?.let { target ->
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
-            title = { Text(stringResource(R.string.plan_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.plan_delete_confirm_message)) },
+            title = { Text(stringResource(R.string.day_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.day_delete_confirm_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deletePlan(target.id)
+                        viewModel.deleteDay(target.id)
                         deleteTarget = null
                     },
                 ) {
                     Text(
-                        text = stringResource(R.string.plan_delete),
+                        text = stringResource(R.string.day_delete),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
@@ -182,11 +194,11 @@ fun PlansScreen(
     }
 }
 
-// ── Plan card ─────────────────────────────────────────────────────────────────
+// ── Day template card ─────────────────────────────────────────────────────────
 
 @Composable
-private fun PlanCard(
-    plan: PlanRowUi,
+private fun DayTemplateCard(
+    day: DayRowUi,
     onClick: () -> Unit,
     onRename: () -> Unit,
     onDelete: () -> Unit,
@@ -211,7 +223,7 @@ private fun PlanCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = plan.name,
+                text = day.name,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f),
@@ -234,7 +246,7 @@ private fun PlanCard(
                     onDismissRequest = { menuExpanded = false },
                 ) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.plan_rename)) },
+                        text = { Text(stringResource(R.string.day_rename)) },
                         onClick = {
                             menuExpanded = false
                             onRename()
@@ -243,7 +255,7 @@ private fun PlanCard(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = stringResource(R.string.plan_delete),
+                                text = stringResource(R.string.day_delete),
                                 color = MaterialTheme.colorScheme.error,
                             )
                         },
@@ -261,28 +273,28 @@ private fun PlanCard(
 // ── Empty state ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun PlansEmptyState(modifier: Modifier = Modifier) {
+private fun PlanDetailEmptyState(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.padding(horizontal = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(
-            imageVector = Icons.Outlined.FitnessCenter,
+            imageVector = Icons.Outlined.CalendarToday,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(64.dp),
         )
         Spacer(Modifier.height(20.dp))
         Text(
-            text = stringResource(R.string.plans_empty_title),
+            text = stringResource(R.string.plan_detail_empty_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            text = stringResource(R.string.plans_empty_sub),
+            text = stringResource(R.string.plan_detail_empty_sub),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.widthIn(max = 300.dp),
@@ -341,45 +353,47 @@ private fun NameInputDialog(
 
 // ── Previews ──────────────────────────────────────────────────────────────────
 
-@Preview(name = "Plans — empty (light)", showBackground = true)
+@Preview(name = "Plan Detail — empty (light)", showBackground = true)
 @Composable
-private fun PreviewPlansEmptyLight() {
+private fun PreviewPlanDetailEmptyLight() {
     LiftLogTheme(themePreference = ThemePreference.LIGHT, dynamicColor = false) {
-        PlansScreenPreviewContent(plans = emptyList())
+        PlanDetailScreenPreviewContent(planName = "Push Pull Legs", days = emptyList())
     }
 }
 
-@Preview(name = "Plans — empty (dark)", showBackground = true, backgroundColor = 0xFF1C1B1F)
+@Preview(name = "Plan Detail — empty (dark)", showBackground = true, backgroundColor = 0xFF1C1B1F)
 @Composable
-private fun PreviewPlansEmptyDark() {
+private fun PreviewPlanDetailEmptyDark() {
     LiftLogTheme(themePreference = ThemePreference.DARK, dynamicColor = false) {
-        PlansScreenPreviewContent(plans = emptyList())
+        PlanDetailScreenPreviewContent(planName = "Push Pull Legs", days = emptyList())
     }
 }
 
-@Preview(name = "Plans — populated (light)", showBackground = true)
+@Preview(name = "Plan Detail — populated (light)", showBackground = true)
 @Composable
-private fun PreviewPlansPopulatedLight() {
+private fun PreviewPlanDetailPopulatedLight() {
     LiftLogTheme(themePreference = ThemePreference.LIGHT, dynamicColor = false) {
-        PlansScreenPreviewContent(
-            plans = listOf(
-                PlanRowUi("1", "Push Pull Legs"),
-                PlanRowUi("2", "Upper / Lower"),
-                PlanRowUi("3", "Full Body"),
+        PlanDetailScreenPreviewContent(
+            planName = "Push Pull Legs",
+            days = listOf(
+                DayRowUi("1", "Push — Chest & Shoulders"),
+                DayRowUi("2", "Pull — Back & Biceps"),
+                DayRowUi("3", "Legs"),
             ),
         )
     }
 }
 
-@Preview(name = "Plans — populated (dark)", showBackground = true, backgroundColor = 0xFF1C1B1F)
+@Preview(name = "Plan Detail — populated (dark)", showBackground = true, backgroundColor = 0xFF1C1B1F)
 @Composable
-private fun PreviewPlansPopulatedDark() {
+private fun PreviewPlanDetailPopulatedDark() {
     LiftLogTheme(themePreference = ThemePreference.DARK, dynamicColor = false) {
-        PlansScreenPreviewContent(
-            plans = listOf(
-                PlanRowUi("1", "Push Pull Legs"),
-                PlanRowUi("2", "Upper / Lower"),
-                PlanRowUi("3", "Full Body"),
+        PlanDetailScreenPreviewContent(
+            planName = "Push Pull Legs",
+            days = listOf(
+                DayRowUi("1", "Push — Chest & Shoulders"),
+                DayRowUi("2", "Pull — Back & Biceps"),
+                DayRowUi("3", "Legs"),
             ),
         )
     }
@@ -387,10 +401,20 @@ private fun PreviewPlansPopulatedDark() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlansScreenPreviewContent(plans: List<PlanRowUi>) {
+private fun PlanDetailScreenPreviewContent(planName: String, days: List<DayRowUi>) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.tab_plans)) })
+            TopAppBar(
+                title = { Text(planName) },
+                navigationIcon = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                        )
+                    }
+                },
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {}) {
@@ -398,8 +422,8 @@ private fun PlansScreenPreviewContent(plans: List<PlanRowUi>) {
             }
         },
     ) { innerPadding ->
-        if (plans.isEmpty()) {
-            PlansEmptyState(
+        if (days.isEmpty()) {
+            PlanDetailEmptyState(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize(),
@@ -415,9 +439,9 @@ private fun PlansScreenPreviewContent(plans: List<PlanRowUi>) {
                 ),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(plans, key = { it.id }) { plan ->
-                    PlanCard(
-                        plan = plan,
+                items(days, key = { it.id }) { day ->
+                    DayTemplateCard(
+                        day = day,
                         onClick = {},
                         onRename = {},
                         onDelete = {},
