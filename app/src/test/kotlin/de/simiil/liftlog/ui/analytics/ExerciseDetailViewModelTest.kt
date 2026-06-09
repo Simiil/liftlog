@@ -56,6 +56,7 @@ class ExerciseDetailViewModelTest {
         override val themePreference = flowOf(de.simiil.liftlog.domain.model.ThemePreference.SYSTEM)
         override val weightUnit = flowOf(WeightUnit.KG)
         override suspend fun setThemePreference(preference: de.simiil.liftlog.domain.model.ThemePreference) {}
+        override suspend fun setWeightUnit(unit: WeightUnit) {}
     }
 
     @Test fun weightedExercise_offersWeightMetrics() = runTest {

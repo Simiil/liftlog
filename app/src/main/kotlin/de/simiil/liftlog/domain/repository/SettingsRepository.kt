@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 interface SettingsRepository {
     val themePreference: Flow<ThemePreference>
     val weightUnit: Flow<WeightUnit>
-    // setWeightUnit + the Settings toggle UI are deferred to M5 (flagged decision #1).
     suspend fun setThemePreference(preference: ThemePreference)
+    /** Persistence for the kg/lb unit. Toggle UI lands in M5 PR2; import restores it now. */
+    suspend fun setWeightUnit(unit: WeightUnit)
 }

@@ -38,6 +38,7 @@ class AnalyticsBrowserViewModelTest {
         override val themePreference: Flow<ThemePreference> = flowOf(ThemePreference.SYSTEM)
         override val weightUnit: Flow<WeightUnit> = flowOf(WeightUnit.KG)
         override suspend fun setThemePreference(preference: ThemePreference) {}
+        override suspend fun setWeightUnit(unit: WeightUnit) {}
     }
 
     @Test fun search_filtersByNameCaseInsensitive() = runTest {

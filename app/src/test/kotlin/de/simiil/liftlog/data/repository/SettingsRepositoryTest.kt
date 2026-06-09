@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.testing.MainDispatcherRule
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -42,5 +43,22 @@ class SettingsRepositoryTest {
 
         val result = repo.themePreference.first()
         assertEquals(ThemePreference.SYSTEM, result)
+    }
+
+    private fun persistingDataStore(): DataStore<Preferences> = object : DataStore<Preferences> {
+        private val state = MutableStateFlow(emptyPreferences())
+        override val data = state
+        override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences {
+            val updated = transform(state.value)
+            state.value = updated
+            return updated
+        }
+    }
+
+    @Test
+    fun `setWeightUnit persists and re-reads`() = runTest {
+        val repo = SettingsRepositoryImpl(persistingDataStore())
+        repo.setWeightUnit(WeightUnit.LB)
+        assertEquals(WeightUnit.LB, repo.weightUnit.first())
     }
 }
