@@ -195,6 +195,9 @@
     <string name="analytics_e1rm_value">e1RM %1$s %2$s</string>
     <string name="analytics_reps_value">%1$d reps</string>
 
+    <!-- Settings debug actions -->
+    <string name="settings_seed_demo">Seed demo data (debug)</string>
+
     <!-- Analytics detail screen -->
     <string name="metric_e1rm">e1RM</string>
     <string name="metric_top_set">Top set</string>
