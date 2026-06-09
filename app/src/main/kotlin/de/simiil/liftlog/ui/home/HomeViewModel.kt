@@ -3,6 +3,8 @@ package de.simiil.liftlog.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.simiil.liftlog.domain.model.MuscleGroup
+import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
 import java.time.Instant
@@ -19,7 +21,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-data class TemplateChipUi(val templateId: String, val name: String)
+data class TemplateChipUi(
+    val templateId: String,
+    val name: String,
+    /** Number of exercises in the day template. */
+    val exerciseCount: Int = 0,
+    /** Up to 3 distinct muscle groups (first-seen order), for the chip's bottom line. */
+    val muscleGroups: List<MuscleGroup> = emptyList(),
+)
 
 data class HomeUiState(
     val resume: ResumeCardUi? = null,
@@ -45,6 +54,7 @@ data class RecentSessionUi(
 class HomeViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val planRepository: PlanRepository,
+    private val exerciseRepository: ExerciseRepository,
 ) : ViewModel() {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -64,12 +74,35 @@ class HomeViewModel @Inject constructor(
             }
         }
 
+    // Chips show the days of the most-used (else first) plan, each with its exercise
+    // count + up to 3 distinct muscle groups — mirrors PlansViewModel's day rows.
     @OptIn(ExperimentalCoroutinesApi::class)
     private val templates: Flow<List<TemplateChipUi>> =
         planRepository.observeMostUsedOrFirstPlanId().flatMapLatest { planId ->
-            if (planId == null) flowOf(emptyList())
-            else planRepository.observeDayTemplates(planId)
-                .map { days -> days.map { TemplateChipUi(it.id, it.name) } }
+            if (planId == null) {
+                flowOf(emptyList())
+            } else {
+                combine(
+                    planRepository.observePlansWithDays(),
+                    exerciseRepository.observeAll(),
+                ) { plans, exercises ->
+                    val groupByExerciseId = exercises.associate { it.id to it.muscleGroup }
+                    plans.firstOrNull { it.id == planId }
+                        ?.days
+                        ?.map { day ->
+                            TemplateChipUi(
+                                templateId = day.templateId,
+                                name = day.name,
+                                exerciseCount = day.exerciseCount,
+                                muscleGroups = day.exerciseIds
+                                    .mapNotNull { groupByExerciseId[it] }
+                                    .distinct()
+                                    .take(3),
+                            )
+                        }
+                        ?: emptyList()
+                }
+            }
         }
 
     val uiState: StateFlow<HomeUiState> = combine(

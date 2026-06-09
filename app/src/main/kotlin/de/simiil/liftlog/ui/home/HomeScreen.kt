@@ -6,11 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -57,8 +57,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.dashedBorder
+import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 import java.time.Duration
 import java.time.Instant
@@ -115,7 +117,6 @@ fun HomeScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HomeContent(
     uiState: HomeUiState,
@@ -268,17 +269,21 @@ private fun EmptySessionCard(
                 width = 1.5.dp,
                 cornerRadius = 20.dp,
             )
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .padding(16.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
             Icon(
                 imageVector = Icons.Filled.Add,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(26.dp),
             )
-            Spacer(Modifier.size(8.dp))
+            Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.home_start_empty),
                 style = MaterialTheme.typography.bodyMedium,
@@ -290,11 +295,11 @@ private fun EmptySessionCard(
 }
 
 /**
- * 2-column grid of template chips + the trailing empty-session card.
- * When [chips] is empty the grid contains only the empty-session card
- * (preserving the current behavior exactly).
+ * 2-column grid of template chips + the trailing empty-session card. Built as explicit
+ * rows of two so every cell is the same width AND height (a lone trailing cell stays
+ * half-width, mirroring the design's `grid-template-columns: 1fr 1fr`). When [chips] is
+ * empty the grid holds only the empty-session card.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TemplateChipGrid(
     chips: List<TemplateChipUi>,
@@ -302,25 +307,44 @@ private fun TemplateChipGrid(
     onStartEmpty: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    FlowRow(
+    // Template chips followed by the empty-session card (null = the empty card).
+    val cells: List<TemplateChipUi?> = chips + null
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        maxItemsInEachRow = 2,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        chips.forEach { chip ->
-            TemplateChip(
-                chip = chip,
-                onClick = { onChipClick(chip.templateId) },
-                modifier = Modifier.weight(1f),
-            )
+        cells.chunked(2).forEach { rowCells ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                rowCells.forEach { cell ->
+                    if (cell == null) {
+                        EmptySessionCard(
+                            onClick = onStartEmpty,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .testTag(UiTestTags.HOME_START_EMPTY),
+                        )
+                    } else {
+                        TemplateChip(
+                            chip = cell,
+                            onClick = { onChipClick(cell.templateId) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        )
+                    }
+                }
+                // Pad an incomplete row so a lone cell keeps its half-width column.
+                if (rowCells.size == 1) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
         }
-        EmptySessionCard(
-            onClick = onStartEmpty,
-            modifier = Modifier
-                .weight(1f)
-                .testTag(UiTestTags.HOME_START_EMPTY),
-        )
     }
 }
 
@@ -334,24 +358,41 @@ private fun TemplateChip(
     Surface(
         onClick = onClick,
         modifier = modifier
-            .heightIn(min = 56.dp)
+            .heightIn(min = 96.dp)
             .testTag(UiTestTags.HOME_TEMPLATE_CHIP)
             .semantics { contentDescription = cd },
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp),
-            contentAlignment = Alignment.Center,
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = chip.name,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = pluralStringResource(
+                    R.plurals.exercise_count,
+                    chip.exerciseCount,
+                    chip.exerciseCount,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (chip.muscleGroups.isNotEmpty()) {
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = chip.muscleGroups.map { muscleGroupLabel(it) }.joinToString(" · "),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -488,7 +529,6 @@ private fun FirstLaunch(
 // Previews
 // ──────────────────────────────────────────────────────────────────────────────
 
-@OptIn(ExperimentalLayoutApi::class)
 @Preview(name = "Home – chips + empty card (light)", showBackground = true)
 @Composable
 private fun PreviewHomeWithChips() {
@@ -496,9 +536,9 @@ private fun PreviewHomeWithChips() {
         HomeContent(
             uiState = HomeUiState(
                 templates = listOf(
-                    TemplateChipUi("t1", "Push"),
-                    TemplateChipUi("t2", "Pull"),
-                    TemplateChipUi("t3", "Legs"),
+                    TemplateChipUi("t1", "Push", 5, listOf(MuscleGroup.CHEST, MuscleGroup.SHOULDERS, MuscleGroup.TRICEPS)),
+                    TemplateChipUi("t2", "Pull", 5, listOf(MuscleGroup.BACK, MuscleGroup.BICEPS)),
+                    TemplateChipUi("t3", "Legs", 4, listOf(MuscleGroup.QUADS, MuscleGroup.HAMSTRINGS, MuscleGroup.GLUTES)),
                 ),
                 recent = emptyList(),
             ),
@@ -511,7 +551,6 @@ private fun PreviewHomeWithChips() {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Preview(name = "Home – no plans, empty card only (light)", showBackground = true)
 @Composable
 private fun PreviewHomeNoPlans() {
