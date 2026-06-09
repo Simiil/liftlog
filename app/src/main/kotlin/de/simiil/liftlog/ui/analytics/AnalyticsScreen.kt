@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.analytics.TrendDirection
 import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.TrainedExercise
@@ -181,7 +182,11 @@ private fun ExerciseRow(
         }
         val s = summary
         if (s != null && s.trend !is TrendResult.Stale && s.sessions.size >= 2) {
-            Sparkline(values = s.sessions.map { it.primary.toFloat() })
+            val isDown = (s.trend as? TrendResult.Ok)?.direction == TrendDirection.DOWN
+            Sparkline(
+                values = s.sessions.map { it.primary.toFloat() },
+                color = if (isDown) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }

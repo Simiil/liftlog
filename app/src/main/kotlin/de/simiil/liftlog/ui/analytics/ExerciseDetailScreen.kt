@@ -125,7 +125,7 @@ fun ExerciseDetailScreen(
                     shape = RoundedCornerShape(22.dp),
                 ) {
                     Box(Modifier.padding(vertical = 14.dp, horizontal = 10.dp)) {
-                        ProgressLineChart(ui.chartPoints)
+                        ProgressLineChart(ui.chartPoints, zeroBased = ui.chartZeroBased)
                     }
                 }
             }

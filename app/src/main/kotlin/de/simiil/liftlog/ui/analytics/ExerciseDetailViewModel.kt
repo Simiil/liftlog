@@ -37,6 +37,8 @@ data class ExerciseDetailUiState(
     val selectedMetric: Metric = Metric.E1RM,
     val selectedRange: Range = Range.D90,
     val chartPoints: List<ChartPoint> = emptyList(),
+    /** True for cumulative metrics (volume / total reps) → zero-based Y; else Y zooms to data. */
+    val chartZeroBased: Boolean = false,
     val currentValueLabel: String = "",
     val recent: List<RecentSessionRow> = emptyList(),
     val unit: WeightUnit = WeightUnit.KG,
@@ -77,11 +79,15 @@ class ExerciseDetailViewModel @Inject constructor(
         val agg = if (zeroBased) Aggregation.SUM else Aggregation.MAX
         val raw = inRange.map { TrendPoint(it.timeMillis, valueOf(it, metric)) }
         val ds = downsample(raw, agg)
+        // x = days since the first in-range session: preserves real spacing (sparse-data honesty,
+        // 04-analytics-spec §6) while staying small enough for Float (epoch-ms would lose precision).
+        val t0 = inRange.first().timeMillis
+        fun dayX(t: Long) = ((t - t0) / 86_400_000.0).toFloat()
         val pts = if (ds.size == inRange.size) {
             // 1:1 with sessions — can carry PR flags
-            inRange.map { ChartPoint(it.timeMillis.toFloat(), valueOf(it, metric).toFloat(), prFor(it, metric)) }
+            inRange.map { ChartPoint(dayX(it.timeMillis), valueOf(it, metric).toFloat(), prFor(it, metric)) }
         } else {
-            ds.map { ChartPoint(it.timeMillis.toFloat(), it.value.toFloat(), false) }
+            ds.map { ChartPoint(dayX(it.timeMillis), it.value.toFloat(), false) }
         }
 
         val last = summary.sessions.last()
@@ -92,6 +98,7 @@ class ExerciseDetailViewModel @Inject constructor(
             selectedMetric = metric,
             selectedRange = range,
             chartPoints = pts,
+            chartZeroBased = zeroBased,
             currentValueLabel = label(valueOf(last, metric), metric, unit),
             recent = summary.sessions.takeLast(5).reversed().map { sp ->
                 RecentSessionRow(
