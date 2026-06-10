@@ -10,9 +10,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Docs under `/docs` are approved (owner green-lit implementation 2026-06-07).
 Implementation follows the milestones in `docs/05-roadmap.md`; M0 (scaffold),
-M1 (data layer), and M2 (logging flow — Home, Active Session, Exercise Picker,
-History) are done and merged. M3 (Plans) is next. Each milestone is a reviewable
-PR series with a review gate at its exit criteria.
+M1 (data layer), M2 (logging flow — Home, Active Session, Exercise Picker,
+History), M3 (Plans), and M4 (Analytics) are done and merged. **M5 (export/import
++ polish) is in progress**: versioned JSON export/import is done and merged (PR #9)
+— SAF picker, validation, full-replace confirmation, golden-file + round-trip
+tests, Settings Data section. Remaining M5 work: accessibility audit, release
+build config (R8, signing), app icon, and the final app-name decision. Each
+milestone is a reviewable PR series with a review gate at its exit criteria.
 
 ## Build & test
 
