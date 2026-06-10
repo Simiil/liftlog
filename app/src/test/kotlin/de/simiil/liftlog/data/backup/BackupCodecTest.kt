@@ -155,4 +155,18 @@ class BackupCodecTest {
         assertTrue(result is ParseResult.Ready)
         assertEquals(WeightUnit.KG, ((result as ParseResult.Ready).parsed as BackupSnapshot).weightUnit)
     }
+
+    @Test
+    fun `out-of-range timestamp is rejected`() {
+        val bad = BackupCodec.encode(fixture(), exportedAt, appInfo)
+            .replace("\"completedAt\": \"1970-01-01T00:00:03.500Z\"", "\"completedAt\": \"+999999999-12-31T23:59:59Z\"")
+        assertEquals(ParseResult.Invalid(InvalidReason.BAD_TIMESTAMP), BackupCodec.decode(bad))
+    }
+
+    @Test
+    fun `duplicate primary keys are rejected`() {
+        val dup = fixture().copy(exercises = fixture().exercises + fixture().exercises[0]) // ex1 twice
+        val json = BackupCodec.encode(dup, exportedAt, appInfo)
+        assertEquals(ParseResult.Invalid(InvalidReason.MALFORMED), BackupCodec.decode(json))
+    }
 }

@@ -18,8 +18,8 @@ import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.DateTimeException
 import java.time.Instant
-import java.time.format.DateTimeParseException
 
 /** Pure JSON codec for the versioned backup (02-data-spec §6). No Android, no DB. */
 object BackupCodec {
@@ -65,6 +65,7 @@ object BackupCodec {
         }
 
         if (file.formatVersion > CURRENT_FORMAT_VERSION) return ParseResult.Newer(file.formatVersion)
+        if (file.hasDuplicateIds()) return ParseResult.Invalid(InvalidReason.MALFORMED)
         if (!file.fkIntact()) return ParseResult.Invalid(InvalidReason.FK_ORPHAN)
 
         val snapshot: BackupSnapshot
@@ -74,7 +75,9 @@ object BackupCodec {
             exportedInstant = Instant.parse(file.exportedAt)
         } catch (e: UnknownEnumException) {
             return ParseResult.Invalid(InvalidReason.UNKNOWN_ENUM)
-        } catch (e: DateTimeParseException) {
+        } catch (e: DateTimeException) {
+            return ParseResult.Invalid(InvalidReason.BAD_TIMESTAMP)
+        } catch (e: ArithmeticException) {
             return ParseResult.Invalid(InvalidReason.BAD_TIMESTAMP)
         }
 
@@ -89,13 +92,22 @@ object BackupCodec {
 
     // --- timestamp helpers ---
     private fun Long.iso(): String = Instant.ofEpochMilli(this).toString()
-    private fun String.millis(): Long = Instant.parse(this).toEpochMilli() // throws DateTimeParseException
+    private fun String.millis(): Long = Instant.parse(this).toEpochMilli() // throws DateTimeException / ArithmeticException
 
     // --- strict entity-enum lookups ---
     private fun muscle(name: String): MuscleGroup =
         MuscleGroup.entries.firstOrNull { it.name == name } ?: throw UnknownEnumException()
     private fun equip(name: String): Equipment =
         Equipment.entries.firstOrNull { it.name == name } ?: throw UnknownEnumException()
+
+    /** Two rows sharing a primary key would abort the import transaction — reject up front. */
+    private fun BackupFile.hasDuplicateIds(): Boolean {
+        fun dup(ids: List<String>) = ids.size != ids.toHashSet().size
+        return dup(data.exercises.map { it.id }) || dup(data.workoutPlans.map { it.id }) ||
+            dup(data.planDayTemplates.map { it.id }) || dup(data.templateExercises.map { it.id }) ||
+            dup(data.sessions.map { it.id }) || dup(data.sessionExercises.map { it.id }) ||
+            dup(data.loggedSets.map { it.id })
+    }
 
     // --- FK integrity (tombstones count as present rows) ---
     private fun BackupFile.fkIntact(): Boolean {
@@ -140,7 +152,7 @@ object BackupCodec {
     private fun LoggedSetEntity.toDto() = LoggedSetDto(id, sessionExerciseId, weightKg, reps, position,
         completedAt.iso(), rpe, note, createdAt.iso(), updatedAt.iso(), deletedAt?.iso())
 
-    // --- DTO → entity (may throw UnknownEnumException / DateTimeParseException) ---
+    // --- DTO → entity (may throw UnknownEnumException / DateTimeException / ArithmeticException) ---
     private fun ExerciseDto.toEntity() = ExerciseEntity(id, name, muscle(muscleGroup), equip(equipment),
         isBuiltIn, isHidden, createdAt.millis(), updatedAt.millis(), deletedAt?.millis())
     private fun WorkoutPlanDto.toEntity() = WorkoutPlanEntity(id, name, position,

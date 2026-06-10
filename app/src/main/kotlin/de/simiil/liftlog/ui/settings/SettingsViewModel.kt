@@ -91,7 +91,12 @@ class SettingsViewModel @Inject constructor(
                 // A read failure (unreadable file / expired SAF Uri) is surfaced as a corrupt-file error.
                 handleParseResult(ParseResult.Invalid(InvalidReason.MALFORMED)); return@launch
             }
-            handleParseResult(backupRepository.parseImport(json))
+            val result = try {
+                backupRepository.parseImport(json)
+            } catch (e: Exception) {
+                ParseResult.Invalid(InvalidReason.MALFORMED)
+            }
+            handleParseResult(result)
         }
     }
 
@@ -114,8 +119,12 @@ class SettingsViewModel @Inject constructor(
         pendingParsed = null
         _uiState.update { it.copy(pendingImport = null) }
         viewModelScope.launch {
-            backupRepository.applyImport(parsed)
-            _uiState.update { it.copy(message = SettingsMessage.IMPORTED) }
+            try {
+                backupRepository.applyImport(parsed)
+                _uiState.update { it.copy(message = SettingsMessage.IMPORTED) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(dialog = SettingsDialog.Invalid(InvalidReason.MALFORMED)) }
+            }
         }
     }
 

@@ -9,7 +9,9 @@ import de.simiil.liftlog.domain.repository.ImportSummary
 import de.simiil.liftlog.domain.repository.ParseResult
 import de.simiil.liftlog.domain.repository.ParsedBackup
 import de.simiil.liftlog.domain.repository.SettingsRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.time.Clock
 import javax.inject.Inject
 
@@ -20,7 +22,7 @@ class BackupRepositoryImpl @Inject constructor(
     private val appInfo: AppInfo,
 ) : BackupRepository {
 
-    override suspend fun exportToJson(): String {
+    override suspend fun exportToJson(): String = withContext(Dispatchers.IO) {
         val snapshot = BackupSnapshot(
             exercises = backupDao.getAllExercises(),
             workoutPlans = backupDao.getAllWorkoutPlans(),
@@ -32,24 +34,25 @@ class BackupRepositoryImpl @Inject constructor(
             weightUnit = settingsRepository.weightUnit.first(),
             theme = settingsRepository.themePreference.first(),
         )
-        return BackupCodec.encode(snapshot, clock.instant(), appInfo)
+        BackupCodec.encode(snapshot, clock.instant(), appInfo)
     }
 
-    override suspend fun parseImport(json: String): ParseResult {
+    override suspend fun parseImport(json: String): ParseResult = withContext(Dispatchers.IO) {
         val result = BackupCodec.decode(json)
-        return if (result is ParseResult.Ready && backupDao.getActiveSession() != null) {
+        if (result is ParseResult.Ready && backupDao.getActiveSession() != null) {
             ParseResult.BlockedByLiveSession
         } else {
             result
         }
     }
 
-    override suspend fun applyImport(parsed: ParsedBackup): ImportSummary {
+    override suspend fun applyImport(parsed: ParsedBackup): ImportSummary = withContext(Dispatchers.IO) {
         val snapshot = parsed as BackupSnapshot
         backupDao.replaceAll(snapshot)
         settingsRepository.setWeightUnit(snapshot.weightUnit)
         settingsRepository.setThemePreference(snapshot.theme)
-        return ImportSummary(
+        // exportedAt here is apply-time; the UI shows the parseImport summary, so this field is informational only.
+        ImportSummary(
             exportedAt = clock.instant(),
             sessions = snapshot.sessions.count { it.deletedAt == null },
             exercises = snapshot.exercises.count { it.deletedAt == null },
