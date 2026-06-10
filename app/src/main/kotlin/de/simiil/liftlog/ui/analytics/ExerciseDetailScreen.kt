@@ -131,7 +131,15 @@ fun ExerciseDetailScreen(
                         shape = RoundedCornerShape(22.dp),
                     ) {
                         Box(Modifier.padding(vertical = 14.dp, horizontal = 10.dp)) {
-                            ProgressLineChart(ui.chartPoints, zeroBased = ui.chartZeroBased)
+                            ProgressLineChart(
+                                ui.chartPoints,
+                                zeroBased = ui.chartZeroBased,
+                                contentDescription = stringResource(
+                                    R.string.cd_progress_chart,
+                                    metricLabel(ui.selectedMetric),
+                                    ui.chartPoints.size,
+                                ),
+                            )
                         }
                     }
                 }

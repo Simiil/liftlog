@@ -55,6 +55,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -341,7 +342,7 @@ private fun PickerSearchBar(
                 ) {
                     Icon(
                         Icons.Outlined.Close,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.picker_clear_search),
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -351,7 +352,7 @@ private fun PickerSearchBar(
     }
 }
 
-/** Filter chip matching .filter-chip: outline border, radius 10dp, 36dp, selected → secondaryContainer. */
+/** Filter chip matching .filter-chip: outline border, radius 10dp, 48dp touch target, selected → secondaryContainer. */
 @Composable
 private fun PickerFilterChip(
     selected: Boolean,
@@ -369,7 +370,7 @@ private fun PickerFilterChip(
                 fontWeight = FontWeight.Medium,
             )
         },
-        modifier = modifier.height(36.dp),
+        modifier = modifier.height(48.dp), // ≥48dp touch target (F-09)
         shape = RoundedCornerShape(10.dp),
         colors = FilterChipDefaults.filterChipColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -460,6 +461,9 @@ private fun PickerExerciseRow(
                     Modifier
                 },
             )
+            // Merge name + muscle/equipment sub-line (and "Added" badge) into one
+            // TalkBack node instead of reading each fragment separately (F-01).
+            .semantics(mergeDescendants = true) {}
             .padding(horizontal = 8.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),

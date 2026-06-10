@@ -29,6 +29,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,6 +90,8 @@ private fun WeekCard(week: WeekSummary, unit: WeightUnit) {
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                // Section header — reachable via TalkBack heading navigation (F-05).
+                modifier = Modifier.semantics { heading() },
             )
             Row(
                 Modifier.fillMaxWidth().padding(vertical = 14.dp),
@@ -157,6 +161,9 @@ private fun ExerciseRow(
         Modifier
             .fillMaxWidth()
             .clickable { onOpen(ex.id) }
+            // Merge name + metric + trend badge into one TalkBack node; the sparkline is a
+            // bare Canvas (no semantics) so it stays decorative. (F-01 / F-06)
+            .semantics(mergeDescendants = true) {}
             .padding(vertical = 16.dp, horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),

@@ -50,8 +50,8 @@
     <string name="cd_decrease_weight">Decrease weight, %1$s %2$s</string>
     <string name="cd_increase_weight">Increase weight, %1$s %2$s</string>
     <string name="cd_weight_value">Weight %1$s %2$s, tap to enter exactly</string>
-    <string name="cd_decrease_reps">Decrease reps</string>
-    <string name="cd_increase_reps">Increase reps</string>
+    <string name="cd_decrease_reps">Decrease reps to %1$d</string>
+    <string name="cd_increase_reps">Increase reps to %1$d</string>
     <string name="cd_reps_value">Reps %1$d, tap to enter exactly</string>
     <string name="weight_kilograms">kilograms</string>
     <string name="weight_pounds">pounds</string>
@@ -71,6 +71,7 @@
     <string name="picker_title">Exercises</string>
     <string name="picker_title_add">Add exercise</string>
     <string name="picker_search">Search exercises</string>
+    <string name="picker_clear_search">Clear search</string>
     <string name="picker_recent">Recent</string>
     <string name="picker_create">Create exercise</string>
     <string name="picker_create_with_query">Create new exercise \"%1$s\"</string>
@@ -116,6 +117,7 @@
     <string name="session_replace_exercise">Replace exercise</string>
     <string name="session_finish_summary">%1$s — %2$d sets</string>
     <string name="session_overflow">More options</string>
+    <string name="session_overflow_for">More options for %1$s</string>
     <string name="more_options">More options</string>
     <string name="ghost_last">last: %1$s</string>
     <string name="session_progress">%1$d/%2$s</string>
@@ -212,6 +214,7 @@
     <string name="analytics_empty">Log a session to see progress</string>
     <string name="analytics_e1rm_value">e1RM %1$s %2$s</string>
     <string name="analytics_reps_value">%1$d reps</string>
+    <string name="cd_progress_chart">%1$s progress chart, %2$d sessions</string>
 
     <!-- Settings debug actions -->
     <string name="settings_seed_demo">Seed demo data (debug)</string>

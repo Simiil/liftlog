@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -87,7 +88,9 @@ private fun HistorySessionCard(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            // Merge title + date + set count into one TalkBack node (F-01).
+            .semantics(mergeDescendants = true) {},
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(

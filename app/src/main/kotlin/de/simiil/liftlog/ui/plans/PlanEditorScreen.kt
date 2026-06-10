@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -255,6 +256,8 @@ private fun DayRow(
                     .weight(1f)
                     .clip(RoundedCornerShape(12.dp))
                     .clickable(onClick = onEdit)
+                    // Merge day name + exercise count into one TalkBack node (F-01).
+                    .semantics(mergeDescendants = true) {}
                     .padding(vertical = 6.dp),
             ) {
                 Text(
@@ -272,7 +275,7 @@ private fun DayRow(
             IconButton(
                 onClick = onRemove,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp) // ≥48dp touch target (F-07)
                     .semantics { contentDescription = removeCd },
             ) {
                 Icon(
@@ -503,7 +506,7 @@ private fun TargetStepper(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.height(46.dp),
+        modifier = modifier.height(48.dp), // ≥48dp tall so the −/+ buttons hit the touch-target min (F-07)
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
@@ -533,9 +536,12 @@ private fun TargetStepper(
 
 @Composable
 private fun StepperButton(symbol: String, onClick: () -> Unit) {
+    // Fills the 48dp-tall stepper row for a full-height touch target; width stays compact
+    // (~36dp) because three steppers share one row — a 48dp-wide button would overflow. (F-07)
     Box(
         modifier = Modifier
-            .size(36.dp)
+            .fillMaxHeight()
+            .width(36.dp)
             .clip(RoundedCornerShape(10.dp))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
