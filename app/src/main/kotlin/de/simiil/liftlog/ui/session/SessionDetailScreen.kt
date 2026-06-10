@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.analytics.SetEntry
+import de.simiil.liftlog.domain.analytics.volumeKg
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.LoggedSetRow
@@ -97,7 +99,9 @@ fun SessionDetailScreen(
             }
             else -> {
                 val totalSets = uiState.exercises.sumOf { it.sets.size }
-                val volumeKg = uiState.exercises.sumOf { e -> e.sets.sumOf { it.weightKg * it.reps } }
+                val totalVolumeKg = volumeKg(
+                    uiState.exercises.flatMap { e -> e.sets.map { SetEntry(it.weightKg, it.reps) } },
+                )
                 LazyColumn(
                     modifier = Modifier.padding(innerPadding).fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 28.dp),
@@ -111,7 +115,7 @@ fun SessionDetailScreen(
                             startedAt = uiState.startedAt,
                             endedAt = uiState.endedAt,
                             totalSets = totalSets,
-                            volumeKg = volumeKg,
+                            volumeKg = totalVolumeKg,
                         )
                     }
                     item(key = "hint") {

@@ -12,14 +12,20 @@ data class SessionMetrics(
     val totalReps: Int,
 )
 
+/**
+ * Training volume = Σ (weight × reps) across [sets], in canonical kg. The single source for
+ * the volume formula — the weekly summary and session-detail summary call this rather than
+ * re-inlining the multiply-and-sum (04-analytics-spec §1).
+ */
+fun volumeKg(sets: List<SetEntry>): Double = sets.sumOf { it.weightKg * it.reps }
+
 fun sessionMetrics(sets: List<SetEntry>): SessionMetrics {
-    var top = 0.0; var volume = 0.0; var bestE1rm = 0.0; var maxReps = 0; var totalReps = 0
+    var top = 0.0; var bestE1rm = 0.0; var maxReps = 0; var totalReps = 0
     for (s in sets) {
         top = maxOf(top, s.weightKg)
-        volume += s.weightKg * s.reps
         totalReps += s.reps
         maxReps = maxOf(maxReps, s.reps)
         e1rm(s.weightKg, s.reps)?.let { bestE1rm = maxOf(bestE1rm, it) }
     }
-    return SessionMetrics(top, volume, bestE1rm, maxReps, totalReps)
+    return SessionMetrics(top, volumeKg(sets), bestE1rm, maxReps, totalReps)
 }

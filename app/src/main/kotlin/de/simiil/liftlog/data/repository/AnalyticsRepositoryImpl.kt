@@ -3,7 +3,9 @@ package de.simiil.liftlog.data.repository
 import de.simiil.liftlog.data.dao.AnalyticsDao
 import de.simiil.liftlog.domain.analytics.DatedSet
 import de.simiil.liftlog.domain.analytics.ExerciseSummary
+import de.simiil.liftlog.domain.analytics.SetEntry
 import de.simiil.liftlog.domain.analytics.summarize
+import de.simiil.liftlog.domain.analytics.volumeKg
 import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.TrainedExercise
@@ -36,8 +38,8 @@ class AnalyticsRepositoryImpl @Inject constructor(
             WeekSummary(
                 sessions = thisWeek.map { it.sessionId }.distinct().size,
                 sets = thisWeek.size,
-                volumeKg = thisWeek.sumOf { it.weightKg * it.reps },
-                prevVolumeKg = prevWeek.sumOf { it.weightKg * it.reps },
+                volumeKg = volumeKg(thisWeek.map { SetEntry(it.weightKg, it.reps) }),
+                prevVolumeKg = volumeKg(prevWeek.map { SetEntry(it.weightKg, it.reps) }),
             )
         }
     }
