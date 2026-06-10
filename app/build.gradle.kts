@@ -23,10 +23,36 @@ android {
         testInstrumentationRunner = "de.simiil.liftlog.HiltTestRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            // Release signing happens in CI only (GitHub secrets → env vars). Local
+            // builds are debug builds, so this stays unconfigured off-CI and the
+            // release buildType falls back to debug signing below. (05-roadmap M5)
+            System.getenv("KEYSTORE_FILE")?.let { path ->
+                storeFile = file(path)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // R8/shrinking + signing are an M5 deliverable (05-roadmap)
-            isMinifyEnabled = false
+            // R8 shrinking + resource shrinking; keep rules in proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            // CI provides the keystore via env; otherwise fall back to debug signing
+            // so a local `bundleRelease` still yields an installable artifact.
+            signingConfig = if (System.getenv("KEYSTORE_FILE") != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
