@@ -58,6 +58,7 @@ import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.EmptyState
 import de.simiil.liftlog.ui.components.EmptyStateAction
+import de.simiil.liftlog.ui.components.PrBadge
 import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.theme.LiftLogTheme
@@ -456,6 +457,10 @@ private fun RecentSessionItem(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (session.isPr) {
+                Spacer(Modifier.size(12.dp))
+                PrBadge()
+            }
         }
         if (showDivider) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

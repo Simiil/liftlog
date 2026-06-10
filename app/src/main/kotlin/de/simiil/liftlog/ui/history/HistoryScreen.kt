@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.ui.components.PrBadge
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,11 +94,17 @@ private fun HistorySessionCard(
             .semantics(mergeDescendants = true) {},
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = session.name ?: stringResource(R.string.session_untitled),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = session.name ?: stringResource(R.string.session_untitled),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                if (session.isPr) {
+                    PrBadge()
+                }
+            }
             val relativeDate = DateUtils.getRelativeTimeSpanString(
                 session.startedAt.toEpochMilli(),
                 System.currentTimeMillis(),
