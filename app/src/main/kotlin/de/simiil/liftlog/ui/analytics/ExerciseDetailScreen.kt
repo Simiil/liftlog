@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.ui.components.charts.ProgressLineChart
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -159,8 +160,12 @@ fun ExerciseDetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(ui.currentValueLabel, fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
-                    // Trend tracks the selected range; shown for weighted exercises only.
-                    if (ui.summary?.bodyweight == false) ui.trend?.let { TrendBadge(it, large = true) }
+                    // Trend tracks the selected range; shown for weighted exercises only. The
+                    // Insufficient "need N sessions" badge is suppressed here — the chart slot
+                    // already says "need 2+ sessions", so showing it twice is redundant.
+                    if (ui.summary?.bodyweight == false) {
+                        ui.trend?.takeIf { it !is TrendResult.Insufficient }?.let { TrendBadge(it, large = true) }
+                    }
                 }
             }
             item {
