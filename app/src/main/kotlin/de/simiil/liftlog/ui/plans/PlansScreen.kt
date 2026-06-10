@@ -233,7 +233,7 @@ private fun PlanDayRow(
                 .weight(1f)
                 .clip(RoundedCornerShape(12.dp))
                 .clickable(onClick = onStart)
-                // Merge day name + subtitle into one TalkBack node (F-01).
+                // Merge day name + subtitle into one screen-reader node (F-01).
                 .semantics(mergeDescendants = true) {}
                 .padding(vertical = 10.dp),
         ) {

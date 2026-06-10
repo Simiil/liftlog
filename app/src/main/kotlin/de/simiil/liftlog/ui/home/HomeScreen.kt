@@ -432,7 +432,7 @@ private fun RecentSessionItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick)
-                // Merge name + date + set count into one TalkBack node (F-01).
+                // Merge name + date + set count into one screen-reader node (F-01).
                 .semantics(mergeDescendants = true) {}
                 .padding(horizontal = 6.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,

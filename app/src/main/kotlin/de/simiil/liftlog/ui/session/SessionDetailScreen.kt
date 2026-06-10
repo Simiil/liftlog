@@ -153,7 +153,7 @@ private fun ExerciseHeader(
                 text = name,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
-                // Per-exercise section divider — let TalkBack heading navigation reach it (F-05).
+                // Per-exercise section divider — let screen-reader heading navigation reach it (F-05).
                 modifier = Modifier.semantics { heading() },
             )
             Text(

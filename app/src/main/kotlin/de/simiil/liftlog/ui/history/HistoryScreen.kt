@@ -89,7 +89,7 @@ private fun HistorySessionCard(
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .clickable(onClick = onClick)
-            // Merge title + date + set count into one TalkBack node (F-01).
+            // Merge title + date + set count into one screen-reader node (F-01).
             .semantics(mergeDescendants = true) {},
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
