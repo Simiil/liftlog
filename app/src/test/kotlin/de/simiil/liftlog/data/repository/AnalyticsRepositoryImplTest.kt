@@ -59,8 +59,8 @@ class AnalyticsRepositoryImplTest {
         val lastWeek = nowMs - 8 * day
         val dao = FakeAnalyticsDao(
             allSets = listOf(
-                SetRow("a", thisWeek, 100.0, 5), SetRow("a", thisWeek, 100.0, 5),
-                SetRow("b", lastWeek, 50.0, 10),
+                SetRow("a", "e1", thisWeek, 100.0, 5), SetRow("a", "e1", thisWeek, 100.0, 5),
+                SetRow("b", "e1", lastWeek, 50.0, 10),
             ),
             trained = emptyList(), perExercise = emptyMap(),
         )
@@ -93,7 +93,7 @@ class AnalyticsRepositoryImplTest {
     @Test fun exerciseSummary_assemblesFromRows() = runTest {
         val dao = FakeAnalyticsDao(
             allSets = emptyList(), trained = emptyList(),
-            perExercise = mapOf("e1" to listOf(SetRow("s1", nowMs - 5 * day, 100.0, 5))),
+            perExercise = mapOf("e1" to listOf(SetRow("s1", "e1", nowMs - 5 * day, 100.0, 5))),
         )
         val repo = AnalyticsRepositoryImpl(dao, FakeExerciseRepository(listOf(ex("e1"))), clock)
         repo.observeExerciseSummary("e1").test {
