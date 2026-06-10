@@ -3,6 +3,7 @@ package de.simiil.liftlog.ui.history
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
 import java.time.Instant
 import javax.inject.Inject
@@ -18,20 +19,31 @@ data class HistorySessionUi(
     val name: String?,
     val startedAt: Instant,
     val setCount: Int,
+    val isPr: Boolean = false,
 )
 
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
+    private val analyticsRepository: AnalyticsRepository,
 ) : ViewModel() {
 
     val uiState: StateFlow<HistoryUiState> = combine(
         sessionRepository.observeHistory(),
         sessionRepository.observeSetCountsBySession(),
-    ) { history, counts ->
+        analyticsRepository.observePrSessionIds(),
+    ) { history, counts, prIds ->
         HistoryUiState(
             history.filter { it.endedAt != null }
-                .map { HistorySessionUi(it.id, it.templateNameSnapshot, it.startedAt, counts[it.id] ?: 0) },
+                .map {
+                    HistorySessionUi(
+                        sessionId = it.id,
+                        name = it.templateNameSnapshot,
+                        startedAt = it.startedAt,
+                        setCount = counts[it.id] ?: 0,
+                        isPr = it.id in prIds,
+                    )
+                },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoryUiState())
 }

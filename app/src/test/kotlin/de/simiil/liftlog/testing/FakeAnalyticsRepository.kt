@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.map
 
 class FakeAnalyticsRepository : AnalyticsRepository {
 
-    val weekSummary = MutableStateFlow(WeekSummary(sessions = 0, sets = 0, volumeKg = 0.0, prevVolumeKg = 0.0))
+    val weekSummary: MutableStateFlow<WeekSummary> =
+        MutableStateFlow(WeekSummary(sessions = 0, sets = 0, volumeKg = 0.0, prevVolumeKg = 0.0))
     val trainedExercises = MutableStateFlow<List<TrainedExercise>>(emptyList())
     val exerciseSummaries = MutableStateFlow<Map<String, ExerciseSummary?>>(emptyMap())
     val prSessionIds = MutableStateFlow<Set<String>>(emptySet())

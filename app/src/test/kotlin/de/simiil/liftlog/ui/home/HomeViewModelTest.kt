@@ -255,6 +255,11 @@ class HomeViewModelTest {
             val byId = awaitItem().recent.associateBy { it.sessionId }
             assertTrue("s-pr should be flagged", byId.getValue("s-pr").isPr)
             assertFalse("s-plain should not be flagged", byId.getValue("s-plain").isPr)
+            // live update: flags must re-stamp when the PR set changes
+            analyticsRepo.prSessionIds.value = setOf("s-plain")
+            val updated = awaitItem().recent.associateBy { it.sessionId }
+            assertFalse("s-pr flag should clear", updated.getValue("s-pr").isPr)
+            assertTrue("s-plain should now be flagged", updated.getValue("s-plain").isPr)
             cancelAndIgnoreRemainingEvents()
         }
     }
