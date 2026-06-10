@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.ui.components.charts.ProgressLineChart
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -119,18 +120,26 @@ fun ExerciseDetailScreen(
                 }
             }
             item {
-                if (ui.notEnoughData) {
-                    Text(
-                        stringResource(R.string.analytics_need_two),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 24.dp),
-                    )
-                } else {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shape = RoundedCornerShape(22.dp),
-                    ) {
-                        Box(Modifier.padding(vertical = 14.dp, horizontal = 10.dp)) {
+                // The empty-data placeholder reuses the chart's exact container (same surface,
+                // radius, padding, and 188dp content height) so it reads as a chart-shaped slot
+                // with the message centered — not a stray line of text.
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = RoundedCornerShape(22.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Box(Modifier.padding(vertical = 14.dp, horizontal = 10.dp)) {
+                        if (ui.notEnoughData) {
+                            Box(
+                                Modifier.fillMaxWidth().height(188.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    stringResource(R.string.analytics_need_two),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        } else {
                             ProgressLineChart(
                                 ui.chartPoints,
                                 zeroBased = ui.chartZeroBased,
@@ -151,8 +160,12 @@ fun ExerciseDetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(ui.currentValueLabel, fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
-                    // Trend tracks the selected range; shown for weighted exercises only.
-                    if (ui.summary?.bodyweight == false) ui.trend?.let { TrendBadge(it, large = true) }
+                    // Trend tracks the selected range; shown for weighted exercises only. The
+                    // Insufficient "need N sessions" badge is suppressed here — the chart slot
+                    // already says "need 2+ sessions", so showing it twice is redundant.
+                    if (ui.summary?.bodyweight == false) {
+                        ui.trend?.takeIf { it !is TrendResult.Insufficient }?.let { TrendBadge(it, large = true) }
+                    }
                 }
             }
             item {

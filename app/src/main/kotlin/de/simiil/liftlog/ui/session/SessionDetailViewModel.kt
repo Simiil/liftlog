@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.LoggedSet
+import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
@@ -33,6 +34,7 @@ data class DetailExerciseUi(
     val sessionExerciseId: String,
     val name: String,
     val equipment: Equipment,
+    val muscleGroup: MuscleGroup,
     val sets: List<LoggedSet>,
 )
 
@@ -67,6 +69,7 @@ class SessionDetailViewModel @Inject constructor(
                 sessionExerciseId = ews.sessionExercise.id,
                 name = exercise?.name.orEmpty(),
                 equipment = exercise?.equipment ?: Equipment.MACHINE,
+                muscleGroup = exercise?.muscleGroup ?: MuscleGroup.OTHER,
                 sets = ews.sets,
             )
         }

@@ -35,7 +35,7 @@
     <!-- Home screen -->
     <string name="session_untitled">Quick workout</string>
     <string name="home_start_training">Start training</string>
-    <string name="home_start_empty">Empty session</string>
+    <string name="home_start_empty">Quick workout</string>
     <string name="home_recent">Recent</string>
     <string name="home_no_history">No workouts yet</string>
     <string name="home_resume_label">RESUME · %1$s</string>
@@ -129,6 +129,17 @@
 
     <!-- Session Detail screen -->
     <string name="session_detail_empty">No sets logged</string>
+    <string name="session_detail_hint">Long-press a set to fix a typo.</string>
+    <string name="session_detail_started">%1$s · %2$d · started %3$s</string>
+    <string name="session_detail_top_weight">top %1$s %2$s</string>
+    <string name="session_detail_bodyweight">Bodyweight</string>
+    <string name="session_detail_ex_sub">%1$s · %2$s · %3$s</string>
+    <string name="session_detail_foot">%1$s · %2$s</string>
+    <string name="session_stat_duration">duration</string>
+    <string name="session_stat_sets">sets</string>
+    <string name="session_stat_volume">volume</string>
+    <string name="session_stat_volume_value">%1$st</string>
+    <string name="session_duration_value">%1$d:%2$02d</string>
 
     <!-- LoggedSetRow -->
     <string name="rpe_label">RPE</string>
