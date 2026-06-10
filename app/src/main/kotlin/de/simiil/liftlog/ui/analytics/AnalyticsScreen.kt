@@ -181,7 +181,9 @@ private fun ExerciseRow(
                     }
                     Text(metric, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                if (s != null) TrendBadge(s.trend)
+                // In the overview, an insufficient-data row shows just the name + metric —
+                // no "need N sessions" badge and (below) no sparkline. (Stale/Ok badges still show.)
+                if (s != null && s.trend !is TrendResult.Insufficient) TrendBadge(s.trend)
             }
         }
         val s = summary

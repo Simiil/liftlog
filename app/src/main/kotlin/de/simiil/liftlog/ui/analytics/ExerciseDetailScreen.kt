@@ -119,18 +119,26 @@ fun ExerciseDetailScreen(
                 }
             }
             item {
-                if (ui.notEnoughData) {
-                    Text(
-                        stringResource(R.string.analytics_need_two),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 24.dp),
-                    )
-                } else {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shape = RoundedCornerShape(22.dp),
-                    ) {
-                        Box(Modifier.padding(vertical = 14.dp, horizontal = 10.dp)) {
+                // The empty-data placeholder reuses the chart's exact container (same surface,
+                // radius, padding, and 188dp content height) so it reads as a chart-shaped slot
+                // with the message centered — not a stray line of text.
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = RoundedCornerShape(22.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Box(Modifier.padding(vertical = 14.dp, horizontal = 10.dp)) {
+                        if (ui.notEnoughData) {
+                            Box(
+                                Modifier.fillMaxWidth().height(188.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    stringResource(R.string.analytics_need_two),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        } else {
                             ProgressLineChart(
                                 ui.chartPoints,
                                 zeroBased = ui.chartZeroBased,
