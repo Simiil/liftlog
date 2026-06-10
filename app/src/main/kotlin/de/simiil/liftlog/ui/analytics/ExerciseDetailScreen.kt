@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.TrendResult
+import de.simiil.liftlog.ui.components.PrBadge
 import de.simiil.liftlog.ui.components.charts.ProgressLineChart
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -203,12 +204,7 @@ private fun SessionRow(row: RecentSessionRow, dateLabel: String, onOpenSession: 
             modifier = Modifier.weight(1f),
         )
         if (row.isPr) {
-            Text(
-                stringResource(R.string.analytics_pr),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.tertiary,
-            )
+            PrBadge()
         }
     }
 }

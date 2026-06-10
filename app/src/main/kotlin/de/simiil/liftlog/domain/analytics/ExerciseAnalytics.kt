@@ -2,7 +2,7 @@ package de.simiil.liftlog.domain.analytics
 
 import de.simiil.liftlog.domain.model.Equipment
 
-/** One logged set with its session + session start time (1:1 with AnalyticsDao.SetRow). */
+/** One logged set with its session + session start time (SetRow minus the exerciseId grouping key). */
 data class DatedSet(val sessionId: String, val startedAt: Long, val weightKg: Double, val reps: Int)
 
 /** One session's reduced view + PR flags + the chart "primary" value. */

@@ -20,7 +20,13 @@ data class SessionExerciseWithSetsRelation(
 )
 
 /** Analytics projection (02-data-spec §4): set-level rows; e1RM math stays in pure Kotlin (M4). */
-data class SetRow(val sessionId: String, val startedAt: Long, val weightKg: Double, val reps: Int)
+data class SetRow(
+    val sessionId: String,
+    val exerciseId: String,
+    val startedAt: Long,
+    val weightKg: Double,
+    val reps: Int,
+)
 
 /** Picker query projection: exercise with its most-recent logged-set timestamp. */
 data class RecentExercise(val exerciseId: String, val lastUsed: Long)

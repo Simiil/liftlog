@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.simiil.liftlog.domain.model.MuscleGroup
+import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
@@ -50,6 +51,7 @@ data class RecentSessionUi(
     val name: String?,
     val startedAt: Instant,
     val setCount: Int,
+    val isPr: Boolean = false,
 )
 
 @HiltViewModel
@@ -57,6 +59,7 @@ class HomeViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val planRepository: PlanRepository,
     private val exerciseRepository: ExerciseRepository,
+    private val analyticsRepository: AnalyticsRepository,
 ) : ViewModel() {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -130,6 +133,8 @@ class HomeViewModel @Inject constructor(
             templates = chips,
             hasPlans = plans.isNotEmpty(),
         )
+    }.combine(analyticsRepository.observePrSessionIds()) { state, prIds ->
+        state.copy(recent = state.recent.map { it.copy(isPr = it.sessionId in prIds) })
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
     fun startOrResume(onReady: (String) -> Unit) {

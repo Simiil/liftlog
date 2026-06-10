@@ -2,11 +2,13 @@ package de.simiil.liftlog.ui.history
 
 import app.cash.turbine.test
 import de.simiil.liftlog.domain.model.Session
+import de.simiil.liftlog.testing.FakeAnalyticsRepository
 import de.simiil.liftlog.testing.FakeSessionRepository
 import de.simiil.liftlog.testing.MainDispatcherRule
 import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -38,10 +40,15 @@ class HistoryViewModelTest {
         )
     }
 
+    private fun makeVm(
+        repo: FakeSessionRepository,
+        analytics: FakeAnalyticsRepository = FakeAnalyticsRepository(),
+    ) = HistoryViewModel(repo, analytics)
+
     @Test
     fun `initial state has no sessions`() = runTest {
         val repo = FakeSessionRepository()
-        val vm = HistoryViewModel(repo)
+        val vm = makeVm(repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -57,7 +64,7 @@ class HistoryViewModelTest {
         val s2 = makeSession("s-2", endedAt = ended)
         repo.history.value = listOf(s1, s2)
 
-        val vm = HistoryViewModel(repo)
+        val vm = makeVm(repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -73,7 +80,7 @@ class HistoryViewModelTest {
         val finished = makeSession("finished-1", endedAt = ended)
         repo.history.value = listOf(active, finished)
 
-        val vm = HistoryViewModel(repo)
+        val vm = makeVm(repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -92,7 +99,7 @@ class HistoryViewModelTest {
         repo.history.value = listOf(s1, s2)
         repo.setCounts.value = mapOf("s-1" to 15, "s-2" to 9)
 
-        val vm = HistoryViewModel(repo)
+        val vm = makeVm(repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -110,7 +117,7 @@ class HistoryViewModelTest {
         repo.history.value = listOf(s1)
         // no entry in setCounts
 
-        val vm = HistoryViewModel(repo)
+        val vm = makeVm(repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -131,7 +138,7 @@ class HistoryViewModelTest {
         // history already ordered DESC by the repository
         repo.history.value = listOf(s1, s2, s3)
 
-        val vm = HistoryViewModel(repo)
+        val vm = makeVm(repo)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -147,13 +154,36 @@ class HistoryViewModelTest {
         val unnamed = makeSession("s-unnamed", templateNameSnapshot = null)
         repo.history.value = listOf(named, unnamed)
 
-        val vm = HistoryViewModel(repo)
+        val vm = makeVm(repo)
 
         vm.uiState.test {
             val state = awaitItem()
             val byId = state.sessions.associateBy { it.sessionId }
             assertEquals("Push day", byId["s-named"]?.name)
             assertEquals(null, byId["s-unnamed"]?.name)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `session carries PR flag from analytics`() = runTest {
+        val repo = FakeSessionRepository()
+        val analytics = FakeAnalyticsRepository()
+        repo.history.value = listOf(makeSession("s-pr"), makeSession("s-plain"))
+        analytics.prSessionIds.value = setOf("s-pr")
+
+        val vm = makeVm(repo, analytics)
+
+        vm.uiState.test {
+            val byId = awaitItem().sessions.associateBy { it.sessionId }
+            assertTrue("s-pr should be flagged", byId.getValue("s-pr").isPr)
+            assertFalse("s-plain should not be flagged", byId.getValue("s-plain").isPr)
+
+            // live update: flags must re-stamp when the PR set changes
+            analytics.prSessionIds.value = setOf("s-plain")
+            val updated = awaitItem().sessions.associateBy { it.sessionId }
+            assertFalse("s-pr flag should clear", updated.getValue("s-pr").isPr)
+            assertTrue("s-plain should now be flagged", updated.getValue("s-plain").isPr)
             cancelAndIgnoreRemainingEvents()
         }
     }

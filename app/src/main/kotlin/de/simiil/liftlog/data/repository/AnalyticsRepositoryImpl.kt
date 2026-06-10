@@ -3,6 +3,7 @@ package de.simiil.liftlog.data.repository
 import de.simiil.liftlog.data.dao.AnalyticsDao
 import de.simiil.liftlog.domain.analytics.DatedSet
 import de.simiil.liftlog.domain.analytics.ExerciseSummary
+import de.simiil.liftlog.domain.analytics.prSessionIds
 import de.simiil.liftlog.domain.analytics.SetEntry
 import de.simiil.liftlog.domain.analytics.summarize
 import de.simiil.liftlog.domain.analytics.volumeKg
@@ -10,8 +11,10 @@ import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.TrainedExercise
 import de.simiil.liftlog.domain.repository.WeekSummary
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import java.time.Clock
 import java.time.DayOfWeek
@@ -62,4 +65,19 @@ class AnalyticsRepositoryImpl @Inject constructor(
             val equipment = exercises.firstOrNull { it.id == exerciseId }?.equipment ?: return@combine null
             summarize(equipment, rows.map { DatedSet(it.sessionId, it.startedAt, it.weightKg, it.reps) }, clock.millis())
         }
+
+    override fun observePrSessionIds(): Flow<Set<String>> =
+        combine(
+            analyticsDao.observeAllSetsSince(0L),
+            exerciseRepository.observeAll(),
+        ) { rows, exercises ->
+            prSessionIds(
+                setsByExercise = rows.groupBy(
+                    { it.exerciseId },
+                    { DatedSet(it.sessionId, it.startedAt, it.weightKg, it.reps) },
+                ),
+                equipmentById = exercises.associate { it.id to it.equipment },
+                nowMillis = clock.millis(),
+            )
+        }.flowOn(Dispatchers.Default)
 }

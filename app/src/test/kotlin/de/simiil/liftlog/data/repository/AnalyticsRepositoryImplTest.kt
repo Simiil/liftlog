@@ -59,8 +59,8 @@ class AnalyticsRepositoryImplTest {
         val lastWeek = nowMs - 8 * day
         val dao = FakeAnalyticsDao(
             allSets = listOf(
-                SetRow("a", thisWeek, 100.0, 5), SetRow("a", thisWeek, 100.0, 5),
-                SetRow("b", lastWeek, 50.0, 10),
+                SetRow("a", "e1", thisWeek, 100.0, 5), SetRow("a", "e1", thisWeek, 100.0, 5),
+                SetRow("b", "e1", lastWeek, 50.0, 10),
             ),
             trained = emptyList(), perExercise = emptyMap(),
         )
@@ -93,12 +93,29 @@ class AnalyticsRepositoryImplTest {
     @Test fun exerciseSummary_assemblesFromRows() = runTest {
         val dao = FakeAnalyticsDao(
             allSets = emptyList(), trained = emptyList(),
-            perExercise = mapOf("e1" to listOf(SetRow("s1", nowMs - 5 * day, 100.0, 5))),
+            perExercise = mapOf("e1" to listOf(SetRow("s1", "e1", nowMs - 5 * day, 100.0, 5))),
         )
         val repo = AnalyticsRepositoryImpl(dao, FakeExerciseRepository(listOf(ex("e1"))), clock)
         repo.observeExerciseSummary("e1").test {
             val s = awaitItem()!!
             assertEquals(1, s.sessions.size)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test fun prSessionIds_unionsAcrossExercises() = runTest {
+        val dao = FakeAnalyticsDao(
+            allSets = listOf(
+                SetRow("s1", "e1", nowMs - 20 * day, 100.0, 5),  // e1 first session — PR
+                SetRow("s2", "e1", nowMs - 10 * day, 100.0, 5),  // tie — no flag from e1
+                SetRow("s2", "e2", nowMs - 10 * day, 60.0, 5),   // e2 first session — flags s2
+                SetRow("s3", "ghost", nowMs - 5 * day, 200.0, 5), // exercise not in observeAll() — ignored
+            ),
+            trained = emptyList(), perExercise = emptyMap(),
+        )
+        val repo = AnalyticsRepositoryImpl(dao, FakeExerciseRepository(listOf(ex("e1"), ex("e2"))), clock)
+        repo.observePrSessionIds().test {
+            assertEquals(setOf("s1", "s2"), awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
     }

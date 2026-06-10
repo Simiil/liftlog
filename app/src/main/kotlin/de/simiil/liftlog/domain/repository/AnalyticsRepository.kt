@@ -9,6 +9,8 @@ interface AnalyticsRepository {
     fun observeWeekSummary(): Flow<WeekSummary>
     fun observeTrainedExercises(): Flow<List<TrainedExercise>>
     fun observeExerciseSummary(exerciseId: String): Flow<ExerciseSummary?>
+    /** Ids of sessions containing at least one headline PR, across all exercises. */
+    fun observePrSessionIds(): Flow<Set<String>>
 }
 
 /** Analytics browser header card (04-analytics-spec §6, chart 3). */

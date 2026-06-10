@@ -190,6 +190,9 @@ class AnalyticsDaoTest {
             // sB live set
             assertEquals(80.0, rows[1].weightKg, 0.001)
             assertEquals(8, rows[1].reps)
+            // exerciseId is projected through the session_exercises join
+            assertEquals("ex1", rows[0].exerciseId)
+            assertEquals("ex1", rows[1].exerciseId)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -227,6 +230,24 @@ class AnalyticsDaoTest {
             val rows = awaitItem()
             assertEquals(1, rows.size)
             assertEquals("sB", rows[0].sessionId)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test fun observeAllSetsSince_attributesSetsToTheirExercises() = runTest {
+        exerciseDao.insert(exercise("ex1"))
+        exerciseDao.insert(exercise("ex2"))
+        sessionDao.insertSession(session("s1", startedAt = 1000L, endedAt = 2000L))
+        sessionDao.insertSessionExercise(sessionExercise("se1", "s1", "ex1"))
+        sessionDao.insertSessionExercise(sessionExercise("se2", "s1", "ex2"))
+        sessionDao.insertLoggedSet(loggedSet("ls1", "se1", weightKg = 60.0, reps = 10))
+        sessionDao.insertLoggedSet(loggedSet("ls2", "se2", weightKg = 80.0, reps = 8))
+
+        analyticsDao.observeAllSetsSince(fromMillis = 0L).test {
+            val rows = awaitItem()
+            assertEquals(2, rows.size)
+            assertEquals("ex1", rows.first { it.weightKg == 60.0 }.exerciseId)
+            assertEquals("ex2", rows.first { it.weightKg == 80.0 }.exerciseId)
             cancelAndIgnoreRemainingEvents()
         }
     }

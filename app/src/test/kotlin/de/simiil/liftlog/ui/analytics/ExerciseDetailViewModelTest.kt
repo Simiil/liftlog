@@ -47,6 +47,7 @@ class ExerciseDetailViewModelTest {
                 listOf(TrainedExercise("e1", name, de.simiil.liftlog.domain.model.MuscleGroup.CHEST, Equipment.BARBELL, 0L))
             )
             override fun observeExerciseSummary(exerciseId: String) = flowOf(summary)
+            override fun observePrSessionIds() = flowOf(emptySet<String>())
         },
         FakeSettings(),
         Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC),

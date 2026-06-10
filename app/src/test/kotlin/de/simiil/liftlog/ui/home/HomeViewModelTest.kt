@@ -7,6 +7,7 @@ import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.model.SessionExerciseWithSets
 import de.simiil.liftlog.domain.model.SessionWithDetails
+import de.simiil.liftlog.testing.FakeAnalyticsRepository
 import de.simiil.liftlog.testing.FakeExerciseRepository
 import de.simiil.liftlog.testing.FakePlanRepository
 import de.simiil.liftlog.testing.FakeSessionRepository
@@ -14,6 +15,7 @@ import de.simiil.liftlog.testing.MainDispatcherRule
 import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -32,7 +34,8 @@ class HomeViewModelTest {
         sessionRepo: FakeSessionRepository = FakeSessionRepository(),
         planRepo: FakePlanRepository = FakePlanRepository(),
         exerciseRepo: FakeExerciseRepository = FakeExerciseRepository(),
-    ) = HomeViewModel(sessionRepo, planRepo, exerciseRepo)
+        analyticsRepo: FakeAnalyticsRepository = FakeAnalyticsRepository(),
+    ) = HomeViewModel(sessionRepo, planRepo, exerciseRepo, analyticsRepo)
 
     private fun exercise(id: String, group: MuscleGroup) = Exercise(
         id = id,
@@ -231,6 +234,32 @@ class HomeViewModelTest {
         vm.uiState.test {
             val state = awaitItem()
             assertEquals(0, state.recent.first().setCount)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `recent session carries PR flag from analytics`() = runTest {
+        val sessionRepo = FakeSessionRepository()
+        val analyticsRepo = FakeAnalyticsRepository()
+        val ended = Instant.parse("2026-01-02T10:00:00Z")
+        sessionRepo.history.value = listOf(
+            makeSession("s-pr", endedAt = ended),
+            makeSession("s-plain", endedAt = ended),
+        )
+        analyticsRepo.prSessionIds.value = setOf("s-pr")
+
+        val vm = makeVm(sessionRepo = sessionRepo, analyticsRepo = analyticsRepo)
+
+        vm.uiState.test {
+            val byId = awaitItem().recent.associateBy { it.sessionId }
+            assertTrue("s-pr should be flagged", byId.getValue("s-pr").isPr)
+            assertFalse("s-plain should not be flagged", byId.getValue("s-plain").isPr)
+            // live update: flags must re-stamp when the PR set changes
+            analyticsRepo.prSessionIds.value = setOf("s-plain")
+            val updated = awaitItem().recent.associateBy { it.sessionId }
+            assertFalse("s-pr flag should clear", updated.getValue("s-pr").isPr)
+            assertTrue("s-plain should now be flagged", updated.getValue("s-plain").isPr)
             cancelAndIgnoreRemainingEvents()
         }
     }
