@@ -1,0 +1,116 @@
+{
+  "formatVersion": 1,
+  "exportedAt": "2026-06-09T12:00:00Z",
+  "app": {
+    "name": "LiftLog",
+    "versionName": "0.1.0",
+    "dbSchemaVersion": 1
+  },
+  "settings": {
+    "weightUnit": "LB",
+    "theme": "DARK"
+  },
+  "data": {
+    "exercises": [
+      {
+        "id": "ex1",
+        "name": "Bench Press",
+        "muscleGroup": "CHEST",
+        "equipment": "BARBELL",
+        "isBuiltIn": true,
+        "isHidden": false,
+        "createdAt": "1970-01-01T00:00:01Z",
+        "updatedAt": "1970-01-01T00:00:02Z",
+        "deletedAt": null
+      },
+      {
+        "id": "ex2",
+        "name": "Old Curl",
+        "muscleGroup": "BICEPS",
+        "equipment": "DUMBBELL",
+        "isBuiltIn": false,
+        "isHidden": true,
+        "createdAt": "1970-01-01T00:00:01Z",
+        "updatedAt": "1970-01-01T00:00:05Z",
+        "deletedAt": "1970-01-01T00:00:06Z"
+      }
+    ],
+    "workoutPlans": [
+      {
+        "id": "pl1",
+        "name": "PPL",
+        "position": 0,
+        "createdAt": "1970-01-01T00:00:01Z",
+        "updatedAt": "1970-01-01T00:00:02Z",
+        "deletedAt": null
+      }
+    ],
+    "planDayTemplates": [
+      {
+        "id": "td1",
+        "planId": "pl1",
+        "name": "Push",
+        "position": 0,
+        "createdAt": "1970-01-01T00:00:01Z",
+        "updatedAt": "1970-01-01T00:00:02Z",
+        "deletedAt": null
+      }
+    ],
+    "templateExercises": [
+      {
+        "id": "te1",
+        "templateId": "td1",
+        "exerciseId": "ex1",
+        "position": 0,
+        "targetSets": 3,
+        "targetRepsMin": 5,
+        "targetRepsMax": 8,
+        "createdAt": "1970-01-01T00:00:01Z",
+        "updatedAt": "1970-01-01T00:00:02Z",
+        "deletedAt": null
+      }
+    ],
+    "sessions": [
+      {
+        "id": "s1",
+        "templateId": "td1",
+        "templateNameSnapshot": "Push",
+        "startedAt": "1970-01-01T00:00:03Z",
+        "endedAt": "1970-01-01T00:00:04Z",
+        "note": null,
+        "createdAt": "1970-01-01T00:00:03Z",
+        "updatedAt": "1970-01-01T00:00:04Z",
+        "deletedAt": null
+      }
+    ],
+    "sessionExercises": [
+      {
+        "id": "se1",
+        "sessionId": "s1",
+        "exerciseId": "ex1",
+        "position": 0,
+        "targetSets": 3,
+        "targetRepsMin": 5,
+        "targetRepsMax": 8,
+        "createdAt": "1970-01-01T00:00:03Z",
+        "updatedAt": "1970-01-01T00:00:04Z",
+        "deletedAt": null
+      }
+    ],
+    "loggedSets": [
+      {
+        "id": "ls1",
+        "sessionExerciseId": "se1",
+        "weightKg": 82.5,
+        "reps": 5,
+        "position": 1,
+        "completedAt": "1970-01-01T00:00:03.500Z",
+        "rpe": 8.0,
+        "note": null,
+        "createdAt": "1970-01-01T00:00:03.500Z",
+        "updatedAt": "1970-01-01T00:00:03.500Z",
+        "deletedAt": null
+      }
+    ]
+  }
+}

@@ -19,4 +19,8 @@ class FakeSettingsRepository(
     override suspend fun setThemePreference(preference: ThemePreference) {
         theme.value = preference
     }
+
+    override suspend fun setWeightUnit(unit: WeightUnit) {
+        weightUnitState.value = unit
+    }
 }

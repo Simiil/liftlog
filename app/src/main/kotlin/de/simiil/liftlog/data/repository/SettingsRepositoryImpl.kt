@@ -33,6 +33,12 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun setWeightUnit(unit: WeightUnit) {
+        dataStore.edit { preferences ->
+            preferences[KEY_WEIGHT_UNIT] = unit.name
+        }
+    }
+
     private companion object {
         // Key name mirrors the export format's settings object (02-data-spec §6)
         val KEY_THEME = stringPreferencesKey("theme")
