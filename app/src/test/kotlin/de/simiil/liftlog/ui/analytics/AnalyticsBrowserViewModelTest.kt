@@ -32,6 +32,7 @@ class AnalyticsBrowserViewModelTest {
         override fun observeTrainedExercises(): Flow<List<TrainedExercise>> = flowOf(list)
         override fun observeExerciseSummary(exerciseId: String): Flow<ExerciseSummary?> =
             flowOf(ExerciseSummary(false, emptyList(), TrendResult.Insufficient, 0.0, 0L))
+        override fun observePrSessionIds(): Flow<Set<String>> = flowOf(emptySet())
     }
 
     private class FakeSettings : SettingsRepository {

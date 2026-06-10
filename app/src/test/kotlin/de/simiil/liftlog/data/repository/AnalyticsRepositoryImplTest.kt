@@ -102,4 +102,21 @@ class AnalyticsRepositoryImplTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test fun prSessionIds_unionsAcrossExercises() = runTest {
+        val dao = FakeAnalyticsDao(
+            allSets = listOf(
+                SetRow("s1", "e1", nowMs - 20 * day, 100.0, 5),  // e1 first session — PR
+                SetRow("s2", "e1", nowMs - 10 * day, 100.0, 5),  // tie — no flag from e1
+                SetRow("s2", "e2", nowMs - 10 * day, 60.0, 5),   // e2 first session — flags s2
+                SetRow("s3", "ghost", nowMs - 5 * day, 200.0, 5), // exercise not in observeAll() — ignored
+            ),
+            trained = emptyList(), perExercise = emptyMap(),
+        )
+        val repo = AnalyticsRepositoryImpl(dao, FakeExerciseRepository(listOf(ex("e1"), ex("e2"))), clock)
+        repo.observePrSessionIds().test {
+            assertEquals(setOf("s1", "s2"), awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }
