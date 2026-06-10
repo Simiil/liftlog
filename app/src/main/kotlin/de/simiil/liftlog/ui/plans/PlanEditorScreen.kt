@@ -256,7 +256,6 @@ private fun DayRow(
                     .weight(1f)
                     .clip(RoundedCornerShape(12.dp))
                     .clickable(onClick = onEdit)
-                    // Merge day name + exercise count into one screen-reader node (F-01).
                     .semantics(mergeDescendants = true) {}
                     .padding(vertical = 6.dp),
             ) {

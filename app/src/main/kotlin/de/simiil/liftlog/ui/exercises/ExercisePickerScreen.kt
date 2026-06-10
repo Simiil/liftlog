@@ -461,8 +461,6 @@ private fun PickerExerciseRow(
                     Modifier
                 },
             )
-            // Merge name + muscle/equipment sub-line (and "Added" badge) into one
-            // screen-reader node instead of reading each fragment separately (F-01).
             .semantics(mergeDescendants = true) {}
             .padding(horizontal = 8.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,

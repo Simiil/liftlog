@@ -80,9 +80,6 @@ fun LiftLogApp() {
                             },
                             icon = { Icon(destination.icon, contentDescription = null) },
                             label = {
-                                // Keep labels on one line at large font scales (e.g. "Analytics"
-                                // wrapped to two lines at 200%); the icon + full semantic label
-                                // still convey the tab to screen readers. (a11y M5, F-12)
                                 Text(
                                     stringResource(destination.labelRes),
                                     maxLines = 1,
