@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -51,6 +50,8 @@ import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.ui.UiTestTags
+import de.simiil.liftlog.ui.components.EmptyState
+import de.simiil.liftlog.ui.components.EmptyStateAction
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 
@@ -311,37 +312,16 @@ private fun PlansEmptyState(
     onNewPlan: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.padding(horizontal = 30.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.FitnessCenter,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(64.dp),
-        )
-        Spacer(Modifier.height(20.dp))
-        Text(
-            text = stringResource(R.string.plans_empty_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.height(10.dp))
-        Text(
-            text = stringResource(R.string.plans_empty_sub),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.widthIn(max = 300.dp),
-        )
-        Spacer(Modifier.height(24.dp))
-        NewPlanButton(
+    EmptyState(
+        icon = Icons.Outlined.FitnessCenter,
+        title = stringResource(R.string.plans_empty_title),
+        subtitle = stringResource(R.string.plans_empty_sub),
+        action = EmptyStateAction(
+            label = stringResource(R.string.plans_create),
             onClick = onNewPlan,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
+        ),
+        modifier = modifier,
+    )
 }
 
 // ─── Previews ──────────────────────────────────────────────────────────────────

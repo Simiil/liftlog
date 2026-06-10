@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -27,8 +26,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,6 +56,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.ui.UiTestTags
+import de.simiil.liftlog.ui.components.EmptyState
+import de.simiil.liftlog.ui.components.EmptyStateAction
 import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.theme.LiftLogTheme
@@ -469,63 +468,18 @@ private fun FirstLaunch(
     onStart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.padding(horizontal = 30.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(84.dp)
-                .clip(RoundedCornerShape(26.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.FitnessCenter,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(40.dp),
-            )
-        }
-        Spacer(Modifier.height(22.dp))
-        Text(
-            text = stringResource(R.string.home_first_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.height(10.dp))
-        Text(
-            text = stringResource(R.string.home_first_sub),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.widthIn(max = 280.dp),
-        )
-        Spacer(Modifier.height(30.dp))
-        Button(
+    EmptyState(
+        icon = Icons.Outlined.FitnessCenter,
+        title = stringResource(R.string.home_first_title),
+        subtitle = stringResource(R.string.home_first_sub),
+        action = EmptyStateAction(
+            label = stringResource(R.string.home_first_start),
             onClick = onStart,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .testTag(UiTestTags.HOME_START_EMPTY),
-            shape = RoundedCornerShape(100.dp),
-            contentPadding = ButtonDefaults.ContentPadding,
-        ) {
-            Icon(imageVector = Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(22.dp))
-            Spacer(Modifier.size(8.dp))
-            Text(
-                text = stringResource(R.string.home_first_start),
-                style = MaterialTheme.typography.titleSmall,
-            )
-        }
-        Spacer(Modifier.height(18.dp))
-        Text(
-            text = stringResource(R.string.home_first_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+            testTag = UiTestTags.HOME_START_EMPTY,
+        ),
+        hint = stringResource(R.string.home_first_hint),
+        modifier = modifier,
+    )
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
