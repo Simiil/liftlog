@@ -233,6 +233,7 @@ private fun PlanDayRow(
                 .weight(1f)
                 .clip(RoundedCornerShape(12.dp))
                 .clickable(onClick = onStart)
+                .semantics(mergeDescendants = true) {}
                 .padding(vertical = 10.dp),
         ) {
             Text(
@@ -247,10 +248,10 @@ private fun PlanDayRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        // .row-play — 44dp circular primary/onPrimary play button → start day
+        // .row-play — 48dp circular primary/onPrimary play button → start day (F-08)
         Box(
             modifier = Modifier
-                .size(44.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable(onClick = onStart)

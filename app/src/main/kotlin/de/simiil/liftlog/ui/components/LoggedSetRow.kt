@@ -138,7 +138,10 @@ private fun CollapsedSetRow(
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+            // ≥48dp tall so the tap/long-press target meets the M3 minimum (F-10).
+            modifier = Modifier
+                .heightIn(min = 48.dp)
+                .padding(horizontal = 12.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {

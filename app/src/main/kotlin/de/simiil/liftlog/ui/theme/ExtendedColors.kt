@@ -10,7 +10,9 @@ import androidx.compose.ui.graphics.Color
  */
 data class LiftLogExtendedColors(val success: Color)
 
-private val LightExtended = LiftLogExtendedColors(success = Color(0xFF1E8E3E)) // green 600-ish
+// Light `success` is darkened from #1E8E3E (~4.2:1 on the light surface — under WCAG AA 4.5:1
+// for the small trend-badge text) to #1B7A35 (~5.4:1). Dark #81C995 is already ~9.5:1. (a11y M5)
+private val LightExtended = LiftLogExtendedColors(success = Color(0xFF1B7A35)) // green 700-ish, AA on light surface
 private val DarkExtended = LiftLogExtendedColors(success = Color(0xFF81C995))  // green 300-ish
 
 internal fun extendedColorsFor(darkTheme: Boolean) = if (darkTheme) DarkExtended else LightExtended

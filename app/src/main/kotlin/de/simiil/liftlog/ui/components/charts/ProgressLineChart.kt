@@ -8,6 +8,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
@@ -35,7 +37,12 @@ data class ChartPoint(val x: Float, val y: Float, val isPr: Boolean)
  * total reps). Straight segments between session points — no interpolation/binning of gaps.
  */
 @Composable
-fun ProgressLineChart(points: List<ChartPoint>, zeroBased: Boolean, modifier: Modifier = Modifier) {
+fun ProgressLineChart(
+    points: List<ChartPoint>,
+    zeroBased: Boolean,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+) {
     if (points.size < 2) return
 
     val lineColor = MaterialTheme.colorScheme.primary
@@ -94,6 +101,17 @@ fun ProgressLineChart(points: List<ChartPoint>, zeroBased: Boolean, modifier: Mo
             startAxis = VerticalAxis.rememberStart(),
         ),
         modelProducer = modelProducer,
-        modifier = modifier.fillMaxWidth().height(188.dp),
+        // The chart is non-text content; expose a spoken summary so screen-reader users get the
+        // trend the line conveys visually (F-06).
+        modifier = modifier
+            .fillMaxWidth()
+            .height(188.dp)
+            .then(
+                if (contentDescription != null) {
+                    Modifier.semantics { this.contentDescription = contentDescription }
+                } else {
+                    Modifier
+                },
+            ),
     )
 }

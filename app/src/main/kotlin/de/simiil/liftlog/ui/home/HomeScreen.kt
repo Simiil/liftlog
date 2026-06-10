@@ -432,6 +432,7 @@ private fun RecentSessionItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick)
+                .semantics(mergeDescendants = true) {}
                 .padding(horizontal = 6.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

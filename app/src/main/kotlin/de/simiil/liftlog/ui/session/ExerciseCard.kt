@@ -253,7 +253,7 @@ private fun ActiveCard(
                 )
                 ProgressPill(setsDone = card.sets.size, target = card.targetSets)
                 Box {
-                    val overflowCd = stringResource(R.string.session_overflow)
+                    val overflowCd = stringResource(R.string.session_overflow_for, card.name)
                     IconButton(
                         onClick = { overflowExpanded = true },
                         modifier = Modifier.semantics { contentDescription = overflowCd },
