@@ -35,7 +35,7 @@
     <!-- Home screen -->
     <string name="session_untitled">Quick workout</string>
     <string name="home_start_training">Start training</string>
-    <string name="home_start_empty">Empty session</string>
+    <string name="home_start_empty">Quick workout</string>
     <string name="home_recent">Recent</string>
     <string name="home_no_history">No workouts yet</string>
     <string name="home_resume_label">RESUME · %1$s</string>
