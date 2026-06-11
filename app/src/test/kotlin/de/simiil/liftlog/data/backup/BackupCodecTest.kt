@@ -326,5 +326,8 @@ class BackupCodecTest {
         assertNull(parsed.sessions.single().rpe) // v1 had no session rpe
         assertEquals("old session note", parsed.sessions.single().note)
         assertEquals(82.5, parsed.loggedSets.single().weightKg, 0.0) // per-set rpe/note keys ignored
+        assertEquals(1, result.summary.sessions)
+        assertEquals(1, result.summary.exercises)
+        assertEquals(1, result.summary.sets)
     }
 }

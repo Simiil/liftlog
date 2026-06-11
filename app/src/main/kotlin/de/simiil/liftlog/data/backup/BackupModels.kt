@@ -95,7 +95,7 @@ data class SessionDto(
     val startedAt: String,
     val endedAt: String?,
     val note: String?,
-    val rpe: Double? = null,
+    val rpe: Double? = null, // default = v1-import compat; still always on the wire because the codec sets encodeDefaults = true
     val createdAt: String,
     val updatedAt: String,
     val deletedAt: String?,
