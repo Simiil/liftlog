@@ -34,6 +34,6 @@ fun TrendBadge(trend: TrendResult, modifier: Modifier = Modifier, large: Boolean
     Text(text = text, color = color, fontWeight = weight, fontSize = size, modifier = modifier)
 }
 
-/** "+4.0" / "-2.1" — one decimal, explicit sign for non-negative. */
+/** "+4.0" / "-2.1" — one decimal, locale separator, explicit sign for non-negative. */
 private fun formatPercent(percent: Double): String =
-    String.format(java.util.Locale.US, "%+.1f", percent)
+    String.format(java.util.Locale.getDefault(), "%+.1f", percent)

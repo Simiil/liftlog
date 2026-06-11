@@ -195,7 +195,7 @@ private fun SummaryStrip(
     }
     val volume = stringResource(
         R.string.session_stat_volume_value,
-        String.format(Locale.US, "%.1f", volumeKg / 1000.0),
+        String.format(Locale.getDefault(), "%.1f", volumeKg / 1000.0),
     )
     Surface(
         shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),

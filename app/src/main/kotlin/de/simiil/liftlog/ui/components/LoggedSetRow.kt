@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
+import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 import java.time.Instant
@@ -112,7 +113,7 @@ private fun CollapsedSetRow(
     val weightFormatted = Weights.format(set.weightKg, unit)
     val unitLabel = Weights.label(unit)
     val rpeFormatted = set.rpe?.let { rpe ->
-        if (rpe == rpe.toLong().toDouble()) rpe.toLong().toString() else "%.1f".format(rpe)
+        Decimals.format(rpe)
     }
     val cdBase = stringResource(R.string.cd_set_logged, index, weightFormatted, unitLong, set.reps)
     val cdRpe = rpeFormatted?.let { stringResource(R.string.cd_set_has_rpe, it) } ?: ""
@@ -270,7 +271,7 @@ private fun ExpandedSetRow(
                     label = { Text(stringResource(R.string.rpe_none)) },
                 )
                 RPE_VALUES.forEach { rpe ->
-                    val label = if (rpe == rpe.toLong().toDouble()) rpe.toLong().toString() else "%.1f".format(rpe)
+                    val label = Decimals.format(rpe)
                     FilterChip(
                         selected = editRpe == rpe,
                         onClick = { editRpe = if (editRpe == rpe) null else rpe },

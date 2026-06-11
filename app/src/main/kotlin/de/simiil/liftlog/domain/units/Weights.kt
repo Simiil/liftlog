@@ -1,8 +1,7 @@
 package de.simiil.liftlog.domain.units
 
 import de.simiil.liftlog.domain.model.WeightUnit
-import java.math.BigDecimal
-import java.math.RoundingMode
+import java.util.Locale
 
 /** kg<->display conversion + formatting (02-data-spec §5). Pure; no Android deps. */
 object Weights {
@@ -30,10 +29,7 @@ object Weights {
         WeightUnit.LB -> "lb"
     }
 
-    /** Display value rounded to <=2 decimals, trailing zeros stripped ("82.5", "30", "27.22"). */
-    fun format(weightKg: Double, unit: WeightUnit): String =
-        BigDecimal(kgToDisplay(weightKg, unit))
-            .setScale(2, RoundingMode.HALF_UP)
-            .stripTrailingZeros()
-            .toPlainString()
+    /** Display value, <=2 decimals, trailing zeros stripped, locale decimal separator. */
+    fun format(weightKg: Double, unit: WeightUnit, locale: Locale = Locale.getDefault()): String =
+        Decimals.format(kgToDisplay(weightKg, unit), locale)
 }

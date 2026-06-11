@@ -38,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 
 /**
@@ -61,14 +62,16 @@ fun InlineNumpad(
 ) {
     var currentText by remember(initialText) { mutableStateOf(initialText) }
     val confirmCd = stringResource(R.string.cd_confirm)
+    // Intentionally not remembered: re-evaluates when a locale change recomposes.
+    val sep = Decimals.separator()
 
     fun appendDigit(digit: Int) {
         currentText = (currentText + digit).replaceFirst(Regex("^0(\\d)"), "$1")
     }
 
     fun appendDecimal() {
-        if (allowDecimal && !currentText.contains('.')) {
-            currentText = if (currentText.isEmpty()) "0." else "$currentText."
+        if (allowDecimal && !currentText.contains(sep)) {
+            currentText = if (currentText.isEmpty()) "0$sep" else "$currentText$sep"
         }
     }
 
@@ -77,12 +80,8 @@ fun InlineNumpad(
     }
 
     fun applyChip(delta: Double) {
-        val result = ((currentText.toDoubleOrNull() ?: 0.0) + delta).coerceAtLeast(0.0)
-        currentText = if (result == result.toLong().toDouble()) {
-            result.toLong().toString()
-        } else {
-            "%.2f".format(result).trimEnd('0').trimEnd('.')
-        }
+        val result = ((Decimals.parse(currentText) ?: 0.0) + delta).coerceAtLeast(0.0)
+        currentText = Decimals.format(result)
     }
 
     Column(modifier = modifier) {
@@ -165,7 +164,7 @@ fun InlineNumpad(
                     onClick = { appendDecimal() },
                     modifier = Modifier.weight(1f),
                 ) {
-                    NumKeyText(".")
+                    NumKeyText(sep.toString())
                 }
             } else {
                 Spacer(Modifier.weight(1f))
@@ -213,8 +212,8 @@ fun InlineNumpad(
 }
 
 private fun formatDelta(delta: Double): String {
-    val abs = if (delta == delta.toLong().toDouble()) delta.toLong().toString() else delta.toString()
-    return if (delta >= 0) "+${abs}" else abs
+    val abs = Decimals.format(kotlin.math.abs(delta))
+    return if (delta >= 0) "+$abs" else "-$abs"
 }
 
 @Composable
