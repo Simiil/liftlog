@@ -475,11 +475,17 @@ class ActiveSessionViewModelTest {
 
             vm.onSessionNoteChange("almost lost this")
             vm.onFinish()
-            advanceUntilIdle()
+            runCurrent()
 
             assertTrue(
                 "flush must have written the note",
                 sessionRepo.updateSessionNoteCalls.contains("s1" to "almost lost this"),
+            )
+            // Both calls happen in the same launched coroutine: if the note was written,
+            // finishSession was also called (they're sequential in onFinish's launch body).
+            assertTrue(
+                "finishSession must have been called after the note flush",
+                sessionRepo.finishSessionCalls.contains("s1"),
             )
         }
 }
