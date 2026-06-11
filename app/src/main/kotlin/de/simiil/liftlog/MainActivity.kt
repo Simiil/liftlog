@@ -18,7 +18,6 @@ import de.simiil.liftlog.ui.theme.resolveDarkTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,12 +31,16 @@ class MainActivity : ComponentActivity() {
             // resource configuration (device setting). Safe to re-invoke.
             DisposableEffect(darkTheme) {
                 enableEdgeToEdge(
-                    statusBarStyle = SystemBarStyle.auto(
-                        Color.TRANSPARENT, Color.TRANSPARENT,
-                    ) { darkTheme },
-                    navigationBarStyle = SystemBarStyle.auto(
-                        LIGHT_NAV_SCRIM, DARK_NAV_SCRIM,
-                    ) { darkTheme },
+                    statusBarStyle =
+                        SystemBarStyle.auto(
+                            Color.TRANSPARENT,
+                            Color.TRANSPARENT,
+                        ) { darkTheme },
+                    navigationBarStyle =
+                        SystemBarStyle.auto(
+                            LIGHT_NAV_SCRIM,
+                            DARK_NAV_SCRIM,
+                        ) { darkTheme },
                 )
                 onDispose {}
             }
@@ -56,3 +59,4 @@ class MainActivity : ComponentActivity() {
         val DARK_NAV_SCRIM: Int = Color.argb(0x80, 0x1B, 0x1B, 0x1B)
     }
 }
+//
