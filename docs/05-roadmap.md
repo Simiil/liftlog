@@ -1,7 +1,7 @@
 # 05 — Roadmap
 
-> **Status:** Draft for review · 2026-06-07
-> Six milestones, each independently reviewable and ending in a working state. Logging lands at **M2** — earliest possible dogfooding; everything after improves an already-usable app. Implementation starts only after this doc set is approved ([HANDOFF.md](../HANDOFF.md) §0).
+> **Status:** Draft for review · 2026-06-07 (M6 added 2026-06-11)
+> Seven milestones, each independently reviewable and ending in a working state. Logging lands at **M2** — earliest possible dogfooding; everything after improves an already-usable app. Implementation starts only after this doc set is approved ([HANDOFF.md](../HANDOFF.md) §0).
 
 ## M0 — Scaffold
 
@@ -51,10 +51,19 @@
 
 **Exit criteria:** Export → wipe → import round-trip is lossless (automated test); importer rejects newer-version and corrupt files gracefully; a11y audit checklist passes; release AAB builds in CI.
 
+## M6 — Internationalization
+
+**Goal:** A fully German-localized app (English source), without touching the data model.
+
+**Deliverables:** Per [08-i18n-spec](08-i18n-spec.md) — externalize remaining hardcoded strings + lint gates, locale-aware number/weight formatting and numpad entry (§5); `values-de/` translations for all UI strings and the muscle/equipment labels; built-in exercise names localized by **stable-UUID → string-resource lookup** with the DB untouched (`ExerciseNameResolver`, drift-guard test), incl. picker **search/sort on localized names** (§3); `locales_config.xml` + `android:localeConfig` for the OS per-app language picker (no in-app picker, no new dependency, §4). Three-PR series: foundations/formatting → built-in name localization → German translation.
+
+**Exit criteria:** App renders fully in German under a German locale with no hardcoded UI text (`lint HardcodedText` clean); all ≈70 built-ins show localized names while custom exercises render verbatim; picker search/sort use localized names (UI test); weights/volume/RPE use the locale decimal separator and numpad entry accepts it; `lint` (incl. `MissingTranslation`) + unit tests + assemble green; export round-trip re-localizes built-ins.
+
 ## Sequencing notes
 
 - M1 before any UI: schema mistakes are cheapest before screens depend on them; tests lock conventions early.
 - Analytics (M4) after Plans (M3) only because M3 is small and unblocks full dogfooding; M4 doesn't depend on M3 and could swap if priorities change.
+- M6 (i18n) after M5: its locale-correctness fixes are invisible in English, so they don't block the M5 release. M5 ships English-only v1; whether the public release tag waits for M6 (bilingual launch) is an owner decision ([08-i18n-spec](08-i18n-spec.md) §9).
 - Each milestone = one reviewable PR series; review gate at every exit ([HANDOFF.md](../HANDOFF.md) §8).
 
 ## Post-v1 candidates (explicitly out of scope, recorded so they're not re-litigated)
