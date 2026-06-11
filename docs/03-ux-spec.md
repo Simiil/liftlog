@@ -9,7 +9,7 @@
 |---|---|
 | Minimum taps to log | Pre-fill everywhere; 1-tap LOG SET (§4, §5) |
 | Big, thumb-reachable controls | ≥56dp logging controls, bottom-anchored actions, steppers + inline numpad — never the system keyboard (§4) |
-| No flow-breaking modals | Everything inline on the session screen; RPE/notes via expanding row (§4) |
+| No flow-breaking modals | Everything inline on the session screen; workout RPE/note via the collapsed `SessionMetaRow` at the bottom of the list (§4.5); set edits via long-press expand |
 | Rest-timer-friendly | Timer **deferred to v2**; reserved slot directly under LOG SET (§4) |
 | Resumable | Session + sets persist to Room on every action; Home shows a Resume card ([02-data-spec](02-data-spec.md) §3 `sessions.endedAt`) |
 | Defaults that learn | Pre-fill rules in §4.2 |
@@ -79,7 +79,7 @@
 │ ╔══════════════════════════╗ │
 │ ║ Incline DB Press   2/3 ⋮ ║ │  ACTIVE (expanded) — ⋮: remove/replace
 │ ║ last: 30 kg × 10·10·8    ║ │  ghost row = last session (pre-fill src)
-│ ║ ① 30 kg × 10          ✓  ║ │  logged rows; long-press → RPE/note
+│ ║ ① 30 kg × 10          ✓  ║ │  logged rows; long-press → edit weight/reps
 │ ║ ② 30 kg × 9           ✓  ║ │
 │ ║ ┌────────┐  ┌────────┐   ║ │
 │ ║ │− 30.0 +│  │−  8   +│   ║ │  steppers ≥56dp; tapping the NUMBER
@@ -104,6 +104,8 @@ active card hosts `GhostRow`, `LoggedSetRow*`, `WeightStepper`, `RepsStepper`, `
 One card is active at a time; logging the target number of sets auto-collapses it and
 expands the next unfinished card (overridable by tapping any card).
 
+After the last exercise card and the `AddExerciseRow`, a `SessionMetaRow` anchors the bottom of the list — see §4.5.
+
 ### 4.2 Pre-fill rules ("defaults that learn")
 
 Entry steppers are **always pre-filled**, priority order:
@@ -121,12 +123,27 @@ Bottom-sheet-style pad replacing the stepper area inline (the card stays visible
 ### 4.4 Behaviors
 
 - **LOG SET** (1 tap): writes the set to Room immediately (`completedAt = now`) — kill-safe from that instant; row appears above; steppers re-prime per §4.2.
-- **Edit/RPE/note**: long-press a logged row → row expands inline: weight/reps editable, RPE chips (6–10 in 0.5 steps), note field, delete (soft). Collapses on tap-away. Never required, never on the hot path.
+- **Edit set**: long-press a logged row → row expands inline: weight stepper + reps stepper + Delete / Save. No RPE or note field — those are session-level (§4.5). Collapses on Save/Delete or tap-away. Never required, never on the hot path.
 - **Targets**: template-started exercises show `2/3` set progress and target rep range as hint text in the reps stepper.
 - **Finish (✔)**: sets `endedAt`, shows summary snackbar ("Push Day — 12 sets, 3 PRs"), returns Home. **Discard (✕)**: confirm dialog (the one acceptable dialog — destructive action), soft-deletes the session.
 - **Backgrounding**: nothing to save — everything already persisted. Re-opening the app lands on the active session (via Home's Resume card or directly if it was the foreground screen).
 
-### 4.5 Tap math (HANDOFF §5 walkthrough)
+### 4.5 SessionMetaRow — workout note and RPE
+
+Last item in the `LazyColumn`, after `AddExerciseRow`. Unobtrusive by design — it never interrupts the core logging path.
+
+**Collapsed, nothing set:** quiet tonal row with a `＋` icon and the label "Note · RPE".
+
+**Collapsed, values set:** compact one-line summary of whichever values exist, joined with " · " — e.g. "RPE 8 · Felt strong today", "RPE 8", or just a note preview (truncated to one line).
+
+**Expanded (tap):** `RpeStepper` (§8) at the top, then a multi-line `OutlinedTextField` for the workout note (up to 3 lines visible), then a **Done** button that collapses the row. No Save button.
+
+**Auto-save semantics:**
+- RPE persists to Room immediately on every stepper change (`updateSessionRpe`).
+- Note is debounced 500 ms (`updateSessionNote`), with a flush triggered on collapse, focus loss, or session finish — blank notes are trimmed to null.
+- All values live on the `sessions` row; process death loses nothing.
+
+### 4.6 Tap math (HANDOFF §5 walkthrough)
 
 | Scenario | Taps |
 |---|---|
@@ -189,10 +206,39 @@ Bodyweight exercises (0 kg added) swap weight metrics for max-reps/total-reps ch
 
 - **Exercise picker**: search-first list, filter chips (muscle group / equipment), recent on top; "+ create exercise" inline (name + group + equipment, 3 fields). Returns to caller — no nav stack detour.
 - **Plans / template editor**: plan list → templates → editor: reorderable exercise list (drag handle), optional target sets/rep-range per row. Edits never touch past sessions ([02-data-spec](02-data-spec.md) §1).
-- **History**: reverse-chronological session cards (name, date, sets, PR count) → session detail (read-only card stack; sets editable via the same long-press row, e.g. fixing a typo after the fact).
+- **History**: reverse-chronological session cards (name, date, sets, PR count) → session detail:
+  - **Summary strip** (4 stats): duration · sets · volume · **RPE** (shows "—" when unset).
+  - **Workout note block**: rendered as a text block below the strip, only when a note is present.
+  - **Edit workout** (pencil icon in top app bar): `ModalBottomSheet` containing start and end date-time fields (tapping each opens a Material 3 date picker → time picker two-stage flow; local timezone; any date allowed), an `RpeStepper` (§8), and a note field. **Save is disabled with an inline error** while end ≤ start. Save calls `updateSessionDetails`; duration, date strip, and History ordering recompute reactively from the updated timestamps.
+  - Sets are editable via the same long-press row (weight/reps only, e.g. fixing a typo after the fact).
 - **Settings**: unit toggle (kg/lb), theme (system/light/dark), export / import (SAF file picker), library version + licenses. One screen, no nesting.
 
-## 7. Accessibility
+## 7. RPE scale and `RpeStepper`
+
+RPE (Rate of Perceived Exertion) is used as a **session-level** rating — one value per workout. The `RpeStepper` component (`ui/components`) is reused in both `SessionMetaRow` (§4.5) and the Edit workout sheet (§6).
+
+### Scale
+
+Range 6.0–10.0, step 0.5. Each whole-number value has a short label and a detail phrase; half values display "Between {floor} and {ceil}" using the short labels.
+
+| RPE | EN short | EN detail | DE short | DE detail |
+|---|---|---|---|---|
+| 6 | Easy | plenty left in the tank | Leicht | viel Reserve übrig |
+| 7 | Moderate | challenging but far from the limit | Moderat | fordernd, aber weit vom Limit |
+| 8 | Hard | tough, with some reserve left | Hart | anstrengend, mit Reserven |
+| 9 | Very hard | close to the limit | Sehr hart | nah am Limit |
+| 10 | Max effort | nothing left | Maximal | nichts mehr übrig |
+
+German strings are first-pass drafts, flagged for native-speaker review (see `docs/09-i18n-german-spot-check.md`).
+
+### Control idiom
+
+The stepper matches the weight/reps idiom: **−** and **+** round buttons flanking a large value display, with a descriptor line underneath.
+
+- **Unset state:** value shows "—", descriptor shows a hint ("Tap + to rate the workout"). The first tap on either button starts the value at 8.0.
+- **Clear:** a small "Clear" affordance is visible whenever a value is set; tapping it resets to null. RPE is always optional.
+
+## 8. Accessibility
 
 - **Touch targets**: logging path ≥56dp (steppers, LOG SET, numpad keys); everything else ≥48dp (M3 minimum).
 - **Content descriptions**: stateful and specific — "Increase weight, 2.5 kilograms", "Log set: 30 kilograms, 8 reps", "Set 2 logged: 30 kilograms, 9 reps, double-tap to edit".
