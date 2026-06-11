@@ -137,8 +137,6 @@ class FakeSessionRepository : SessionRepository {
         setId: String,
         weightKg: Double,
         reps: Int,
-        rpe: Double?,
-        note: String?,
     ) {
         updateSetCalls += setId
     }

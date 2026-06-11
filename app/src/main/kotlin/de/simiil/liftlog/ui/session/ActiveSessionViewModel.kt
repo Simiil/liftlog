@@ -350,11 +350,9 @@ class ActiveSessionViewModel
             setId: String,
             weightKg: Double,
             reps: Int,
-            rpe: Double?,
-            note: String?,
         ) {
             viewModelScope.launch {
-                sessionRepository.updateSet(setId, weightKg, reps, rpe, note)
+                sessionRepository.updateSet(setId, weightKg, reps)
                 if (editingSetIdFlow.value == setId) editingSetIdFlow.value = null
             }
         }

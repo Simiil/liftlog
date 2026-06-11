@@ -36,8 +36,6 @@ interface SessionRepository {
         setId: String,
         weightKg: Double,
         reps: Int,
-        rpe: Double?,
-        note: String?,
     )
 
     suspend fun deleteSet(setId: String) // soft

@@ -253,7 +253,7 @@ private fun DetailCard(
     unit: de.simiil.liftlog.domain.model.WeightUnit,
     editingSetId: String?,
     onLongPress: (String) -> Unit,
-    onSave: (String, Double, Int, Double?, String?) -> Unit,
+    onSave: (String, Double, Int) -> Unit,
     onDelete: (String) -> Unit,
     onCollapse: () -> Unit,
 ) {
@@ -286,7 +286,7 @@ private fun DetailCard(
                         unit = unit,
                         expanded = editingSetId == set.id,
                         onLongPress = { onLongPress(set.id) },
-                        onSave = { w, r, rpe, note -> onSave(set.id, w, r, rpe, note) },
+                        onSave = { w, r -> onSave(set.id, w, r) },
                         onDelete = { onDelete(set.id) },
                         onCollapse = onCollapse,
                         modifier = Modifier.fillMaxWidth(),

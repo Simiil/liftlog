@@ -146,13 +146,9 @@
     <string name="rpe_label">RPE</string>
     <string name="rpe_value">RPE %1$s</string>
     <string name="set_number">Satz %1$d</string>
-    <string name="set_note">Notiz</string>
     <string name="set_delete">Löschen</string>
     <string name="set_save">Speichern</string>
-    <string name="rpe_none">—</string>
     <string name="cd_set_logged">Satz %1$d geloggt: %2$s %3$s, %4$d Wdh.</string>
-    <string name="cd_set_has_rpe">, RPE %1$s</string>
-    <string name="cd_set_has_note">, hat Notiz</string>
     <string name="cd_edit_set">Satz bearbeiten</string>
 
     <plurals name="set_count">

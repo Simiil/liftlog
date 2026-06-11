@@ -400,7 +400,7 @@ private fun PreviewActiveSession() {
                         onRequestReplaceExercise = {},
                         onAddExercise = {},
                         onLongPressSet = {},
-                        onEditSetSave = { _, _, _, _, _ -> },
+                        onEditSetSave = { _, _, _ -> },
                         onDeleteSet = {},
                         onCollapseEdit = {},
                         modifier = Modifier.fillMaxWidth(),

@@ -326,7 +326,7 @@ class SessionRepositoryTest {
     // ─── updateSet ────────────────────────────────────────────────────────────
 
     @Test
-    fun `updateSet writes new weight, reps, rpe, note and bumps updatedAt`() =
+    fun `updateSet writes new weight and reps, leaves rpe and note unchanged, bumps updatedAt`() =
         runTest {
             val setId = "ls-1"
             val seId = "se-1"
@@ -339,18 +339,19 @@ class SessionRepositoryTest {
                     5,
                     2,
                     oldTs,
-                    null,
-                    null,
+                    8.5,
+                    "felt easy",
                     oldTs,
                     oldTs,
                     null,
                 )
 
-            repo.updateSet(setId, 90.0, 6, 8.5, "felt easy")
+            repo.updateSet(setId, 90.0, 6)
 
             val stored = dao.loggedSets[setId]!!
             assertEquals(90.0, stored.weightKg, 0.0)
             assertEquals(6, stored.reps)
+            // rpe and note are untouched (dropped in Task 2)
             assertEquals(8.5, stored.rpe!!, 0.0)
             assertEquals("felt easy", stored.note)
             assertEquals(clockMillis, stored.updatedAt)
@@ -363,20 +364,20 @@ class SessionRepositoryTest {
     @Test
     fun `updateSet is a no-op when set does not exist`() =
         runTest {
-            repo.updateSet("non-existent", 90.0, 6, null, null)
+            repo.updateSet("non-existent", 90.0, 6)
             assertEquals(0, dao.loggedSets.size)
         }
 
     @Test(expected = IllegalArgumentException::class)
     fun `updateSet rejects negative weightKg`() =
         runTest {
-            repo.updateSet("ls-1", -1.0, 5, null, null)
+            repo.updateSet("ls-1", -1.0, 5)
         }
 
     @Test(expected = IllegalArgumentException::class)
     fun `updateSet rejects zero reps`() =
         runTest {
-            repo.updateSet("ls-1", 100.0, 0, null, null)
+            repo.updateSet("ls-1", 100.0, 0)
         }
 
     // ─── deleteSet ────────────────────────────────────────────────────────────

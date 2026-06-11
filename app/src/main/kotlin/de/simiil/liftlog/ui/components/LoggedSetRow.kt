@@ -2,7 +2,6 @@ package de.simiil.liftlog.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,16 +13,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,9 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
-import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 import java.time.Instant
@@ -58,8 +51,8 @@ import java.time.Instant
  * A single logged-set row that supports inline editing (long-press to expand).
  *
  * Collapsed: a `surfaceContainerHighest` pill — numbered chip · "{weight} {unit} × {reps}" ·
- * optional RPE pill / note dot · check (design mockup `.logged-row`). Long-press to edit.
- * Expanded: weight + reps steppers, RPE chip strip, note field, Delete + Save (`.edit-row`).
+ * check (design mockup `.logged-row`). Long-press to edit.
+ * Expanded: weight + reps steppers, Delete + Save (`.edit-row`).
  *
  * Editing is OFF the hot logging path, so steppers (not numpad) are used.
  */
@@ -70,7 +63,7 @@ fun LoggedSetRow(
     unit: WeightUnit,
     expanded: Boolean,
     onLongPress: () -> Unit,
-    onSave: (weightKg: Double, reps: Int, rpe: Double?, note: String?) -> Unit,
+    onSave: (weightKg: Double, reps: Int) -> Unit,
     onDelete: () -> Unit,
     onCollapse: () -> Unit,
     modifier: Modifier = Modifier,
@@ -80,8 +73,8 @@ fun LoggedSetRow(
             index = index,
             set = set,
             unit = unit,
-            onSave = { w, r, rpe, note ->
-                onSave(w, r, rpe, note)
+            onSave = { w, r ->
+                onSave(w, r)
                 onCollapse()
             },
             onDelete = {
@@ -119,14 +112,7 @@ private fun CollapsedSetRow(
         }
     val weightFormatted = Weights.format(set.weightKg, unit)
     val unitLabel = Weights.label(unit)
-    val rpeFormatted =
-        set.rpe?.let { rpe ->
-            Decimals.format(rpe)
-        }
     val cdBase = stringResource(R.string.cd_set_logged, index, weightFormatted, unitLong, set.reps)
-    val cdRpe = rpeFormatted?.let { stringResource(R.string.cd_set_has_rpe, it) } ?: ""
-    val cdNote = if (set.note != null) stringResource(R.string.cd_set_has_note) else ""
-    val cd = cdBase + cdRpe + cdNote
     val editLabel = stringResource(R.string.cd_edit_set)
 
     Surface(
@@ -140,7 +126,7 @@ private fun CollapsedSetRow(
                     onLongClick = onLongPress,
                     onClick = { /* collapsed row: nothing on single tap */ },
                 ).semantics {
-                    contentDescription = cd
+                    contentDescription = cdBase
                     customActions =
                         listOf(
                             CustomAccessibilityAction(editLabel) {
@@ -183,28 +169,6 @@ private fun CollapsedSetRow(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
-            if (rpeFormatted != null) {
-                Surface(
-                    shape = RoundedCornerShape(100.dp),
-                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.16f),
-                ) {
-                    Text(
-                        text = stringResource(R.string.rpe_value, rpeFormatted),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                    )
-                }
-            }
-            if (set.note != null) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(7.dp)
-                            .background(MaterialTheme.colorScheme.tertiary, CircleShape),
-                )
-            }
             Icon(
                 imageVector = Icons.Filled.Check,
                 contentDescription = null,
@@ -216,22 +180,18 @@ private fun CollapsedSetRow(
 
 // ─── Expanded row (inline edit) ───────────────────────────────────────────────
 
-private val RPE_VALUES: List<Double> = (12..20).map { it * 0.5 } // 6.0, 6.5 … 10.0
-
 @Composable
 private fun ExpandedSetRow(
     index: Int,
     set: LoggedSet,
     unit: WeightUnit,
-    onSave: (weightKg: Double, reps: Int, rpe: Double?, note: String?) -> Unit,
+    onSave: (weightKg: Double, reps: Int) -> Unit,
     onDelete: () -> Unit,
     onCollapse: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var editWeightKg by remember(set.id) { mutableDoubleStateOf(set.weightKg) }
     var editReps by remember(set.id) { mutableIntStateOf(set.reps) }
-    var editRpe by remember(set.id) { mutableStateOf(set.rpe) }
-    var editNote by rememberSaveable(set.id) { mutableStateOf(set.note ?: "") }
 
     Surface(
         modifier = modifier,
@@ -270,44 +230,6 @@ private fun ExpandedSetRow(
             )
 
             Spacer(Modifier.height(12.dp))
-            Text(
-                text = stringResource(R.string.rpe_label),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(4.dp))
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                FilterChip(
-                    selected = editRpe == null,
-                    onClick = { editRpe = null },
-                    label = { Text(stringResource(R.string.rpe_none)) },
-                )
-                RPE_VALUES.forEach { rpe ->
-                    val label = Decimals.format(rpe)
-                    FilterChip(
-                        selected = editRpe == rpe,
-                        onClick = { editRpe = if (editRpe == rpe) null else rpe },
-                        label = { Text(label) },
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = editNote,
-                onValueChange = { editNote = it },
-                label = { Text(stringResource(R.string.set_note)) },
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 3,
-            )
-
-            Spacer(Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
@@ -322,7 +244,7 @@ private fun ExpandedSetRow(
                 Spacer(Modifier.width(8.dp))
                 Button(
                     onClick = {
-                        onSave(editWeightKg, editReps, editRpe, editNote.trim().takeIf { it.isNotEmpty() })
+                        onSave(editWeightKg, editReps)
                     },
                     modifier = Modifier.heightIn(min = 48.dp),
                 ) {
@@ -343,8 +265,8 @@ private val previewSet =
         reps = 8,
         position = 0,
         completedAt = Instant.ofEpochSecond(0),
-        rpe = 8.5,
-        note = "Felt strong",
+        rpe = null,
+        note = null,
         createdAt = Instant.ofEpochSecond(0),
         updatedAt = Instant.ofEpochSecond(0),
         deletedAt = null,
@@ -360,7 +282,7 @@ private fun PreviewLoggedSetRowCollapsed() {
             unit = WeightUnit.KG,
             expanded = false,
             onLongPress = {},
-            onSave = { _, _, _, _ -> },
+            onSave = { _, _ -> },
             onDelete = {},
             onCollapse = {},
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -378,7 +300,7 @@ private fun PreviewLoggedSetRowExpanded() {
             unit = WeightUnit.KG,
             expanded = true,
             onLongPress = {},
-            onSave = { _, _, _, _ -> },
+            onSave = { _, _ -> },
             onDelete = {},
             onCollapse = {},
             modifier = Modifier.padding(horizontal = 16.dp),

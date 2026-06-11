@@ -122,8 +122,6 @@ class SessionRepositoryImpl
             setId: String,
             weightKg: Double,
             reps: Int,
-            rpe: Double?,
-            note: String?,
         ) {
             require(weightKg >= 0.0) { "weightKg must be >= 0" }
             require(reps >= 1) { "reps must be >= 1" }
@@ -132,8 +130,6 @@ class SessionRepositoryImpl
                 existing.copy(
                     weightKg = weightKg,
                     reps = reps,
-                    rpe = rpe,
-                    note = note,
                     updatedAt = clock.millis(),
                 ),
             )

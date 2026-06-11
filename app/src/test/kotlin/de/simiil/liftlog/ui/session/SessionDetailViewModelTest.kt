@@ -226,7 +226,7 @@ class SessionDetailViewModelTest {
                 cancelAndIgnoreRemainingEvents()
             }
 
-            vm.onEditSetSave("set-1", 90.0, 6, 8.5, "felt great")
+            vm.onEditSetSave("set-1", 90.0, 6)
 
             // allow coroutine to execute
             vm.uiState.test {
@@ -337,7 +337,7 @@ class SessionDetailViewModelTest {
                 val editingState = awaitItem()
                 assertEquals("set-1", editingState.editingSetId)
 
-                vm.onEditSetSave("set-1", 85.0, 5, null, null)
+                vm.onEditSetSave("set-1", 85.0, 5)
                 val savedState = awaitItem()
                 assertNull("editingSetId should be cleared after save", savedState.editingSetId)
 

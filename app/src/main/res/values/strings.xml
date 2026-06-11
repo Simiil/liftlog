@@ -146,13 +146,9 @@
     <string name="rpe_label">RPE</string>
     <string name="rpe_value">RPE %1$s</string>
     <string name="set_number">Set %1$d</string>
-    <string name="set_note">Note</string>
     <string name="set_delete">Delete</string>
     <string name="set_save">Save</string>
-    <string name="rpe_none">—</string>
     <string name="cd_set_logged">Set %1$d logged: %2$s %3$s, %4$d reps</string>
-    <string name="cd_set_has_rpe">, RPE %1$s</string>
-    <string name="cd_set_has_note">, has note</string>
     <string name="cd_edit_set">Edit set</string>
 
     <plurals name="set_count">
