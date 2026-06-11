@@ -84,6 +84,7 @@ class SessionRepositoryTest {
                     startedAt = oldTs,
                     endedAt = null,
                     note = null,
+                    rpe = null,
                     createdAt = oldTs,
                     updatedAt = oldTs,
                     deletedAt = null,
@@ -117,6 +118,7 @@ class SessionRepositoryTest {
                     startedAt = oldTs,
                     endedAt = oldTs,
                     note = null,
+                    rpe = null,
                     createdAt = oldTs,
                     updatedAt = oldTs,
                     deletedAt = null,
@@ -143,6 +145,7 @@ class SessionRepositoryTest {
                     startedAt = oldTs,
                     endedAt = null,
                     note = null,
+                    rpe = null,
                     createdAt = oldTs,
                     updatedAt = oldTs,
                     deletedAt = null,
@@ -166,18 +169,18 @@ class SessionRepositoryTest {
             val ls1Id = "ls-1"
             val ls2Id = "ls-2"
 
-            dao.sessions[s1Id] = SessionEntity(s1Id, null, null, oldTs, null, null, oldTs, oldTs, null)
+            dao.sessions[s1Id] = SessionEntity(s1Id, null, null, oldTs, null, null, null, oldTs, oldTs, null)
             dao.sessionExercises[se1Id] = SessionExerciseEntity(se1Id, s1Id, "ex-1", 0, null, null, null, oldTs, oldTs, null)
-            dao.loggedSets[ls1Id] = LoggedSetEntity(ls1Id, se1Id, 100.0, 5, 0, oldTs, null, null, oldTs, oldTs, null)
-            dao.loggedSets[ls2Id] = LoggedSetEntity(ls2Id, se1Id, 100.0, 5, 1, oldTs, null, null, oldTs, oldTs, null)
+            dao.loggedSets[ls1Id] = LoggedSetEntity(ls1Id, se1Id, 100.0, 5, 0, oldTs, oldTs, oldTs, null)
+            dao.loggedSets[ls2Id] = LoggedSetEntity(ls2Id, se1Id, 100.0, 5, 1, oldTs, oldTs, oldTs, null)
 
             // Session s2 with its own children — must remain live
             val s2Id = "sess-2"
             val se2Id = "se-2"
             val ls3Id = "ls-3"
-            dao.sessions[s2Id] = SessionEntity(s2Id, null, null, oldTs, null, null, oldTs, oldTs, null)
+            dao.sessions[s2Id] = SessionEntity(s2Id, null, null, oldTs, null, null, null, oldTs, oldTs, null)
             dao.sessionExercises[se2Id] = SessionExerciseEntity(se2Id, s2Id, "ex-2", 0, null, null, null, oldTs, oldTs, null)
-            dao.loggedSets[ls3Id] = LoggedSetEntity(ls3Id, se2Id, 80.0, 8, 0, oldTs, null, null, oldTs, oldTs, null)
+            dao.loggedSets[ls3Id] = LoggedSetEntity(ls3Id, se2Id, 80.0, 8, 0, oldTs, oldTs, oldTs, null)
 
             repo.softDeleteSession(s1Id)
 
@@ -207,7 +210,7 @@ class SessionRepositoryTest {
     fun `addExerciseToSession inserts with correct position and null targets`() =
         runTest {
             val sessionId = "sess-1"
-            dao.sessions[sessionId] = SessionEntity(sessionId, null, null, 1L, null, null, 1L, 1L, null)
+            dao.sessions[sessionId] = SessionEntity(sessionId, null, null, 1L, null, null, null, 1L, 1L, null)
 
             // Pre-insert an exercise at position 1 so the new one should be at position 2
             val existingSeId = "se-existing"
@@ -247,7 +250,7 @@ class SessionRepositoryTest {
     fun `addExerciseToSession with no existing exercises starts at position 1`() =
         runTest {
             val sessionId = "sess-empty"
-            dao.sessions[sessionId] = SessionEntity(sessionId, null, null, 1L, null, null, 1L, 1L, null)
+            dao.sessions[sessionId] = SessionEntity(sessionId, null, null, 1L, null, null, null, 1L, 1L, null)
 
             val result = repo.addExerciseToSession(sessionId, "ex-a")
 
@@ -271,8 +274,6 @@ class SessionRepositoryTest {
                     5,
                     1,
                     1L,
-                    null,
-                    null,
                     1L,
                     1L,
                     null,
@@ -286,8 +287,6 @@ class SessionRepositoryTest {
             assertEquals(fixedInstant, result.completedAt)
             assertEquals(fixedInstant, result.createdAt)
             assertEquals(fixedInstant, result.updatedAt)
-            assertNull(result.rpe)
-            assertNull(result.note)
             assertNull(result.deletedAt)
             assertNotNull(UUID.fromString(result.id))
 
@@ -326,7 +325,7 @@ class SessionRepositoryTest {
     // ─── updateSet ────────────────────────────────────────────────────────────
 
     @Test
-    fun `updateSet writes new weight and reps, leaves rpe and note unchanged, bumps updatedAt`() =
+    fun `updateSet writes new weight and reps, bumps updatedAt`() =
         runTest {
             val setId = "ls-1"
             val seId = "se-1"
@@ -339,8 +338,6 @@ class SessionRepositoryTest {
                     5,
                     2,
                     oldTs,
-                    8.5,
-                    "felt easy",
                     oldTs,
                     oldTs,
                     null,
@@ -351,9 +348,6 @@ class SessionRepositoryTest {
             val stored = dao.loggedSets[setId]!!
             assertEquals(90.0, stored.weightKg, 0.0)
             assertEquals(6, stored.reps)
-            // rpe and note are untouched (dropped in Task 2)
-            assertEquals(8.5, stored.rpe!!, 0.0)
-            assertEquals("felt easy", stored.note)
             assertEquals(clockMillis, stored.updatedAt)
             // Preserved fields
             assertEquals(2, stored.position)
@@ -396,8 +390,6 @@ class SessionRepositoryTest {
                     5,
                     1,
                     oldTs,
-                    null,
-                    null,
                     oldTs,
                     oldTs,
                     null,
@@ -433,8 +425,8 @@ class SessionRepositoryTest {
                     oldTs,
                     null,
                 )
-            dao.loggedSets[ls1Id] = LoggedSetEntity(ls1Id, seId, 80.0, 5, 1, oldTs, null, null, oldTs, oldTs, null)
-            dao.loggedSets[ls2Id] = LoggedSetEntity(ls2Id, seId, 80.0, 5, 2, oldTs, null, null, oldTs, oldTs, null)
+            dao.loggedSets[ls1Id] = LoggedSetEntity(ls1Id, seId, 80.0, 5, 1, oldTs, oldTs, oldTs, null)
+            dao.loggedSets[ls2Id] = LoggedSetEntity(ls2Id, seId, 80.0, 5, 2, oldTs, oldTs, oldTs, null)
 
             repo.removeExercise(seId)
 
@@ -467,7 +459,7 @@ class SessionRepositoryTest {
                     oldTs,
                     null,
                 )
-            dao.loggedSets[ls1Id] = LoggedSetEntity(ls1Id, seId, 80.0, 5, 1, oldTs, null, null, oldTs, oldTs, null)
+            dao.loggedSets[ls1Id] = LoggedSetEntity(ls1Id, seId, 80.0, 5, 1, oldTs, oldTs, oldTs, null)
 
             val result = repo.replaceExercise(seId, "ex-new")
 
@@ -519,8 +511,8 @@ class SessionRepositoryTest {
             prefillDao.lastCompletedSessionId = sessionId
             prefillDao.setsBySessionAndExercise[sessionId to exerciseId] =
                 listOf(
-                    LoggedSetEntity("ls-a", "se-prev", 100.0, 5, 1, now, null, null, now, now, null),
-                    LoggedSetEntity("ls-b", "se-prev", 100.0, 4, 2, now, null, null, now, now, null),
+                    LoggedSetEntity("ls-a", "se-prev", 100.0, 5, 1, now, now, now, null),
+                    LoggedSetEntity("ls-b", "se-prev", 100.0, 4, 2, now, now, now, null),
                 )
 
             val result = repo.lastPerformance(exerciseId)

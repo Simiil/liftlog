@@ -17,8 +17,6 @@ data class LoggedSetEntity(
     val reps: Int,
     val position: Int,
     val completedAt: Long,
-    val rpe: Double?,
-    val note: String?,
     val createdAt: Long,
     val updatedAt: Long,
     val deletedAt: Long?,

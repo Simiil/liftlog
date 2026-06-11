@@ -471,8 +471,6 @@ private fun fakeSet(
     id: String,
     weightKg: Double,
     reps: Int,
-    rpe: Double? = null,
-    note: String? = null,
 ) = LoggedSet(
     id = id,
     sessionExerciseId = "se1",
@@ -480,15 +478,13 @@ private fun fakeSet(
     reps = reps,
     position = 0,
     completedAt = fakeInstant,
-    rpe = rpe,
-    note = note,
     createdAt = fakeInstant,
     updatedAt = fakeInstant,
     deletedAt = null,
 )
 
 private val fakeGhostSets = listOf(fakeSet("g1", 82.5, 8), fakeSet("g2", 82.5, 8), fakeSet("g3", 82.5, 7))
-private val fakeLoggedSets = listOf(fakeSet("s1", 85.0, 8), fakeSet("s2", 85.0, 6, rpe = 8.5))
+private val fakeLoggedSets = listOf(fakeSet("s1", 85.0, 8), fakeSet("s2", 85.0, 6))
 
 private val fakeActiveCard =
     ExerciseCardUi(

@@ -9,8 +9,6 @@ data class LoggedSet(
     val reps: Int,
     val position: Int,
     val completedAt: Instant,
-    val rpe: Double?,
-    val note: String?,
     val createdAt: Instant,
     val updatedAt: Instant,
     val deletedAt: Instant?,

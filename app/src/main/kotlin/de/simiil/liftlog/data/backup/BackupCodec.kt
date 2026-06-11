@@ -23,7 +23,7 @@ import java.time.Instant
 
 /** Pure JSON codec for the versioned backup (02-data-spec §6). No Android, no DB. */
 object BackupCodec {
-    const val CURRENT_FORMAT_VERSION = 1
+    const val CURRENT_FORMAT_VERSION = 2
 
     private val json =
         Json {
@@ -206,6 +206,7 @@ object BackupCodec {
             startedAt.iso(),
             endedAt?.iso(),
             note,
+            rpe,
             createdAt.iso(),
             updatedAt.iso(),
             deletedAt?.iso(),
@@ -233,8 +234,6 @@ object BackupCodec {
             reps,
             position,
             completedAt.iso(),
-            rpe,
-            note,
             createdAt.iso(),
             updatedAt.iso(),
             deletedAt?.iso(),
@@ -297,6 +296,7 @@ object BackupCodec {
             startedAt.millis(),
             endedAt?.millis(),
             note,
+            rpe,
             createdAt.millis(),
             updatedAt.millis(),
             deletedAt?.millis(),
@@ -324,8 +324,6 @@ object BackupCodec {
             reps,
             position,
             completedAt.millis(),
-            rpe,
-            note,
             createdAt.millis(),
             updatedAt.millis(),
             deletedAt?.millis(),

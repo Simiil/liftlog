@@ -17,6 +17,7 @@ data class SessionEntity(
     val startedAt: Long,
     val endedAt: Long?,
     val note: String?,
+    val rpe: Double?,
     val createdAt: Long,
     val updatedAt: Long,
     val deletedAt: Long?,

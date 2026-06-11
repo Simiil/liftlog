@@ -315,8 +315,6 @@ private fun fakeSet(
     reps = reps,
     position = 0,
     completedAt = fakeInstant,
-    rpe = null,
-    note = null,
     createdAt = fakeInstant,
     updatedAt = fakeInstant,
     deletedAt = null,

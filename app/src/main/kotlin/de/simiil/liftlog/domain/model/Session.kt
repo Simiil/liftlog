@@ -9,6 +9,7 @@ data class Session(
     val startedAt: Instant,
     val endedAt: Instant?,
     val note: String?,
+    val rpe: Double?,
     val createdAt: Instant,
     val updatedAt: Instant,
     val deletedAt: Instant?,

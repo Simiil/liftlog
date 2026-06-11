@@ -33,8 +33,6 @@ class MapperRoundTripTest {
                 5,
                 1,
                 completedAt = 3_000,
-                rpe = 8.0,
-                note = null,
                 createdAt = 3_000,
                 updatedAt = 3_000,
                 deletedAt = 4_000,

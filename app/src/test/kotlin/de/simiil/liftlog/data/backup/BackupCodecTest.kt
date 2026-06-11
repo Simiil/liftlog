@@ -14,12 +14,13 @@ import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.InvalidReason
 import de.simiil.liftlog.domain.repository.ParseResult
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 
 class BackupCodecTest {
-    private val appInfo = AppInfo(name = "LiftLog", versionName = "0.1.0", dbSchemaVersion = 1)
+    private val appInfo = AppInfo(name = "LiftLog", versionName = "0.1.0", dbSchemaVersion = 2)
     private val exportedAt = Instant.parse("2026-06-09T12:00:00Z")
 
     // One row per table; includes a tombstone (exercise ex2) and a hidden exercise.
@@ -82,6 +83,7 @@ class BackupCodecTest {
                         startedAt = 3000L,
                         endedAt = 4000L,
                         note = null,
+                        rpe = 8.5,
                         createdAt = 3000L,
                         updatedAt = 4000L,
                         deletedAt = null,
@@ -111,8 +113,6 @@ class BackupCodecTest {
                         reps = 5,
                         position = 1,
                         completedAt = 3500L,
-                        rpe = 8.0,
-                        note = null,
                         createdAt = 3500L,
                         updatedAt = 3500L,
                         deletedAt = null,
@@ -168,8 +168,8 @@ class BackupCodecTest {
 
     @Test
     fun `newer format version is rejected as Newer`() {
-        val newer = BackupCodec.encode(fixture(), exportedAt, appInfo).replace("\"formatVersion\": 1", "\"formatVersion\": 2")
-        assertEquals(ParseResult.Newer(2), BackupCodec.decode(newer))
+        val newer = BackupCodec.encode(fixture(), exportedAt, appInfo).replace("\"formatVersion\": 2", "\"formatVersion\": 3")
+        assertEquals(ParseResult.Newer(3), BackupCodec.decode(newer))
     }
 
     @Test
@@ -246,6 +246,7 @@ class BackupCodecTest {
                             startedAt = 3000L,
                             endedAt = 4000L,
                             note = null,
+                            rpe = null,
                             createdAt = 3000L,
                             updatedAt = 4000L,
                             deletedAt = null,
@@ -261,8 +262,6 @@ class BackupCodecTest {
                             10,
                             1,
                             completedAt = 3500L,
-                            rpe = null,
-                            note = null,
                             createdAt = 3500L,
                             updatedAt = 3500L,
                             deletedAt = null,
@@ -298,5 +297,34 @@ class BackupCodecTest {
         val dup = fixture().copy(exercises = fixture().exercises + fixture().exercises[0]) // ex1 twice
         val json = BackupCodec.encode(dup, exportedAt, appInfo)
         assertEquals(ParseResult.Invalid(InvalidReason.MALFORMED), BackupCodec.decode(json))
+    }
+
+    @Test
+    fun `v1 file with per-set rpe and note imports with them dropped`() {
+        val v1 =
+            """
+            {"formatVersion":1,"exportedAt":"2026-06-09T12:00:00Z",
+             "app":{"name":"LiftLog","versionName":"0.1.0","dbSchemaVersion":1},
+             "settings":{"weightUnit":"KG","theme":"SYSTEM"},
+             "data":{
+               "exercises":[{"id":"ex1","name":"Bench","muscleGroup":"CHEST","equipment":"BARBELL",
+                 "isBuiltIn":true,"isHidden":false,"createdAt":"1970-01-01T00:00:01Z","updatedAt":"1970-01-01T00:00:01Z","deletedAt":null}],
+               "workoutPlans":[],"planDayTemplates":[],"templateExercises":[],
+               "sessions":[{"id":"s1","templateId":null,"templateNameSnapshot":null,
+                 "startedAt":"1970-01-01T00:00:03Z","endedAt":"1970-01-01T00:00:04Z","note":"old session note",
+                 "createdAt":"1970-01-01T00:00:03Z","updatedAt":"1970-01-01T00:00:04Z","deletedAt":null}],
+               "sessionExercises":[{"id":"se1","sessionId":"s1","exerciseId":"ex1","position":0,
+                 "targetSets":null,"targetRepsMin":null,"targetRepsMax":null,
+                 "createdAt":"1970-01-01T00:00:03Z","updatedAt":"1970-01-01T00:00:03Z","deletedAt":null}],
+               "loggedSets":[{"id":"ls1","sessionExerciseId":"se1","weightKg":82.5,"reps":5,"position":1,
+                 "completedAt":"1970-01-01T00:00:03.500Z","rpe":8.0,"note":"grip slipped",
+                 "createdAt":"1970-01-01T00:00:03.500Z","updatedAt":"1970-01-01T00:00:03.500Z","deletedAt":null}]}}
+            """.trimIndent()
+        val result = BackupCodec.decode(v1)
+        assertTrue(result is ParseResult.Ready)
+        val parsed = (result as ParseResult.Ready).parsed as BackupSnapshot
+        assertNull(parsed.sessions.single().rpe) // v1 had no session rpe
+        assertEquals("old session note", parsed.sessions.single().note)
+        assertEquals(82.5, parsed.loggedSets.single().weightKg, 0.0) // per-set rpe/note keys ignored
     }
 }

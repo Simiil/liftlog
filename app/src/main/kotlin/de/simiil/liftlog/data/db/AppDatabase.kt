@@ -18,7 +18,7 @@ import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
 
 /** Room schema version. Stamped into backup headers (02-data-spec §6) as dbSchemaVersion. */
-const val DB_SCHEMA_VERSION = 1
+const val DB_SCHEMA_VERSION = 2
 
 @Database(
     entities = [

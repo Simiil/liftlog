@@ -99,6 +99,7 @@ class PlanDaoTest {
         startedAt = startedAt,
         endedAt = null,
         note = null,
+        rpe = null,
         createdAt = startedAt,
         updatedAt = startedAt,
         deletedAt = deleted,
