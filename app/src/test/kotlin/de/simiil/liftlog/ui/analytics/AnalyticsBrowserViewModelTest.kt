@@ -24,6 +24,8 @@ class AnalyticsBrowserViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val names = de.simiil.liftlog.ui.exercises.ExerciseNameResolver { _, fallback -> fallback }
+
     private fun trained(id: String, name: String) =
         TrainedExercise(id, name, MuscleGroup.CHEST, Equipment.BARBELL, 0L)
 
@@ -46,6 +48,7 @@ class AnalyticsBrowserViewModelTest {
         val vm = AnalyticsBrowserViewModel(
             FakeRepo(listOf(trained("a", "Bench Press"), trained("b", "Squat"))),
             FakeSettings(),
+            names,
         )
         vm.uiState.test {
             awaitItem() // initial
@@ -57,7 +60,7 @@ class AnalyticsBrowserViewModelTest {
     }
 
     @Test fun weekSummary_isExposed() = runTest {
-        val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings())
+        val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names)
         vm.uiState.test {
             var s = awaitItem()
             while (s.week == null) s = awaitItem()
@@ -67,7 +70,7 @@ class AnalyticsBrowserViewModelTest {
     }
 
     @Test fun unit_isExposedFromSettings() = runTest {
-        val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings())
+        val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names)
         vm.uiState.test {
             var s = awaitItem()
             while (s.week == null) s = awaitItem()

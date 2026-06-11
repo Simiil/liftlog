@@ -14,6 +14,7 @@ import de.simiil.liftlog.domain.analytics.trend
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
+import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import de.simiil.liftlog.ui.components.charts.ChartPoint
 import java.time.Clock
 import javax.inject.Inject
@@ -56,6 +57,7 @@ class ExerciseDetailViewModel @Inject constructor(
     private val analyticsRepository: AnalyticsRepository,
     private val settingsRepository: SettingsRepository,
     private val clock: Clock,
+    private val names: ExerciseNameResolver,
 ) : ViewModel() {
 
     private val exerciseId: String = checkNotNull(savedStateHandle["exerciseId"])
@@ -69,7 +71,8 @@ class ExerciseDetailViewModel @Inject constructor(
         selectedRange,
         settingsRepository.weightUnit,
     ) { summary, trained, metricOrNull, range, unit ->
-        val name = trained.firstOrNull { it.id == exerciseId }?.name ?: ""
+        val trainedRow = trained.firstOrNull { it.id == exerciseId }
+        val name = trainedRow?.let { names.displayName(it.id, it.name) } ?: ""
         if (summary == null) {
             return@combine ExerciseDetailUiState(name = name, notEnoughData = true, unit = unit)
         }

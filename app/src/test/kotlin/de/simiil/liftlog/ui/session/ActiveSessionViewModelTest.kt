@@ -29,6 +29,7 @@ class ActiveSessionViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val now: Instant = Instant.parse("2026-06-08T10:00:00Z")
+    private val names = de.simiil.liftlog.ui.exercises.ExerciseNameResolver { _, fallback -> fallback }
 
     // ---- builders ----
 
@@ -113,6 +114,7 @@ class ActiveSessionViewModelTest {
         exerciseRepository = exercises,
         settingsRepository = settings,
         savedStateHandle = SavedStateHandle(mapOf("sessionId" to "s1")),
+        names = names,
     )
 
     // ---- Tests ----

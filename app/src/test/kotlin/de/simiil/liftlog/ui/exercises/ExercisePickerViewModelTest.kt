@@ -20,6 +20,11 @@ class ExercisePickerViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    // Built-in "1" is localized to "Bankdrücken"; everything else falls back to its stored name.
+    private val resolver = ExerciseNameResolver { id, fallback ->
+        if (id == "1") "Bankdrücken" else fallback
+    }
+
     // ---- helpers ----
 
     private fun makeExercise(
@@ -50,7 +55,7 @@ class ExercisePickerViewModelTest {
             makeExercise("3", "bench row"),
         )
 
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         vm.uiState.test {
             awaitItem() // initial (empty or settled)
@@ -75,7 +80,7 @@ class ExercisePickerViewModelTest {
             makeExercise("3", "Incline Press", muscle = MuscleGroup.CHEST),
         )
 
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         vm.uiState.test {
             awaitItem()
@@ -100,7 +105,7 @@ class ExercisePickerViewModelTest {
             makeExercise("3", "Cable Curl", equipment = Equipment.CABLE),
         )
 
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         vm.uiState.test {
             awaitItem()
@@ -125,7 +130,7 @@ class ExercisePickerViewModelTest {
         // recentIds order = most recently used first
         repo.recentIds.value = listOf("ex-3", "ex-1")
 
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -146,7 +151,7 @@ class ExercisePickerViewModelTest {
         repo.visible.value = listOf(ex1)
         repo.recentIds.value = listOf("ex-1")
 
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         vm.uiState.test {
             awaitItem() // settled with recent non-empty
@@ -166,7 +171,7 @@ class ExercisePickerViewModelTest {
         repo.visible.value = listOf(ex1)
         repo.recentIds.value = listOf("ex-1")
 
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         vm.uiState.test {
             awaitItem()
@@ -182,7 +187,7 @@ class ExercisePickerViewModelTest {
     @Test
     fun `createCustom happy path invokes onCreated with new exercise id`() = runTest {
         val repo = FakeExerciseRepository()
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         var createdId: String? = null
         vm.createCustom("Push-Up", MuscleGroup.CHEST, Equipment.BODYWEIGHT) { id ->
@@ -204,7 +209,7 @@ class ExercisePickerViewModelTest {
     @Test
     fun `createCustom blank name sets createError to BLANK_NAME and does not call onCreated`() = runTest {
         val repo = FakeExerciseRepository()
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         var onCreatedCalled = false
         vm.createCustom("   ", MuscleGroup.CHEST, Equipment.BARBELL) {
@@ -225,7 +230,7 @@ class ExercisePickerViewModelTest {
         val repo = FakeExerciseRepository()
         repo.duplicateNames.add("bench press")
 
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         var onCreatedCalled = false
         vm.createCustom("Bench Press", MuscleGroup.CHEST, Equipment.BARBELL) {
@@ -244,7 +249,7 @@ class ExercisePickerViewModelTest {
     @Test
     fun `createError is cleared when onQueryChange is called`() = runTest {
         val repo = FakeExerciseRepository()
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         vm.uiState.test {
             awaitItem() // initial state (no error)
@@ -274,7 +279,7 @@ class ExercisePickerViewModelTest {
         // Only ex-c is recently used
         repo.recentIds.value = listOf("ex-c")
 
-        val vm = ExercisePickerViewModel(repo)
+        val vm = ExercisePickerViewModel(repo, resolver)
 
         vm.uiState.test {
             val state = awaitItem()
@@ -283,6 +288,47 @@ class ExercisePickerViewModelTest {
             assertEquals("ex-c", ids[0])
             assertEquals("ex-b", ids[1]) // Bench Press before Squat alphabetically
             assertEquals("ex-a", ids[2])
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `sorts by localized display name, not stored name`() = runTest {
+        // Stored "Zzz Press" resolves to "Aaa Press": must sort first despite its stored name.
+        val invertingResolver = ExerciseNameResolver { id, fallback ->
+            if (id == "z") "Aaa Press" else fallback
+        }
+        val repo = FakeExerciseRepository()
+        repo.visible.value = listOf(
+            makeExercise("m", "Mmm Press"),
+            makeExercise("z", "Zzz Press"),
+        )
+        val vm = ExercisePickerViewModel(repo, invertingResolver)
+        vm.uiState.test {
+            val state = awaitItem()
+            // "z" resolves to "Aaa Press" which sorts before "Mmm Press"
+            val ids = state.results.map { it.id }
+            assertEquals(listOf("z", "m"), ids)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `query matches the localized display name`() = runTest {
+        val repo = FakeExerciseRepository()
+        repo.visible.value = listOf(
+            makeExercise("1", "Barbell Bench Press"), // localized -> "Bankdrücken"
+            makeExercise("2", "Squat"),
+        )
+        val vm = ExercisePickerViewModel(repo, resolver)
+
+        vm.uiState.test {
+            awaitItem()
+            vm.onQueryChange("Bankdr")
+            val state = awaitItem()
+            val ids = state.results.map { it.id }
+            assertTrue("localized name should match", ids.contains("1"))
+            assertTrue("Squat should not match", !ids.contains("2"))
             cancelAndIgnoreRemainingEvents()
         }
     }
