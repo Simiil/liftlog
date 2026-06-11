@@ -107,6 +107,7 @@
     <string name="equipment_bodyweight">Bodyweight</string>
 
     <!-- Active Session screen -->
+    <string name="session_target_sets">target %1$d×</string>
     <string name="session_log_set">LOG SET</string>
     <string name="session_add_exercise">Add exercise</string>
     <string name="session_discard_confirm_title">Discard workout?</string>

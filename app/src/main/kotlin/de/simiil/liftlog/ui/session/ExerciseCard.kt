@@ -198,7 +198,7 @@ private fun UpcomingCard(
             )
             if (card.targetSets != null) {
                 Text(
-                    text = "target ${card.targetSets}×",
+                    text = stringResource(R.string.session_target_sets, card.targetSets),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
