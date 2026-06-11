@@ -293,6 +293,27 @@ class ExercisePickerViewModelTest {
     }
 
     @Test
+    fun `sorts by localized display name, not stored name`() = runTest {
+        // Stored "Zzz Press" resolves to "Aaa Press": must sort first despite its stored name.
+        val invertingResolver = ExerciseNameResolver { id, fallback ->
+            if (id == "z") "Aaa Press" else fallback
+        }
+        val repo = FakeExerciseRepository()
+        repo.visible.value = listOf(
+            makeExercise("m", "Mmm Press"),
+            makeExercise("z", "Zzz Press"),
+        )
+        val vm = ExercisePickerViewModel(repo, invertingResolver)
+        vm.uiState.test {
+            val state = awaitItem()
+            // "z" resolves to "Aaa Press" which sorts before "Mmm Press"
+            val ids = state.results.map { it.id }
+            assertEquals(listOf("z", "m"), ids)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `query matches the localized display name`() = runTest {
         val repo = FakeExerciseRepository()
         repo.visible.value = listOf(

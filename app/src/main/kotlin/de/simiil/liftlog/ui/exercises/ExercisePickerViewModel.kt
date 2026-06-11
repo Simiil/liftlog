@@ -47,18 +47,20 @@ class ExercisePickerViewModel @Inject constructor(
         createErrorFlow,
     ) { visible, recentIds, (q, m, e), err ->
         val active = q.isNotBlank() || m != null || e != null
-        val matches = visible.filter { ex ->
+        val matches = visible.mapNotNull { ex ->
             val display = names.displayName(ex)
-            (q.isBlank() || display.contains(q, ignoreCase = true) || ex.name.contains(q, ignoreCase = true)) &&
+            val ok = (q.isBlank() || display.contains(q, ignoreCase = true) || ex.name.contains(q, ignoreCase = true)) &&
                 (m == null || ex.muscleGroup == m) &&
                 (e == null || ex.equipment == e)
+            if (ok) ex to display else null
         }
         val recencyRank = recentIds.withIndex().associate { (i, id) -> id to i }
+        // Collator deliberately created per emission: picks up runtime locale changes.
         val collator = Collator.getInstance()
         val sorted = matches.sortedWith(
-            compareBy<Exercise> { recencyRank[it.id] ?: Int.MAX_VALUE }
-                .thenComparator { a, b -> collator.compare(names.displayName(a), names.displayName(b)) },
-        )
+            compareBy<Pair<Exercise, String>> { recencyRank[it.first.id] ?: Int.MAX_VALUE }
+                .thenComparator { a, b -> collator.compare(a.second, b.second) },
+        ).map { it.first }
         val recent = if (active) {
             emptyList()
         } else {
