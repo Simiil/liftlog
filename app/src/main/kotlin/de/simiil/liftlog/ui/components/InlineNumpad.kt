@@ -62,6 +62,7 @@ fun InlineNumpad(
 ) {
     var currentText by remember(initialText) { mutableStateOf(initialText) }
     val confirmCd = stringResource(R.string.cd_confirm)
+    // Intentionally not remembered: re-evaluates when a locale change recomposes.
     val sep = Decimals.separator()
 
     fun appendDigit(digit: Int) {

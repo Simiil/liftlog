@@ -26,9 +26,10 @@ class DecimalsTest {
         assertNull(Decimals.parse("", Locale.US))
     }
 
-    @Test fun parse_alwaysAcceptsPlainDot() {
-        // toDoubleOrNull understands '.' under any locale; pinned as the lenient contract.
+    @Test fun parse_acceptsBothSeparatorsUnderAnyLocale() {
+        // Uniform leniency: a buffer written under one locale parses under another.
         assertEquals(8.5, Decimals.parse("8.5", Locale.GERMANY)!!, 1e-9)
+        assertEquals(8.5, Decimals.parse("8,5", Locale.US)!!, 1e-9)
     }
 
     @Test fun parse_neverTreatsDotAsThousandsSeparator() {

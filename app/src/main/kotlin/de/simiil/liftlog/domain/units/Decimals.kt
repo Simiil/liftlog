@@ -18,10 +18,11 @@ object Decimals {
 
     /**
      * Parse user-entered text that may use the locale decimal separator.
-     * Lenient: '.' is always accepted too (toDoubleOrNull understands it), so
-     * "8.5" parses as 8.5 under any locale and "1.000" is 1.0, never 1000.
-     * Safe because input comes from the in-app numpad, which controls the buffer.
+     * Uniformly lenient: both '.' and ',' are accepted under any locale, so a
+     * numpad buffer survives a per-app language switch mid-entry; "1.000" is
+     * 1.0, never 1000. Safe because input comes from the in-app numpad,
+     * which controls the buffer.
      */
     fun parse(text: String, locale: Locale = Locale.getDefault()): Double? =
-        text.replace(separator(locale), '.').toDoubleOrNull()
+        text.replace(separator(locale), '.').replace(',', '.').toDoubleOrNull()
 }
