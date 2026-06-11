@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,29 +24,57 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.R
 import de.simiil.liftlog.ui.components.RpeStepper
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 private enum class PickField { START, END }
 
 private enum class PickStage { DATE, TIME }
+
+/**
+ * Combines an M3 DatePicker selection with a picked time-of-day into an instant.
+ *
+ * [pickedUtcDateMillis] follows the DatePicker contract (UTC midnight of the picked calendar
+ * day; null when the text-input mode cleared the field) — null falls back to [current]'s
+ * LOCAL calendar date. The combination applies [current]'s zone rules of the picked date;
+ * DST-gap times are shifted forward by java.time's resolver (02:30 → 03:30 on spring-forward).
+ */
+internal fun combineDateAndTime(
+    pickedUtcDateMillis: Long?,
+    hour: Int,
+    minute: Int,
+    current: ZonedDateTime,
+): Instant {
+    val date =
+        pickedUtcDateMillis
+            ?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }
+            ?: current.toLocalDate()
+    return date.atTime(hour, minute).atZone(current.zone).toInstant()
+}
 
 /**
  * "Edit workout" bottom sheet (2026-06-11 spec §2): start/end date-times, RPE, note.
@@ -72,9 +101,21 @@ fun EditWorkoutSheet(
     var pendingDateMillis by remember { mutableStateOf<Long?>(null) }
 
     val valid = endMillis > startMillis
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
+    fun animateDismiss() {
+        scope.launch { sheetState.hide() }.invokeOnCompletion { if (!sheetState.isVisible) onDismiss() }
+    }
+
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(
+            modifier =
+                Modifier
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp)
+                    .imePadding(),
+        ) {
             Text(
                 text = stringResource(R.string.session_edit_title),
                 style = MaterialTheme.typography.titleLarge,
@@ -124,7 +165,7 @@ fun EditWorkoutSheet(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+                TextButton(onClick = ::animateDismiss) { Text(stringResource(R.string.common_cancel)) }
                 Spacer(Modifier.width(8.dp))
                 Button(
                     enabled = valid,
@@ -135,7 +176,7 @@ fun EditWorkoutSheet(
                             editRpe,
                             noteDraft.trim().takeIf { it.isNotEmpty() },
                         )
-                        onDismiss()
+                        animateDismiss()
                     },
                     modifier = Modifier.heightIn(min = 48.dp),
                 ) {
@@ -163,10 +204,13 @@ fun EditWorkoutSheet(
         DatePickerDialog(
             onDismissRequest = { pickField = null },
             confirmButton = {
-                TextButton(onClick = {
-                    pendingDateMillis = datePickerState.selectedDateMillis
-                    pickStage = PickStage.TIME
-                }) { Text(stringResource(R.string.common_ok)) }
+                TextButton(
+                    enabled = datePickerState.selectedDateMillis != null,
+                    onClick = {
+                        pendingDateMillis = datePickerState.selectedDateMillis
+                        pickStage = PickStage.TIME
+                    },
+                ) { Text(stringResource(R.string.common_ok)) }
             },
             dismissButton = {
                 TextButton(onClick = { pickField = null }) { Text(stringResource(R.string.common_cancel)) }
@@ -193,17 +237,8 @@ fun EditWorkoutSheet(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    // DatePicker reports UTC-midnight millis for the picked calendar date.
-                    val date =
-                        Instant
-                            .ofEpochMilli(pendingDateMillis ?: current.toInstant().toEpochMilli())
-                            .atZone(ZoneOffset.UTC)
-                            .toLocalDate()
                     val combined =
-                        date
-                            .atTime(timeState.hour, timeState.minute)
-                            .atZone(zone)
-                            .toInstant()
+                        combineDateAndTime(pendingDateMillis, timeState.hour, timeState.minute, current)
                             .toEpochMilli()
                     if (editingField == PickField.START) startMillis = combined else endMillis = combined
                     pickField = null
@@ -237,7 +272,10 @@ private fun DateTimeField(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        modifier = modifier.fillMaxWidth(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .semantics { role = Role.Button },
     ) {
         Row(
             modifier = Modifier.heightIn(min = 48.dp).padding(horizontal = 14.dp, vertical = 12.dp),
