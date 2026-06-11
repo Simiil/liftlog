@@ -255,7 +255,7 @@
     <string name="exercise_machine_chest_press">Brustpresse (Maschine)</string>
     <string name="exercise_pec_deck">Pec Deck</string>
     <string name="exercise_cable_fly">Kabelzug-Fliegende</string>
-    <string name="exercise_push_up">Liegestütz</string>
+    <string name="exercise_push_up">Liegestütze</string>
     <string name="exercise_dips">Dips</string>
     <string name="exercise_deadlift">Kreuzheben</string>
     <string name="exercise_barbell_row">Langhantelrudern</string>
@@ -313,7 +313,7 @@
     <string name="exercise_crunch">Crunch</string>
     <string name="exercise_cable_crunch">Kabelzug-Crunch</string>
     <string name="exercise_hanging_leg_raise">Hängendes Beinheben</string>
-    <string name="exercise_ab_wheel_rollout">Bauchrad-Rollout</string>
+    <string name="exercise_ab_wheel_rollout">Bauchroller</string>
     <string name="exercise_barbell_wrist_curl">Langhantel-Handgelenk-Curl</string>
     <string name="exercise_reverse_barbell_curl">Langhantel-Reverse-Curl</string>
     <string name="exercise_kettlebell_swing">Kettlebell-Swing</string>
