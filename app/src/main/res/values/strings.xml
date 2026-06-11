@@ -145,6 +145,26 @@
     <!-- LoggedSetRow -->
     <string name="rpe_label">RPE</string>
     <string name="rpe_value">RPE %1$s</string>
+
+    <!-- Workout RPE stepper (6–10 halves, 2026-06-11 spec) -->
+    <string name="rpe_clear">Clear</string>
+    <string name="rpe_unset_value">—</string>
+    <string name="rpe_unset_hint">Tap + to rate the workout</string>
+    <string name="rpe_descriptor_whole">%1$s — %2$s</string>
+    <string name="rpe_descriptor_half">Between "%1$s" and "%2$s"</string>
+    <string name="rpe_short_6">Easy</string>
+    <string name="rpe_short_7">Moderate</string>
+    <string name="rpe_short_8">Hard</string>
+    <string name="rpe_short_9">Very hard</string>
+    <string name="rpe_short_10">Max effort</string>
+    <string name="rpe_detail_6">plenty left in the tank</string>
+    <string name="rpe_detail_7">challenging but far from the limit</string>
+    <string name="rpe_detail_8">tough, with some reserve left</string>
+    <string name="rpe_detail_9">close to the limit</string>
+    <string name="rpe_detail_10">nothing left</string>
+    <string name="cd_decrease_rpe">Decrease RPE</string>
+    <string name="cd_increase_rpe">Increase RPE</string>
+    <string name="cd_rpe_value">RPE %1$s</string>
     <string name="set_number">Set %1$d</string>
     <string name="set_delete">Delete</string>
     <string name="set_save">Save</string>

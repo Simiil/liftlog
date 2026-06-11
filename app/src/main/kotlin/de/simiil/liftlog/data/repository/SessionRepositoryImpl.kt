@@ -12,6 +12,7 @@ import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.model.SessionExercise
 import de.simiil.liftlog.domain.repository.SessionRepository
+import de.simiil.liftlog.domain.units.Rpe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Clock
@@ -188,7 +189,7 @@ class SessionRepositoryImpl
             sessionId: String,
             rpe: Double?,
         ) {
-            require(rpe == null || rpe in 6.0..10.0) { "rpe must be within 6.0..10.0" }
+            require(rpe == null || rpe in Rpe.MIN..Rpe.MAX) { "rpe must be within ${Rpe.MIN}..${Rpe.MAX}" }
             dao.updateSessionRpe(sessionId, rpe, clock.millis())
         }
 
@@ -207,7 +208,7 @@ class SessionRepositoryImpl
             note: String?,
         ) {
             require(endedAt.isAfter(startedAt)) { "endedAt must be after startedAt" }
-            require(rpe == null || rpe in 6.0..10.0) { "rpe must be within 6.0..10.0" }
+            require(rpe == null || rpe in Rpe.MIN..Rpe.MAX) { "rpe must be within ${Rpe.MIN}..${Rpe.MAX}" }
             transactor.immediate {
                 val session = dao.findSession(sessionId) ?: return@immediate
                 dao.updateSession(
