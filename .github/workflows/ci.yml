@@ -27,8 +27,8 @@ jobs:
       # Insurance for cold runners: harmless if licenses are already accepted
       - name: Accept Android SDK licenses
         run: yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-      - name: Lint, unit tests, assemble
-        run: ./gradlew lint testDebugUnitTest assembleDebug
+      - name: Ktlint, lint, unit tests, assemble
+        run: ./gradlew ktlintCheck lint testDebugUnitTest assembleDebug
 
   instrumented:
     name: Instrumented tests (Room DAOs)

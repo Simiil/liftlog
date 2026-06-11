@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.ktlint)
 }
 
 android {
@@ -49,11 +50,12 @@ android {
             )
             // CI provides the keystore via env; otherwise fall back to debug signing
             // so a local `bundleRelease` still yields an installable artifact.
-            signingConfig = if (System.getenv("KEYSTORE_FILE") != null) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig =
+                if (System.getenv("KEYSTORE_FILE") != null) {
+                    signingConfigs.getByName("release")
+                } else {
+                    signingConfigs.getByName("debug")
+                }
         }
     }
 
