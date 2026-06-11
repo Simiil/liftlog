@@ -113,7 +113,10 @@
     <string name="session_discard_confirm_title">Discard workout?</string>
     <string name="session_discard_confirm_message">This deletes the current session and its logged sets.</string>
     <string name="session_discard_confirm">Discard</string>
+    <string name="session_delete_confirm_title">Delete workout?</string>
+    <string name="session_delete_confirm_message">This deletes the workout and all its logged sets.</string>
     <string name="common_cancel">Cancel</string>
+    <string name="common_delete">Delete</string>
     <string name="session_remove_exercise">Remove exercise</string>
     <string name="session_replace_exercise">Replace exercise</string>
     <string name="session_finish_summary">%1$s — %2$d sets</string>

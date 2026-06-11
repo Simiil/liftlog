@@ -113,7 +113,10 @@
     <string name="session_discard_confirm_title">Training verwerfen?</string>
     <string name="session_discard_confirm_message">Damit werden die aktuelle Einheit und alle geloggten Sätze gelöscht.</string>
     <string name="session_discard_confirm">Verwerfen</string>
+    <string name="session_delete_confirm_title">Training löschen?</string>
+    <string name="session_delete_confirm_message">Damit werden das Training und alle geloggten Sätze gelöscht.</string>
     <string name="common_cancel">Abbrechen</string>
+    <string name="common_delete">Löschen</string>
     <string name="session_remove_exercise">Übung entfernen</string>
     <string name="session_replace_exercise">Übung ersetzen</string>
     <string name="session_finish_summary">%1$s — %2$d Sätze</string>
