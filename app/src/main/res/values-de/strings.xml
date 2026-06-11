@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LiftLog</string>
+    <string name="tab_home">Start</string>
+    <string name="tab_plans">Pläne</string>
+    <string name="tab_analytics">Statistik</string>
+    <string name="tab_history">Verlauf</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_open">Einstellungen öffnen</string>
+    <string name="navigate_back">Zurück</string>
+    <string name="settings_theme_label">Design</string>
+    <string name="theme_system">Systemstandard</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="settings_data_label">Daten</string>
+    <string name="settings_export">Daten exportieren</string>
+    <string name="settings_export_desc">Backup-Datei speichern</string>
+    <string name="settings_import">Daten importieren</string>
+    <string name="settings_import_desc">Aus Backup-Datei wiederherstellen</string>
+    <string name="backup_exported">Backup exportiert</string>
+    <string name="backup_export_failed">Backup konnte nicht exportiert werden</string>
+    <string name="backup_imported">Backup importiert</string>
+    <string name="backup_import_confirm_title">Alle Daten ersetzen?</string>
+    <!-- %1$s = backup date, %2$d = sessions, %3$d = exercises -->
+    <string name="backup_import_confirm_message">Alle aktuellen Daten durch das Backup vom %1$s ersetzen? %2$d Einheiten · %3$d Übungen. Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="backup_import_confirm_button">Ersetzen</string>
+    <string name="backup_cancel">Abbrechen</string>
+    <string name="backup_error_title">Backup konnte nicht importiert werden</string>
+    <string name="backup_error_live_session">Beende oder verwirf deine aktive Trainingseinheit, bevor du importierst.</string>
+    <string name="backup_error_newer">Dieses Backup wurde mit einer neueren Version von LiftLog erstellt. Aktualisiere die App und versuche es erneut.</string>
+    <string name="backup_error_corrupt">Diese Datei ist kein gültiges LiftLog-Backup oder sie ist unvollständig.</string>
+    <string name="backup_dialog_ok">OK</string>
+    <string name="placeholder_coming_soon">Demnächst verfügbar</string>
+
+    <!-- Home screen -->
+    <string name="session_untitled">Schnelles Training</string>
+    <string name="home_start_training">Training starten</string>
+    <string name="home_start_empty">Schnelles Training</string>
+    <string name="home_recent">Zuletzt</string>
+    <string name="home_no_history">Noch keine Trainings</string>
+    <string name="home_resume_label">FORTSETZEN · %1$s</string>
+    <string name="home_resume_meta">%1$d Übungen · %2$d min · läuft</string>
+    <string name="home_live">Live</string>
+    <string name="home_first_title">Bereit, wenn du es bist</string>
+    <string name="home_first_sub">Kein Konto, keine Einrichtung. Starte eine leere Einheit und logge deinen ersten Satz – alles wird auf deinem Handy gespeichert.</string>
+    <string name="home_first_start">Erstes Training starten</string>
+    <string name="home_first_hint">Erstelle jederzeit unter Pläne eine wiederverwendbare Tagesvorlage.</string>
+
+    <!-- WeightStepper / RepsStepper content descriptions -->
+    <string name="cd_decrease_weight">Gewicht verringern, %1$s %2$s</string>
+    <string name="cd_increase_weight">Gewicht erhöhen, %1$s %2$s</string>
+    <string name="cd_weight_value">Gewicht %1$s %2$s, tippen zum genauen Eingeben</string>
+    <string name="cd_decrease_reps">Wdh. verringern auf %1$d</string>
+    <string name="cd_increase_reps">Wdh. erhöhen auf %1$d</string>
+    <string name="cd_reps_value">Wdh. %1$d, tippen zum genauen Eingeben</string>
+    <string name="weight_kilograms">Kilogramm</string>
+    <string name="weight_pounds">Pfund</string>
+    <string name="weight_placeholder">—</string>
+    <string name="reps_label">Wdh.</string>
+
+    <!-- InlineNumpad content descriptions -->
+    <string name="cd_digit">Ziffer %1$d</string>
+    <string name="cd_decimal">Dezimalpunkt</string>
+    <string name="cd_backspace">Löschen</string>
+    <string name="cd_numpad_add">%1$s hinzufügen</string>
+    <string name="cd_confirm">Bestätigen</string>
+    <string name="numpad_confirm">Fertig</string>
+    <string name="numpad_dismiss">Abbrechen</string>
+
+    <!-- Exercise Picker -->
+    <string name="picker_title">Übungen</string>
+    <string name="picker_title_add">Übung hinzufügen</string>
+    <string name="picker_search">Übungen suchen</string>
+    <string name="picker_clear_search">Suche löschen</string>
+    <string name="picker_recent">Zuletzt verwendet</string>
+    <string name="picker_create">Übung erstellen</string>
+    <string name="picker_create_with_query">Neue Übung erstellen \"%1$s\"</string>
+    <string name="picker_create_name">Name</string>
+    <string name="picker_create_muscle">Muskelgruppe</string>
+    <string name="picker_create_equipment">Equipment</string>
+    <string name="picker_create_confirm">Erstellen</string>
+    <string name="picker_error_blank">Name eingeben</string>
+    <string name="picker_duplicate_name">Eine Übung mit diesem Namen existiert bereits</string>
+    <string name="picker_cancel">Schließen</string>
+    <string name="picker_add_selected">%1$d hinzufügen</string>
+    <string name="picker_added">Hinzugefügt</string>
+
+    <!-- MuscleGroup display labels -->
+    <string name="muscle_chest">Brust</string>
+    <string name="muscle_back">Rücken</string>
+    <string name="muscle_shoulders">Schultern</string>
+    <string name="muscle_biceps">Bizeps</string>
+    <string name="muscle_triceps">Trizeps</string>
+    <string name="muscle_quads">Quadrizeps</string>
+    <string name="muscle_hamstrings">Beinbeuger</string>
+    <string name="muscle_glutes">Gesäß</string>
+    <string name="muscle_calves">Waden</string>
+    <string name="muscle_abs">Bauch</string>
+    <string name="muscle_forearms">Unterarme</string>
+    <string name="muscle_other">Sonstige</string>
+
+    <!-- Equipment display labels -->
+    <string name="equipment_barbell">Langhantel</string>
+    <string name="equipment_dumbbell">Kurzhantel</string>
+    <string name="equipment_machine">Maschine</string>
+    <string name="equipment_cable">Kabelzug</string>
+    <string name="equipment_bodyweight">Körpergewicht</string>
+
+    <!-- Active Session screen -->
+    <string name="session_target_sets">Ziel %1$d×</string>
+    <string name="session_log_set">SATZ LOGGEN</string>
+    <string name="session_add_exercise">Übung hinzufügen</string>
+    <string name="session_discard_confirm_title">Training verwerfen?</string>
+    <string name="session_discard_confirm_message">Damit werden die aktuelle Einheit und alle geloggten Sätze gelöscht.</string>
+    <string name="session_discard_confirm">Verwerfen</string>
+    <string name="common_cancel">Abbrechen</string>
+    <string name="session_remove_exercise">Übung entfernen</string>
+    <string name="session_replace_exercise">Übung ersetzen</string>
+    <string name="session_finish_summary">%1$s — %2$d Sätze</string>
+    <string name="session_overflow">Mehr Optionen</string>
+    <string name="session_overflow_for">Mehr Optionen für %1$s</string>
+    <string name="more_options">Mehr Optionen</string>
+    <string name="ghost_last">zuletzt: %1$s</string>
+    <string name="session_progress">%1$d/%2$s</string>
+    <string name="cd_close_session">Einheit schließen</string>
+    <string name="cd_finish_session">Einheit abschließen</string>
+
+    <!-- History screen -->
+    <string name="history_empty">Noch keine abgeschlossenen Trainings</string>
+
+    <!-- Session Detail screen -->
+    <string name="session_detail_empty">Keine Sätze geloggt</string>
+    <string name="session_detail_hint">Drücke lange auf einen Satz, um einen Tippfehler zu korrigieren.</string>
+    <string name="session_detail_started">%1$s · %2$d · gestartet %3$s</string>
+    <string name="session_detail_top_weight">Top %1$s %2$s</string>
+    <string name="session_detail_bodyweight">Körpergewicht</string>
+    <string name="session_detail_ex_sub">%1$s · %2$s · %3$s</string>
+    <string name="session_detail_foot">%1$s · %2$s</string>
+    <string name="session_stat_duration">Dauer</string>
+    <string name="session_stat_sets">Sätze</string>
+    <string name="session_stat_volume">Volumen</string>
+    <string name="session_stat_volume_value">%1$st</string>
+    <string name="session_duration_value">%1$d:%2$02d</string>
+
+    <!-- LoggedSetRow -->
+    <string name="rpe_label">RPE</string>
+    <string name="rpe_value">RPE %1$s</string>
+    <string name="set_number">Satz %1$d</string>
+    <string name="set_note">Notiz</string>
+    <string name="set_delete">Löschen</string>
+    <string name="set_save">Speichern</string>
+    <string name="rpe_none">—</string>
+    <string name="cd_set_logged">Satz %1$d geloggt: %2$s %3$s, %4$d Wdh.</string>
+    <string name="cd_set_has_rpe">, RPE %1$s</string>
+    <string name="cd_set_has_note">, hat Notiz</string>
+    <string name="cd_edit_set">Satz bearbeiten</string>
+
+    <plurals name="set_count">
+        <item quantity="one">%1$d Satz</item>
+        <item quantity="other">%1$d Sätze</item>
+    </plurals>
+
+    <plurals name="exercise_count">
+        <item quantity="one">%1$d Übung</item>
+        <item quantity="other">%1$d Übungen</item>
+    </plurals>
+
+    <plurals name="plan_days_count">
+        <item quantity="one">%1$d Tag</item>
+        <item quantity="other">%1$d Tage</item>
+    </plurals>
+
+    <!-- Plans list (M3 redesign) -->
+    <string name="plans_empty_title">Noch keine Pläne</string>
+    <string name="plans_empty_sub">Erstelle einen Plan, um wiederverwendbare Tagesvorlagen zu bauen und Einheiten mit einem Tipp zu starten.</string>
+    <string name="plans_create">Neuer Plan</string>
+    <string name="plan_group_sub">%1$s · tippen zum Bearbeiten</string>
+    <string name="plan_start_day_cd">%1$s starten</string>
+    <string name="plan_edit_cd">%1$s bearbeiten</string>
+
+    <!-- Plan editor (M3 redesign) -->
+    <string name="plan_editor_new">Neuer Plan</string>
+    <string name="plan_editor_edit">Plan bearbeiten</string>
+    <string name="plan_name_field_label">Planname</string>
+    <string name="plan_name_field_hint">z. B. Ober / Unter, PUSH PULL LEGS, 5×5</string>
+    <string name="plan_training_days">Trainingstage</string>
+    <string name="plan_days_empty">Noch keine Tage. Füge einen Trainingstag hinzu, um deinen Split zu erstellen.</string>
+    <string name="plan_add_day">Trainingstag hinzufügen</string>
+    <string name="plan_remove_day">Tag entfernen</string>
+    <string name="plan_untitled_day">Unbenannter Tag</string>
+
+    <!-- Day editor (M3 redesign) -->
+    <string name="day_editor_new">Neuer Tag</string>
+    <string name="day_editor_edit">Tag bearbeiten</string>
+    <string name="day_name_field_label">Tagesname</string>
+    <string name="day_name_field_hint">z. B. Push-Tag, Unterkörper A</string>
+    <string name="day_exercises">Übungen</string>
+    <string name="day_exercises_empty">Noch keine Übungen. Füge einige hinzu und setze Ziele – diese füllen deine Einheit vor.</string>
+
+    <string name="editor_save">Speichern</string>
+    <string name="editor_done">Fertig</string>
+
+    <!-- Exercise rows / steppers (shared with the day editor) -->
+    <string name="template_add_exercise">Übung hinzufügen</string>
+    <string name="template_remove_exercise">Entfernen</string>
+    <string name="template_target_sets">Sätze</string>
+    <string name="template_target_reps_min">Wdh. min</string>
+    <string name="template_target_reps_max">Wdh. max</string>
+    <string name="template_drag_handle_cd">Neu anordnen</string>
+    <string name="home_template_chip_cd">%1$s starten</string>
+
+    <!-- Analytics trend badge -->
+    <string name="trend_up">↑ %1$s%%</string>
+    <string name="trend_down">↓ %1$s%%</string>
+    <string name="trend_flat">→ %1$s%%</string>
+    <string name="trend_stale">seit %1$d Wo. nicht trainiert</string>
+    <string name="trend_insufficient">mind. 3 Einheiten nötig</string>
+
+    <!-- Analytics browser screen -->
+    <string name="analytics_title">Statistik</string>
+    <string name="analytics_stat_volume_value">%1$st</string>
+    <string name="analytics_week_head">Diese Woche</string>
+    <string name="analytics_stat_sessions">Einheiten</string>
+    <string name="analytics_stat_sets">Sätze</string>
+    <string name="analytics_stat_volume">Volumen</string>
+    <string name="analytics_week_delta">%1$s%% Volumen vs. letzte Woche</string>
+    <string name="analytics_search_hint">Übungen suchen</string>
+    <string name="analytics_empty">Logge eine Einheit, um Fortschritte zu sehen</string>
+    <string name="analytics_e1rm_value">e1RM %1$s %2$s</string>
+    <string name="analytics_reps_value">%1$d Wdh.</string>
+    <string name="cd_progress_chart">%1$s Fortschrittsdiagramm, %2$d Einheiten</string>
+
+    <!-- Settings debug actions -->
+    <string name="settings_seed_demo">Demodaten laden (Debug)</string>
+
+    <!-- Analytics detail screen -->
+    <string name="metric_e1rm">e1RM</string>
+    <string name="metric_top_set">Top-Satz</string>
+    <string name="metric_volume">Volumen</string>
+    <string name="metric_max_reps">Max. Wdh.</string>
+    <string name="metric_total_reps">Gesamt-Wdh.</string>
+    <string name="range_30d">30T</string>
+    <string name="range_90d">90T</string>
+    <string name="range_1y">1J</string>
+    <string name="range_all">Alle</string>
+    <string name="analytics_sessions">Einheiten</string>
+    <string name="analytics_pr">PR</string>
+    <string name="analytics_need_two">Mindestens 2 Einheiten für ein Diagramm nötig</string>
+
+    <!-- Built-in exercise names (08-i18n-spec §3) -->
+    <string name="exercise_barbell_bench_press">Langhantel-Bankdrücken</string>
+    <string name="exercise_incline_barbell_bench_press">Schrägbank-Langhanteldrücken</string>
+    <string name="exercise_dumbbell_bench_press">Kurzhantel-Bankdrücken</string>
+    <string name="exercise_incline_dumbbell_press">Schrägbank-Kurzhanteldrücken</string>
+    <string name="exercise_machine_chest_press">Brust-Maschinen-Press</string>
+    <string name="exercise_pec_deck">Pec Deck</string>
+    <string name="exercise_cable_fly">Kabelzug-Fliegende</string>
+    <string name="exercise_push_up">Liegestütz</string>
+    <string name="exercise_dips">Dips</string>
+    <string name="exercise_deadlift">Kreuzheben</string>
+    <string name="exercise_barbell_row">Langhantelrudern</string>
+    <string name="exercise_t_bar_row">T-Bar-Rudern</string>
+    <string name="exercise_pull_up">Klimmzug</string>
+    <string name="exercise_chin_up">Klimmzug im Untergriff</string>
+    <string name="exercise_lat_pulldown">Latzug</string>
+    <string name="exercise_seated_cable_row">Kabelzug-Rudern sitzend</string>
+    <string name="exercise_straight_arm_pulldown">Straight-Arm-Pulldown</string>
+    <string name="exercise_one_arm_dumbbell_row">Einarmiges Kurzhantelrudern</string>
+    <string name="exercise_machine_row">Maschinenrudern</string>
+    <string name="exercise_back_extension">Rückenstrecker</string>
+    <string name="exercise_overhead_press">Schulterdrücken</string>
+    <string name="exercise_seated_dumbbell_shoulder_press">Kurzhantel-Schulterdrücken sitzend</string>
+    <string name="exercise_machine_shoulder_press">Maschinen-Schulterdrücken</string>
+    <string name="exercise_lateral_raise">Seitheben</string>
+    <string name="exercise_cable_lateral_raise">Kabelzug-Seitheben</string>
+    <string name="exercise_rear_delt_fly">Hintere Schulter Fliegende</string>
+    <string name="exercise_face_pull">Face Pull</string>
+    <string name="exercise_front_raise">Frontheben</string>
+    <string name="exercise_upright_row">Vorgebeugtes Rudern hochziehen</string>
+    <string name="exercise_barbell_curl">Langhantel-Curl</string>
+    <string name="exercise_ez_bar_curl">EZ-Stangen-Curl</string>
+    <string name="exercise_dumbbell_curl">Kurzhantel-Curl</string>
+    <string name="exercise_hammer_curl">Hammer Curl</string>
+    <string name="exercise_incline_dumbbell_curl">Schrägbank-Kurzhantel-Curl</string>
+    <string name="exercise_cable_curl">Kabelzug-Curl</string>
+    <string name="exercise_preacher_curl_machine">Prediger-Curl-Maschine</string>
+    <string name="exercise_close_grip_bench_press">Enges Bankdrücken</string>
+    <string name="exercise_skull_crusher">Skull Crusher</string>
+    <string name="exercise_triceps_pushdown">Trizeps-Pushdown</string>
+    <string name="exercise_overhead_cable_extension">Kabelzug-Trizepsstrecker über Kopf</string>
+    <string name="exercise_dumbbell_overhead_extension">Kurzhantel-Trizepsstrecker über Kopf</string>
+    <string name="exercise_machine_triceps_extension">Maschinen-Trizepsstrecker</string>
+    <string name="exercise_back_squat">Kniebeuge</string>
+    <string name="exercise_front_squat">Frontkniebeuge</string>
+    <string name="exercise_goblet_squat">Goblet Squat</string>
+    <string name="exercise_leg_press">Beinpresse</string>
+    <string name="exercise_hack_squat">Hack Squat</string>
+    <string name="exercise_bulgarian_split_squat">Bulgarische Kniebeuge</string>
+    <string name="exercise_walking_lunge">Ausfallschritte gehend</string>
+    <string name="exercise_leg_extension">Beinstrecker</string>
+    <string name="exercise_romanian_deadlift">Rumänisches Kreuzheben</string>
+    <string name="exercise_stiff_leg_deadlift">Steifbeiniges Kreuzheben</string>
+    <string name="exercise_lying_leg_curl">Beinbeuger liegend</string>
+    <string name="exercise_seated_leg_curl">Beinbeuger sitzend</string>
+    <string name="exercise_good_morning">Good Morning</string>
+    <string name="exercise_hip_thrust">Hip Thrust</string>
+    <string name="exercise_cable_glute_kickback">Kabelzug-Kickback</string>
+    <string name="exercise_hip_abduction_machine">Hüftabduktionsmaschine</string>
+    <string name="exercise_standing_calf_raise">Wadenheben stehend</string>
+    <string name="exercise_seated_calf_raise">Wadenheben sitzend</string>
+    <string name="exercise_calf_press_on_leg_press">Wadendrücken an der Beinpresse</string>
+    <string name="exercise_sit_up">Sit-up</string>
+    <string name="exercise_crunch">Crunch</string>
+    <string name="exercise_cable_crunch">Kabelzug-Crunch</string>
+    <string name="exercise_hanging_leg_raise">Hängendes Beinheben</string>
+    <string name="exercise_ab_wheel_rollout">Bauchrad-Rollout</string>
+    <string name="exercise_barbell_wrist_curl">Langhantel-Handgelenk-Curl</string>
+    <string name="exercise_reverse_barbell_curl">Langhantel-Reverse-Curl</string>
+    <string name="exercise_kettlebell_swing">Kettlebell-Swing</string>
+</resources>
