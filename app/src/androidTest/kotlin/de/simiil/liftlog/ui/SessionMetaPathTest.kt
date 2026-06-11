@@ -12,6 +12,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
+import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.ui.UiTestTags.HOME_START_EMPTY
 import de.simiil.liftlog.ui.UiTestTags.RPE_INCREMENT
@@ -77,9 +78,12 @@ class SessionMetaPathTest {
         composeRule.waitForIdle()
 
         // 4. Tap RPE_INCREMENT twice: null → 8.0 → 8.5.
+        //    After each tap we poll Room until the persisted value matches before tapping again;
+        //    the stepper reads uiState which is fed by a Room → Flow → recomposition round-trip,
+        //    so a bare waitForIdle() can still read a stale null on the second tap.
         awaitTag(RPE_INCREMENT)
         composeRule.onNodeWithTag(RPE_INCREMENT).performClick()
-        composeRule.waitForIdle()
+        awaitRpe(expected = 8.0)
         composeRule.onNodeWithTag(RPE_INCREMENT).performClick()
         composeRule.waitForIdle()
 
@@ -89,7 +93,8 @@ class SessionMetaPathTest {
         composeRule.waitForIdle()
 
         // 6. Tap "Done" to collapse and flush the note.
-        composeRule.onNodeWithText("Done").performClick()
+        val doneLabel = composeRule.activity.getString(R.string.common_done)
+        composeRule.onNodeWithText(doneLabel).performClick()
         composeRule.waitForIdle()
 
         // 7. Poll Room until rpe == 8.5 AND note == "felt strong".
@@ -136,6 +141,27 @@ class SessionMetaPathTest {
             "Timed out after ${timeoutMillis}ms waiting for >= $atLeast node(s) matching " +
                 "${matcher.description}; found ${nodeCount(matcher)}",
         )
+    }
+
+    /**
+     * Polls [SessionRepository.observeActiveSession] until the active session's RPE equals
+     * [expected] (within 0.001), or throws after [timeoutMillis] ms.
+     *
+     * Use this between consecutive RPE_INCREMENT taps so the second tap never reads a stale
+     * null from an in-flight Room → Flow → recomposition round-trip.
+     */
+    private fun awaitRpe(
+        expected: Double,
+        timeoutMillis: Long = 5_000,
+    ) = runBlocking {
+        val deadline = System.currentTimeMillis() + timeoutMillis
+        while (System.currentTimeMillis() < deadline) {
+            val session = sessionRepository.observeActiveSession().first()
+            if (session?.rpe != null && Math.abs(session.rpe!! - expected) < 0.001) return@runBlocking
+            Thread.sleep(50)
+        }
+        val actual = sessionRepository.observeActiveSession().first()?.rpe
+        throw AssertionError("Timed out after ${timeoutMillis}ms waiting for RPE=$expected; actual=$actual")
     }
 
     /**
