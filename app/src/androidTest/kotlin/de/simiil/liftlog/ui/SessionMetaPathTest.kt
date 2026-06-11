@@ -1,6 +1,7 @@
 package de.simiil.liftlog.ui
 
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -13,20 +14,22 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.ui.UiTestTags.HOME_START_EMPTY
 import de.simiil.liftlog.ui.UiTestTags.RPE_INCREMENT
 import de.simiil.liftlog.ui.UiTestTags.SESSION_META_NOTE
 import de.simiil.liftlog.ui.UiTestTags.SESSION_META_ROW
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import javax.inject.Inject
+import kotlin.math.abs
 
 /**
  * Instrumented path test for the Session Meta Row (workout-level RPE + note).
@@ -43,7 +46,7 @@ import javax.inject.Inject
  * ### Timer tree-staleness
  * The Active Session screen drives a 1 s timer that keeps the composition busy.
  * poll-based `composeRule.waitUntil` reads a stale tree on active-session pages.
- * We use the `await` helper from [TemplateStartPathTest] (waitForIdle + re-check loop).
+ * We use the same waitForIdle+poll pattern as TemplateStartPathTest (per-file copy).
  */
 @RunWith(AndroidJUnit4::class)
 @HiltAndroidTest
@@ -78,12 +81,21 @@ class SessionMetaPathTest {
         composeRule.waitForIdle()
 
         // 4. Tap RPE_INCREMENT twice: null → 8.0 → 8.5.
-        //    After each tap we poll Room until the persisted value matches before tapping again;
-        //    the stepper reads uiState which is fed by a Room → Flow → recomposition round-trip,
-        //    so a bare waitForIdle() can still read a stale null on the second tap.
+        //    Between the two taps we need two separate signals:
+        //    (a) awaitSession DB wait — confirms Room has committed the first write;
+        //    (b) await(cd_rpe_clear) UI wait — confirms the composition has caught up and the
+        //        stepper now holds a value (Clear only appears when value != null), so the
+        //        second tap sees the correct state rather than stale null.
         awaitTag(RPE_INCREMENT)
         composeRule.onNodeWithTag(RPE_INCREMENT).performClick()
-        awaitRpe(expected = 8.0)
+        // (a) DB write confirmed: rpe == 8.0
+        awaitSession(description = "rpe == 8.0") { it?.rpe != null && abs(it.rpe!! - 8.0) < 0.001 }
+        // (b) Composition catch-up confirmed: Clear button is visible
+        await(
+            hasContentDescription(composeRule.activity.getString(R.string.cd_rpe_clear)),
+            atLeast = 1,
+            timeoutMillis = 5_000,
+        )
         composeRule.onNodeWithTag(RPE_INCREMENT).performClick()
         composeRule.waitForIdle()
 
@@ -100,14 +112,12 @@ class SessionMetaPathTest {
         // 7. Poll Room until rpe == 8.5 AND note == "felt strong".
         //    onNoteFlush() dispatches a coroutine; give it a generous window.
         val session =
-            awaitSessionMeta(
-                expectedRpe = 8.5,
-                expectedNote = "felt strong",
+            awaitSession(
                 timeoutMillis = 10_000,
-            )
+                description = "rpe == 8.5 && note == \"felt strong\"",
+            ) { it?.rpe != null && abs(it.rpe!! - 8.5) < 0.001 && it.note == "felt strong" }
 
-        assertNotNull("Active session should exist after meta update", session)
-        assertEquals("RPE should be 8.5 after two increments", 8.5, session!!.rpe!!, 0.001)
+        assertEquals("RPE should be 8.5 after two increments", 8.5, session.rpe!!, 0.001)
         assertEquals("Note should be 'felt strong' after flush", "felt strong", session.note)
     }
 
@@ -144,49 +154,27 @@ class SessionMetaPathTest {
     }
 
     /**
-     * Polls [SessionRepository.observeActiveSession] until the active session's RPE equals
-     * [expected] (within 0.001), or throws after [timeoutMillis] ms.
+     * Polls [SessionRepository.observeActiveSession] every 100 ms until [predicate] is satisfied,
+     * or throws [AssertionError] after [timeoutMillis] ms. Returns the matching non-null session.
      *
-     * Use this between consecutive RPE_INCREMENT taps so the second tap never reads a stale
-     * null from an in-flight Room → Flow → recomposition round-trip.
+     * Uses [delay] (not Thread.sleep) because it runs inside [runBlocking].
      */
-    private fun awaitRpe(
-        expected: Double,
-        timeoutMillis: Long = 5_000,
-    ) = runBlocking {
-        val deadline = System.currentTimeMillis() + timeoutMillis
-        while (System.currentTimeMillis() < deadline) {
-            val session = sessionRepository.observeActiveSession().first()
-            if (session?.rpe != null && Math.abs(session.rpe!! - expected) < 0.001) return@runBlocking
-            Thread.sleep(50)
-        }
-        val actual = sessionRepository.observeActiveSession().first()?.rpe
-        throw AssertionError("Timed out after ${timeoutMillis}ms waiting for RPE=$expected; actual=$actual")
-    }
-
-    /**
-     * Polls [SessionRepository.observeActiveSession] until both [expectedRpe] and
-     * [expectedNote] are set, or until [timeoutMillis] elapses.
-     *
-     * Returns the matched session (or null if timed out — the caller asserts non-null).
-     */
-    private fun awaitSessionMeta(
-        expectedRpe: Double,
-        expectedNote: String,
-        timeoutMillis: Long,
-    ) = runBlocking {
-        val deadline = System.currentTimeMillis() + timeoutMillis
-        while (System.currentTimeMillis() < deadline) {
-            val session = sessionRepository.observeActiveSession().first()
-            if (session?.rpe != null &&
-                Math.abs(session.rpe!! - expectedRpe) < 0.001 &&
-                session.note == expectedNote
-            ) {
-                return@runBlocking session
+    private fun awaitSession(
+        timeoutMillis: Long = 10_000,
+        description: String,
+        predicate: (Session?) -> Boolean,
+    ): Session =
+        runBlocking {
+            val deadline = System.currentTimeMillis() + timeoutMillis
+            while (System.currentTimeMillis() < deadline) {
+                val session = sessionRepository.observeActiveSession().first()
+                if (predicate(session)) return@runBlocking requireNotNull(session)
+                delay(100)
             }
-            Thread.sleep(100)
+            val last = sessionRepository.observeActiveSession().first()
+            throw AssertionError(
+                "Timed out after ${timeoutMillis}ms waiting for $description; " +
+                    "last seen rpe=${last?.rpe}, note=${last?.note}",
+            )
         }
-        // Return whatever is currently in DB so the caller can log the actual values.
-        sessionRepository.observeActiveSession().first()
-    }
 }
