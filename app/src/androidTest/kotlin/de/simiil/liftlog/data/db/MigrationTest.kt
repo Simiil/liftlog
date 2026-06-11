@@ -33,23 +33,43 @@ class MigrationTest {
             execSQL(
                 "INSERT INTO logged_sets " +
                     "(id, sessionExerciseId, weightKg, reps, position, completedAt, rpe, note, createdAt, updatedAt, deletedAt) " +
-                    "VALUES ('ls1', 'se1', 82.5, 5, 1, 1500, 8.0, 'grip slipped', 1000, 1000, NULL)",
+                    "VALUES ('ls1', 'se1', 82.5, 5, 1, 1500, 8.0, 'grip slipped', 1000, 1100, NULL)",
+            )
+            execSQL(
+                "INSERT INTO logged_sets " +
+                    "(id, sessionExerciseId, weightKg, reps, position, completedAt, rpe, note, createdAt, updatedAt, deletedAt) " +
+                    "VALUES ('ls2', 'se1', 60.0, 10, 2, 1600, NULL, NULL, 1600, 1700, 1800)",
             )
             close()
         }
 
         val db = helper.runMigrationsAndValidate("migration-test", 2, true, MIGRATION_1_2)
 
-        db.query("SELECT weightKg, reps, position, completedAt FROM logged_sets WHERE id = 'ls1'").use { c ->
+        db
+            .query(
+                "SELECT weightKg, reps, position, completedAt, createdAt, updatedAt, deletedAt FROM logged_sets WHERE id = 'ls1'",
+            ).use { c ->
+                assertTrue(c.moveToFirst())
+                assertEquals(82.5, c.getDouble(0), 0.0)
+                assertEquals(5, c.getInt(1))
+                assertEquals(1, c.getInt(2))
+                assertEquals(1500L, c.getLong(3))
+                assertEquals(1000L, c.getLong(4))
+                assertEquals(1100L, c.getLong(5))
+                assertTrue(c.isNull(6))
+            }
+        db.query("SELECT deletedAt FROM logged_sets WHERE id = 'ls2'").use { c ->
             assertTrue(c.moveToFirst())
-            assertEquals(82.5, c.getDouble(0), 0.0)
-            assertEquals(5, c.getInt(1))
-            assertEquals(1, c.getInt(2))
-            assertEquals(1500L, c.getLong(3))
+            assertEquals(1800L, c.getLong(0))
         }
+        db.query("SELECT COUNT(*) FROM logged_sets").use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals(2, c.getInt(0))
+        }
+        db.query("PRAGMA foreign_key_check(`logged_sets`)").use { c -> assertEquals(0, c.count) }
         db.query("SELECT rpe, note FROM sessions WHERE id = 's1'").use { c ->
             assertTrue(c.moveToFirst())
-            assertTrue(c.isNull(0)) // new column defaults to null
+            assertTrue(c.isNull(0)) // ALTER TABLE ADD COLUMN leaves existing rows null
             assertEquals("session note", c.getString(1))
         }
     }
