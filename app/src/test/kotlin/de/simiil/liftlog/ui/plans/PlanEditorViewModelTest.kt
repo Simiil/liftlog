@@ -261,6 +261,8 @@ class PlanEditorViewModelTest {
             val vm = makeVm(planId = plan.id, planRepo = planRepo, exerciseRepo = exerciseRepo)
             vm.uiState.test {
                 var state = awaitItemUntil { it.planName == "PPL" && it.days.size == 2 }
+                // isNewPlan=false shows the Delete-plan row (PlanEditorScreen gates it on !isNewPlan).
+                assertFalse(state.isNewPlan)
                 assertEquals(listOf("Day A", "Day B"), state.days.map { it.name })
                 // existing day keys == template ids (so reconciliation preserves rows)
                 assertEquals(dayA.id, state.days[0].key)
@@ -409,6 +411,7 @@ class PlanEditorViewModelTest {
             vm.uiState.test {
                 val state = awaitItem()
                 assertEquals(PlanEditorMode.PLAN, state.mode)
+                // isNewPlan=true hides the Delete-plan row (PlanEditorScreen gates it on !isNewPlan).
                 assertTrue(state.isNewPlan)
                 assertEquals("", state.planName)
                 assertTrue(state.days.isEmpty())
