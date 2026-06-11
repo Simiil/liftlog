@@ -15,6 +15,7 @@ import de.simiil.liftlog.domain.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Clock
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -182,6 +183,46 @@ class SessionRepositoryImpl
 
         override fun observeSetCountsBySession(): Flow<Map<String, Int>> =
             dao.observeSetCountsBySession().map { rows -> rows.associate { it.sessionId to it.setCount } }
+
+        override suspend fun updateSessionRpe(
+            sessionId: String,
+            rpe: Double?,
+        ) {
+            require(rpe == null || rpe in 6.0..10.0) { "rpe must be within 6.0..10.0" }
+            val session = dao.findSession(sessionId) ?: return
+            dao.updateSession(session.copy(rpe = rpe, updatedAt = clock.millis()))
+        }
+
+        override suspend fun updateSessionNote(
+            sessionId: String,
+            note: String?,
+        ) {
+            val session = dao.findSession(sessionId) ?: return
+            dao.updateSession(
+                session.copy(note = note?.trim()?.takeIf { it.isNotEmpty() }, updatedAt = clock.millis()),
+            )
+        }
+
+        override suspend fun updateSessionDetails(
+            sessionId: String,
+            startedAt: Instant,
+            endedAt: Instant,
+            rpe: Double?,
+            note: String?,
+        ) {
+            require(endedAt.isAfter(startedAt)) { "endedAt must be after startedAt" }
+            require(rpe == null || rpe in 6.0..10.0) { "rpe must be within 6.0..10.0" }
+            val session = dao.findSession(sessionId) ?: return
+            dao.updateSession(
+                session.copy(
+                    startedAt = startedAt.toEpochMilli(),
+                    endedAt = endedAt.toEpochMilli(),
+                    rpe = rpe,
+                    note = note?.trim()?.takeIf { it.isNotEmpty() },
+                    updatedAt = clock.millis(),
+                ),
+            )
+        }
 
         override suspend fun startSessionFromTemplate(templateId: String): Session =
             transactor.immediate {

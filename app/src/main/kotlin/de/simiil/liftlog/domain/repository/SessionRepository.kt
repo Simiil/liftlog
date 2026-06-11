@@ -5,6 +5,7 @@ import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.model.SessionExercise
 import de.simiil.liftlog.domain.model.SessionWithDetails
 import kotlinx.coroutines.flow.Flow
+import java.time.Instant
 
 interface SessionRepository {
     fun observeActiveSession(): Flow<Session?>
@@ -58,4 +59,25 @@ interface SessionRepository {
      * Throws IllegalStateException if a session is already in progress.
      */
     suspend fun startSessionFromTemplate(templateId: String): Session
+
+    /** Sets or clears the workout-level RPE (6.0–10.0 in 0.5 steps; null = not rated). Bumps updatedAt. */
+    suspend fun updateSessionRpe(
+        sessionId: String,
+        rpe: Double?,
+    )
+
+    /** Sets or clears the workout note. Blank input is stored as null. Bumps updatedAt. */
+    suspend fun updateSessionNote(
+        sessionId: String,
+        note: String?,
+    )
+
+    /** Atomic header edit (detail screen): times + rpe + note. Requires endedAt > startedAt. */
+    suspend fun updateSessionDetails(
+        sessionId: String,
+        startedAt: Instant,
+        endedAt: Instant,
+        rpe: Double?,
+        note: String?,
+    )
 }

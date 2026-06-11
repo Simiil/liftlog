@@ -233,7 +233,10 @@ class SessionDetailViewModelTest {
                 cancelAndIgnoreRemainingEvents()
             }
 
-            assertTrue("updateSet should have been called", sessionRepo.updateSetCalls.contains("set-1"))
+            assertTrue(
+                "updateSet should have been called with correct args",
+                sessionRepo.updateSetCalls.contains(Triple("set-1", 90.0, 6)),
+            )
         }
 
     @Test

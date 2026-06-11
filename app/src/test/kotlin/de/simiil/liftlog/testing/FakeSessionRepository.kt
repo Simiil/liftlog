@@ -38,7 +38,7 @@ class FakeSessionRepository : SessionRepository {
     val softDeleteSessionCalls = mutableListOf<String>()
     val addExerciseCalls = mutableListOf<Pair<String, String>>()
     val logSetCalls = mutableListOf<Triple<String, Double, Int>>()
-    val updateSetCalls = mutableListOf<String>()
+    val updateSetCalls = mutableListOf<Triple<String, Double, Int>>()
     val deleteSetCalls = mutableListOf<String>()
     val removeExerciseCalls = mutableListOf<String>()
     val replaceExerciseCalls = mutableListOf<Pair<String, String>>()
@@ -137,7 +137,7 @@ class FakeSessionRepository : SessionRepository {
         weightKg: Double,
         reps: Int,
     ) {
-        updateSetCalls += setId
+        updateSetCalls += Triple(setId, weightKg, reps)
     }
 
     override suspend fun deleteSet(setId: String) {
@@ -169,6 +169,42 @@ class FakeSessionRepository : SessionRepository {
     }
 
     override suspend fun lastPerformance(exerciseId: String): List<LoggedSet> = lastPerformanceResult
+
+    val updateSessionRpeCalls = mutableListOf<Pair<String, Double?>>()
+    val updateSessionNoteCalls = mutableListOf<Pair<String, String?>>()
+    val updateSessionDetailsCalls = mutableListOf<UpdateSessionDetailsCall>()
+
+    data class UpdateSessionDetailsCall(
+        val sessionId: String,
+        val startedAt: Instant,
+        val endedAt: Instant,
+        val rpe: Double?,
+        val note: String?,
+    )
+
+    override suspend fun updateSessionRpe(
+        sessionId: String,
+        rpe: Double?,
+    ) {
+        updateSessionRpeCalls += sessionId to rpe
+    }
+
+    override suspend fun updateSessionNote(
+        sessionId: String,
+        note: String?,
+    ) {
+        updateSessionNoteCalls += sessionId to note
+    }
+
+    override suspend fun updateSessionDetails(
+        sessionId: String,
+        startedAt: Instant,
+        endedAt: Instant,
+        rpe: Double?,
+        note: String?,
+    ) {
+        updateSessionDetailsCalls += UpdateSessionDetailsCall(sessionId, startedAt, endedAt, rpe, note)
+    }
 
     val startFromTemplateCalls = mutableListOf<String>()
 

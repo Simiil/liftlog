@@ -525,6 +525,82 @@ class SessionRepositoryTest {
             assertEquals(4, result[1].reps)
         }
 
+    // ─── updateSessionRpe ─────────────────────────────────────────────────────
+
+    private fun storedSession(id: String = "sess-1"): SessionEntity =
+        SessionEntity(
+            id,
+            null,
+            null,
+            startedAt = 1L,
+            endedAt = 2L,
+            note = null,
+            rpe = null,
+            createdAt = 1L,
+            updatedAt = 1L,
+            deletedAt = null,
+        )
+
+    @Test
+    fun `updateSessionRpe sets rpe and bumps updatedAt`() =
+        runTest {
+            dao.sessions["sess-1"] = storedSession()
+            repo.updateSessionRpe("sess-1", 8.5)
+            val stored = dao.sessions["sess-1"]!!
+            assertEquals(8.5, stored.rpe!!, 0.0)
+            assertEquals(clockMillis, stored.updatedAt)
+        }
+
+    @Test
+    fun `updateSessionRpe null clears the rating`() =
+        runTest {
+            dao.sessions["sess-1"] = storedSession().copy(rpe = 7.0)
+            repo.updateSessionRpe("sess-1", null)
+            assertNull(dao.sessions["sess-1"]!!.rpe)
+        }
+
+    @Test
+    fun `updateSessionNote trims and stores blank as null`() =
+        runTest {
+            dao.sessions["sess-1"] = storedSession()
+            repo.updateSessionNote("sess-1", "  felt strong  ")
+            assertEquals("felt strong", dao.sessions["sess-1"]!!.note)
+            repo.updateSessionNote("sess-1", "   ")
+            assertNull(dao.sessions["sess-1"]!!.note)
+        }
+
+    @Test
+    fun `updateSessionDetails updates times rpe note atomically and bumps updatedAt`() =
+        runTest {
+            dao.sessions["sess-1"] = storedSession()
+            repo.updateSessionDetails(
+                "sess-1",
+                startedAt = Instant.ofEpochMilli(100L),
+                endedAt = Instant.ofEpochMilli(200L),
+                rpe = 9.0,
+                note = "rough one",
+            )
+            val stored = dao.sessions["sess-1"]!!
+            assertEquals(100L, stored.startedAt)
+            assertEquals(200L, stored.endedAt)
+            assertEquals(9.0, stored.rpe!!, 0.0)
+            assertEquals("rough one", stored.note)
+            assertEquals(clockMillis, stored.updatedAt)
+        }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `updateSessionDetails rejects end not after start`() =
+        runTest {
+            dao.sessions["sess-1"] = storedSession()
+            repo.updateSessionDetails(
+                "sess-1",
+                startedAt = Instant.ofEpochMilli(200L),
+                endedAt = Instant.ofEpochMilli(200L),
+                rpe = null,
+                note = null,
+            )
+        }
+
     // ─── observeSetCountsBySession ────────────────────────────────────────────
 
     @Test
