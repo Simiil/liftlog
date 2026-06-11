@@ -7,6 +7,7 @@ import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
+import java.text.Collator
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,6 +32,7 @@ data class ExercisePickerUiState(
 @HiltViewModel
 class ExercisePickerViewModel @Inject constructor(
     private val repo: ExerciseRepository,
+    private val names: ExerciseNameResolver,
 ) : ViewModel() {
 
     private val queryFlow = MutableStateFlow("")
@@ -46,13 +48,16 @@ class ExercisePickerViewModel @Inject constructor(
     ) { visible, recentIds, (q, m, e), err ->
         val active = q.isNotBlank() || m != null || e != null
         val matches = visible.filter { ex ->
-            (q.isBlank() || ex.name.contains(q, ignoreCase = true)) &&
+            val display = names.displayName(ex)
+            (q.isBlank() || display.contains(q, ignoreCase = true) || ex.name.contains(q, ignoreCase = true)) &&
                 (m == null || ex.muscleGroup == m) &&
                 (e == null || ex.equipment == e)
         }
         val recencyRank = recentIds.withIndex().associate { (i, id) -> id to i }
+        val collator = Collator.getInstance()
         val sorted = matches.sortedWith(
-            compareBy({ recencyRank[it.id] ?: Int.MAX_VALUE }, { it.name.lowercase() }),
+            compareBy<Exercise> { recencyRank[it.id] ?: Int.MAX_VALUE }
+                .thenComparator { a, b -> collator.compare(names.displayName(a), names.displayName(b)) },
         )
         val recent = if (active) {
             emptyList()
