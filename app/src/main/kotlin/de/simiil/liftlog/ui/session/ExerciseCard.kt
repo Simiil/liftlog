@@ -77,7 +77,7 @@ fun ExerciseCard(
     onRequestReplaceExercise: (seId: String) -> Unit,
     onAddExercise: () -> Unit,
     onLongPressSet: (setId: String) -> Unit,
-    onEditSetSave: (setId: String, weightKg: Double, reps: Int, rpe: Double?, note: String?) -> Unit,
+    onEditSetSave: (setId: String, weightKg: Double, reps: Int) -> Unit,
     onDeleteSet: (setId: String) -> Unit,
     onCollapseEdit: () -> Unit,
     modifier: Modifier = Modifier,
@@ -237,7 +237,7 @@ private fun ActiveCard(
     onRequestReplaceExercise: (seId: String) -> Unit,
     onAddExercise: () -> Unit,
     onLongPressSet: (setId: String) -> Unit,
-    onEditSetSave: (setId: String, weightKg: Double, reps: Int, rpe: Double?, note: String?) -> Unit,
+    onEditSetSave: (setId: String, weightKg: Double, reps: Int) -> Unit,
     onDeleteSet: (setId: String) -> Unit,
     onCollapseEdit: () -> Unit,
     modifier: Modifier = Modifier,
@@ -315,7 +315,7 @@ private fun ActiveCard(
                     unit = unit,
                     expanded = card.editingSetId == set.id,
                     onLongPress = { onLongPressSet(set.id) },
-                    onSave = { w, r, rpe, note -> onEditSetSave(set.id, w, r, rpe, note) },
+                    onSave = { w, r -> onEditSetSave(set.id, w, r) },
                     onDelete = { onDeleteSet(set.id) },
                     onCollapse = onCollapseEdit,
                     modifier =
@@ -471,8 +471,6 @@ private fun fakeSet(
     id: String,
     weightKg: Double,
     reps: Int,
-    rpe: Double? = null,
-    note: String? = null,
 ) = LoggedSet(
     id = id,
     sessionExerciseId = "se1",
@@ -480,15 +478,13 @@ private fun fakeSet(
     reps = reps,
     position = 0,
     completedAt = fakeInstant,
-    rpe = rpe,
-    note = note,
     createdAt = fakeInstant,
     updatedAt = fakeInstant,
     deletedAt = null,
 )
 
 private val fakeGhostSets = listOf(fakeSet("g1", 82.5, 8), fakeSet("g2", 82.5, 8), fakeSet("g3", 82.5, 7))
-private val fakeLoggedSets = listOf(fakeSet("s1", 85.0, 8), fakeSet("s2", 85.0, 6, rpe = 8.5))
+private val fakeLoggedSets = listOf(fakeSet("s1", 85.0, 8), fakeSet("s2", 85.0, 6))
 
 private val fakeActiveCard =
     ExerciseCardUi(
@@ -523,7 +519,7 @@ private val noopCard: @Composable (ExerciseCardUi, EntryUi?) -> Unit = { card, e
         onRequestReplaceExercise = {},
         onAddExercise = {},
         onLongPressSet = {},
-        onEditSetSave = { _, _, _, _, _ -> },
+        onEditSetSave = { _, _, _ -> },
         onDeleteSet = {},
         onCollapseEdit = {},
     )

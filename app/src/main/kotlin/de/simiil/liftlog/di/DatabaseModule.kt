@@ -17,6 +17,7 @@ import de.simiil.liftlog.data.dao.PrefillDao
 import de.simiil.liftlog.data.dao.SessionDao
 import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.DB_SCHEMA_VERSION
+import de.simiil.liftlog.data.db.MIGRATION_1_2
 import de.simiil.liftlog.data.db.RoomTransactor
 import de.simiil.liftlog.data.db.Transactor
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +33,11 @@ object DatabaseModule {
     @Provides @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context,
-    ): AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, "liftlog.db").build()
+    ): AppDatabase =
+        Room
+            .databaseBuilder(context, AppDatabase::class.java, "liftlog.db")
+            .addMigrations(MIGRATION_1_2)
+            .build()
 
     @Provides fun provideExerciseDao(db: AppDatabase): ExerciseDao = db.exerciseDao()
 

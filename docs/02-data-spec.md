@@ -86,7 +86,8 @@ Tombstones are never purged in v1. Settings are **not** an entity (DataStore, §
 | templateNameSnapshot | TEXT? | Display name survives template rename/delete |
 | startedAt | INTEGER | |
 | endedAt | INTEGER? | **`NULL` = session in progress** — the resumability anchor. At most one live `NULL` row, enforced in repository |
-| note | TEXT? | Session-level note |
+| note | TEXT? | Workout-level note |
+| rpe | REAL? | Workout-level RPE, 6.0–10.0 in 0.5 steps; `null` = not rated (since schema v2) |
 | createdAt / updatedAt / deletedAt | | §2 |
 
 ### `session_exercises`
@@ -108,9 +109,11 @@ Tombstones are never purged in v1. Settings are **not** an entity (DataStore, §
 | reps | INTEGER | `>= 1` |
 | position | INTEGER | Set number within the exercise (1-based) |
 | completedAt | INTEGER | When logged — written **immediately** on the LOG tap (process-death safety) |
-| rpe | REAL? | 6.0–10.0 in 0.5 steps; off the hot path ([03-ux-spec](03-ux-spec.md)) |
-| note | TEXT? | Per-set note |
 | createdAt / updatedAt / deletedAt | | §2 |
+
+> **Schema v1 → v2 note (2026-06-11):** per-set `rpe` and `note` columns existed in schema v1
+> and were removed in `MIGRATION_1_2` (`data/db/Migrations.kt`). RPE and notes are
+> session-level as of schema v2; old per-set values were discarded by design.
 
 ### Indexes
 
@@ -138,8 +141,6 @@ data class LoggedSetEntity(
     val reps: Int,
     val position: Int,
     val completedAt: Long,
-    val rpe: Double?,
-    val note: String?,
     val createdAt: Long, val updatedAt: Long, val deletedAt: Long?,
 )
 // …remaining entities follow §3 verbatim
@@ -199,9 +200,9 @@ One JSON file, UTF-8, default name `liftlog-backup-YYYY-MM-DD.json`, written via
 
 ```json
 {
-  "formatVersion": 1,
-  "exportedAt": "2026-06-07T19:42:11Z",
-  "app": { "name": "LiftLog", "versionName": "1.0.0", "dbSchemaVersion": 1 },
+  "formatVersion": 2,
+  "exportedAt": "2026-06-11T10:00:00Z",
+  "app": { "name": "LiftLog", "versionName": "1.0.0", "dbSchemaVersion": 2 },
   "settings": { "weightUnit": "KG", "theme": "SYSTEM" },
   "data": {
     "exercises": [
@@ -213,12 +214,18 @@ One JSON file, UTF-8, default name `liftlog-backup-YYYY-MM-DD.json`, written via
     "workoutPlans":      [ { "…": "…" } ],
     "planDayTemplates":  [ { "…": "…" } ],
     "templateExercises": [ { "…": "…" } ],
-    "sessions":          [ { "…": "…" } ],
+    "sessions": [
+      { "id": "a3f1…", "templateId": null, "templateNameSnapshot": null,
+        "startedAt": "2026-06-11T09:00:00Z", "endedAt": "2026-06-11T10:00:00Z",
+        "note": "Felt strong today", "rpe": 8.0,
+        "createdAt": "2026-06-11T09:00:00Z", "updatedAt": "2026-06-11T10:00:00Z",
+        "deletedAt": null }
+    ],
     "sessionExercises":  [ { "…": "…" } ],
     "loggedSets": [
       { "id": "0b2d…", "sessionExerciseId": "9ac1…", "weightKg": 82.5, "reps": 5,
-        "position": 1, "completedAt": "2026-06-02T17:31:05Z", "rpe": 8.0, "note": null,
-        "createdAt": "2026-06-02T17:31:05Z", "updatedAt": "2026-06-02T17:31:05Z",
+        "position": 1, "completedAt": "2026-06-11T09:31:05Z",
+        "createdAt": "2026-06-11T09:31:05Z", "updatedAt": "2026-06-11T09:31:05Z",
         "deletedAt": null }
     ]
   }
@@ -229,8 +236,9 @@ Rules:
 
 - **Full fidelity**: includes tombstones (`deletedAt != null`) and hidden exercises — an import restores the exact state.
 - Timestamps are ISO-8601 UTC strings in the file (human-readable), epoch millis in the DB.
-- **Forward compatibility**: importers MUST ignore unknown JSON fields. `formatVersion` bumps only on breaking changes; importer accepts `formatVersion <= current`, refuses newer with a clear message ("backup was created by a newer app version").
-- **Import = full replace**, single Room transaction: validate file → show summary ("Replace current data with backup from 7 Jun 2026? 412 sessions, 38 exercises…") → explicit confirm → wipe + insert. No merge in v1 (merge ≈ sync engine, deliberately out of scope). An in-progress session blocks import.
+- **Format versioning**: `formatVersion` bumps only on breaking changes. Current version: **2** (since 2026-06-11 spec; `MIGRATION_1_2`). The importer accepts `formatVersion <= current`; a `Newer(version)` check refuses files from a newer app with a clear message ("backup was created by a newer app version").
+- **v1 → v2 import compat**: v1 files (`formatVersion: 1`) import cleanly — the codec sets `ignoreUnknownKeys = true`, so stale per-set `rpe`/`note` fields on `loggedSets` entries are silently dropped. Imported sessions receive `rpe = null` (the `SessionDto.rpe` field defaults to `null`). This drops any per-set RPE/note data by design; the user is not warned (the v2 UI no longer surfaces per-set RPE/note; old values are discarded by MIGRATION_1_2 by design).
+- **Import = full replace**, single Room transaction: validate file → show summary ("Replace current data with backup from 11 Jun 2026? 412 sessions, 38 exercises…") → explicit confirm → wipe + insert. No merge in v1 (merge ≈ sync engine, deliberately out of scope). An in-progress session blocks import.
 - Validation failures (malformed JSON, missing required fields, FK orphans) reject the **whole file** before any write.
 
 ## 7. Built-in exercise seeding

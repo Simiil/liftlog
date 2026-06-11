@@ -25,7 +25,7 @@
 
 **Deliverables:** Home (template chips deferred to M3 — empty-session start + resume card + recent list), Active Session screen per [03-ux-spec](03-ux-spec.md) §4 (card stack, steppers, inline numpad, pre-fill rules, long-press RPE/note edit, finish/discard), Exercise picker incl. create-custom, History list + session detail (read/edit).
 
-**Exit criteria:** The [03-ux-spec](03-ux-spec.md) §4.5 tap math holds on-device (1-tap repeat set; pre-fill from previous session works); Compose UI test covers start → log pre-filled → adjust → log → **process-death → resume** path; backgrounding mid-session loses nothing.
+**Exit criteria:** The [03-ux-spec](03-ux-spec.md) §4.6 tap math holds on-device (1-tap repeat set; pre-fill from previous session works); Compose UI test covers start → log pre-filled → adjust → log → **process-death → resume** path; backgrounding mid-session loses nothing.
 
 ## M3 — Plans
 
@@ -47,7 +47,7 @@
 
 **Goal:** No data loss, accessible, releasable.
 
-**Deliverables:** Versioned JSON export/import per [02-data-spec](02-data-spec.md) §6 (SAF picker, validation, full-replace confirmation flow); Settings screen complete; golden-file + round-trip tests; accessibility audit against [03-ux-spec](03-ux-spec.md) §7 (TalkBack walkthrough, 200% font scale, target sizes); release build config (R8, signing); app icon; final app-name decision (TBD → real name).
+**Deliverables:** Versioned JSON export/import per [02-data-spec](02-data-spec.md) §6 (SAF picker, validation, full-replace confirmation flow); Settings screen complete; golden-file + round-trip tests; accessibility audit against [03-ux-spec](03-ux-spec.md) §8 (TalkBack walkthrough, 200% font scale, target sizes); release build config (R8, signing); app icon; final app-name decision (TBD → real name).
 
 **Exit criteria:** Export → wipe → import round-trip is lossless (automated test); importer rejects newer-version and corrupt files gracefully; a11y audit checklist passes; release AAB builds in CI.
 

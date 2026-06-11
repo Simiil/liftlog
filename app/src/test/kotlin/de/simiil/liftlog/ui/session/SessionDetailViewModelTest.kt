@@ -62,6 +62,7 @@ class SessionDetailViewModelTest {
             startedAt = now,
             endedAt = now,
             note = null,
+            rpe = null,
             createdAt = now,
             updatedAt = now,
             deletedAt = null,
@@ -98,8 +99,6 @@ class SessionDetailViewModelTest {
             reps = reps,
             position = 0,
             completedAt = now,
-            rpe = null,
-            note = null,
             createdAt = now,
             updatedAt = now,
             deletedAt = null,
@@ -226,7 +225,7 @@ class SessionDetailViewModelTest {
                 cancelAndIgnoreRemainingEvents()
             }
 
-            vm.onEditSetSave("set-1", 90.0, 6, 8.5, "felt great")
+            vm.onEditSetSave("set-1", 90.0, 6)
 
             // allow coroutine to execute
             vm.uiState.test {
@@ -234,7 +233,10 @@ class SessionDetailViewModelTest {
                 cancelAndIgnoreRemainingEvents()
             }
 
-            assertTrue("updateSet should have been called", sessionRepo.updateSetCalls.contains("set-1"))
+            assertTrue(
+                "updateSet should have been called with correct args",
+                sessionRepo.updateSetCalls.contains(Triple("set-1", 90.0, 6)),
+            )
         }
 
     @Test
@@ -337,12 +339,64 @@ class SessionDetailViewModelTest {
                 val editingState = awaitItem()
                 assertEquals("set-1", editingState.editingSetId)
 
-                vm.onEditSetSave("set-1", 85.0, 5, null, null)
+                vm.onEditSetSave("set-1", 85.0, 5)
                 val savedState = awaitItem()
                 assertNull("editingSetId should be cleared after save", savedState.editingSetId)
 
                 cancelAndIgnoreRemainingEvents()
             }
+        }
+
+    @Test
+    fun `rpe and note are mapped to ui state`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = FakeExerciseRepository()
+            val sess = session("s1").copy(rpe = 8.5, note = "good one")
+            val se = sessionExercise("se-1", "s1", "ex-1")
+            sessionRepo.setSessionDetails(
+                "s1",
+                SessionWithDetails(session = sess, exercises = listOf(SessionExerciseWithSets(se, listOf(loggedSet("set-1", "se-1"))))),
+            )
+            val vm = makeVm(sessionRepo, exerciseRepo)
+            vm.uiState.test {
+                val state = awaitItem()
+                assertEquals(8.5, state.rpe!!, 0.0)
+                assertEquals("good one", state.note)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `onEditDetailsSave delegates to repository`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val sess = session("s1")
+            val se = sessionExercise("se-1", "s1", "ex-1")
+            sessionRepo.setSessionDetails(
+                "s1",
+                SessionWithDetails(session = sess, exercises = listOf(SessionExerciseWithSets(se, listOf(loggedSet("set-1", "se-1"))))),
+            )
+            val vm = makeVm(sessionRepo)
+            vm.uiState.test {
+                awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
+
+            val newStart = Instant.parse("2026-06-08T08:00:00Z")
+            val newEnd = Instant.parse("2026-06-08T09:00:00Z")
+            vm.onEditDetailsSave(newStart, newEnd, 9.0, "rough")
+
+            vm.uiState.test {
+                awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
+            val call = sessionRepo.updateSessionDetailsCalls.single()
+            assertEquals("s1", call.sessionId)
+            assertEquals(newStart, call.startedAt)
+            assertEquals(newEnd, call.endedAt)
+            assertEquals(9.0, call.rpe!!, 0.0)
+            assertEquals("rough", call.note)
         }
 
     @Test

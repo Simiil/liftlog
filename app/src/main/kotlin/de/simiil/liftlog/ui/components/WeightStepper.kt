@@ -100,7 +100,7 @@ fun WeightStepper(
 internal fun StepperShell(
     onDecrement: () -> Unit,
     onIncrement: () -> Unit,
-    onValueClick: () -> Unit,
+    onValueClick: (() -> Unit)?,
     decrementCd: String,
     incrementCd: String,
     valueCd: String,
@@ -129,7 +129,7 @@ internal fun StepperShell(
                         .weight(1f)
                         .fillMaxHeight()
                         .then(if (valueTestTag != null) Modifier.testTag(valueTestTag) else Modifier)
-                        .clickable(enabled = enabled, onClick = onValueClick)
+                        .then(if (onValueClick != null) Modifier.clickable(enabled = enabled, onClick = onValueClick) else Modifier)
                         .semantics { contentDescription = valueCd }
                         .padding(horizontal = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

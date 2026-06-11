@@ -12,9 +12,11 @@ import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.model.SessionExercise
 import de.simiil.liftlog.domain.repository.SessionRepository
+import de.simiil.liftlog.domain.units.Rpe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Clock
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,6 +49,7 @@ class SessionRepositoryImpl
                         startedAt = now,
                         endedAt = null,
                         note = null,
+                        rpe = null,
                         createdAt = now,
                         updatedAt = now,
                         deletedAt = null,
@@ -56,10 +59,7 @@ class SessionRepositoryImpl
             }
 
         override suspend fun finishSession(id: String) {
-            val session = dao.findSession(id) ?: return
-            if (session.endedAt != null) return // already-ended guard
-            val now = clock.millis()
-            dao.updateSession(session.copy(endedAt = now, updatedAt = now))
+            dao.finishSession(id, clock.millis())
         }
 
         override suspend fun softDeleteSession(id: String) =
@@ -108,8 +108,6 @@ class SessionRepositoryImpl
                     reps = reps,
                     position = (dao.maxSetPosition(sessionExerciseId) ?: 0) + 1,
                     completedAt = now,
-                    rpe = null,
-                    note = null,
                     createdAt = now,
                     updatedAt = now,
                     deletedAt = null,
@@ -122,8 +120,6 @@ class SessionRepositoryImpl
             setId: String,
             weightKg: Double,
             reps: Int,
-            rpe: Double?,
-            note: String?,
         ) {
             require(weightKg >= 0.0) { "weightKg must be >= 0" }
             require(reps >= 1) { "reps must be >= 1" }
@@ -132,8 +128,6 @@ class SessionRepositoryImpl
                 existing.copy(
                     weightKg = weightKg,
                     reps = reps,
-                    rpe = rpe,
-                    note = note,
                     updatedAt = clock.millis(),
                 ),
             )
@@ -188,6 +182,44 @@ class SessionRepositoryImpl
         override fun observeSetCountsBySession(): Flow<Map<String, Int>> =
             dao.observeSetCountsBySession().map { rows -> rows.associate { it.sessionId to it.setCount } }
 
+        override suspend fun updateSessionRpe(
+            sessionId: String,
+            rpe: Double?,
+        ) {
+            require(rpe == null || rpe in Rpe.MIN..Rpe.MAX) { "rpe must be within ${Rpe.MIN}..${Rpe.MAX}" }
+            dao.updateSessionRpe(sessionId, rpe, clock.millis())
+        }
+
+        override suspend fun updateSessionNote(
+            sessionId: String,
+            note: String?,
+        ) {
+            dao.updateSessionNote(sessionId, note?.trim()?.takeIf { it.isNotEmpty() }, clock.millis())
+        }
+
+        override suspend fun updateSessionDetails(
+            sessionId: String,
+            startedAt: Instant,
+            endedAt: Instant,
+            rpe: Double?,
+            note: String?,
+        ) {
+            require(endedAt.isAfter(startedAt)) { "endedAt must be after startedAt" }
+            require(rpe == null || rpe in Rpe.MIN..Rpe.MAX) { "rpe must be within ${Rpe.MIN}..${Rpe.MAX}" }
+            transactor.immediate {
+                val session = dao.findSession(sessionId) ?: return@immediate
+                dao.updateSession(
+                    session.copy(
+                        startedAt = startedAt.toEpochMilli(),
+                        endedAt = endedAt.toEpochMilli(),
+                        rpe = rpe,
+                        note = note?.trim()?.takeIf { it.isNotEmpty() },
+                        updatedAt = clock.millis(),
+                    ),
+                )
+            }
+        }
+
         override suspend fun startSessionFromTemplate(templateId: String): Session =
             transactor.immediate {
                 check(dao.activeSessionId() == null) { "A session is already in progress" }
@@ -203,6 +235,7 @@ class SessionRepositoryImpl
                         startedAt = now,
                         endedAt = null,
                         note = null,
+                        rpe = null,
                         createdAt = now,
                         updatedAt = now,
                         deletedAt = null,

@@ -65,6 +65,7 @@ class HomeViewModelTest {
             startedAt = startedAt,
             endedAt = endedAt,
             note = null,
+            rpe = null,
             createdAt = now,
             updatedAt = now,
             deletedAt = null,

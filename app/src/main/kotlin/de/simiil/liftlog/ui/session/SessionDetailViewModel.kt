@@ -25,6 +25,8 @@ data class SessionDetailUiState(
     val name: String? = null,
     val startedAt: Instant? = null,
     val endedAt: Instant? = null,
+    val rpe: Double? = null,
+    val note: String? = null,
     val unit: WeightUnit = WeightUnit.KG,
     val exercises: List<DetailExerciseUi> = emptyList(),
     val editingSetId: String? = null,
@@ -82,6 +84,8 @@ class SessionDetailViewModel
                     name = details.session.templateNameSnapshot,
                     startedAt = details.session.startedAt,
                     endedAt = details.session.endedAt,
+                    rpe = details.session.rpe,
+                    note = details.session.note,
                     unit = unit,
                     exercises = exerciseUis,
                     editingSetId = editingSetId,
@@ -107,11 +111,9 @@ class SessionDetailViewModel
             setId: String,
             weightKg: Double,
             reps: Int,
-            rpe: Double?,
-            note: String?,
         ) {
             viewModelScope.launch {
-                sessionRepository.updateSet(setId, weightKg, reps, rpe, note)
+                sessionRepository.updateSet(setId, weightKg, reps)
                 if (editingSetIdFlow.value == setId) editingSetIdFlow.value = null
             }
         }
@@ -120,6 +122,17 @@ class SessionDetailViewModel
             viewModelScope.launch {
                 sessionRepository.deleteSet(setId)
                 if (editingSetIdFlow.value == setId) editingSetIdFlow.value = null
+            }
+        }
+
+        fun onEditDetailsSave(
+            startedAt: Instant,
+            endedAt: Instant,
+            rpe: Double?,
+            note: String?,
+        ) {
+            viewModelScope.launch {
+                sessionRepository.updateSessionDetails(sessionId, startedAt, endedAt, rpe, note)
             }
         }
     }

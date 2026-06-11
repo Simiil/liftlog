@@ -16,8 +16,6 @@ private fun set(
     reps = reps,
     position = position,
     completedAt = Instant.EPOCH,
-    rpe = null,
-    note = null,
     createdAt = Instant.EPOCH,
     updatedAt = Instant.EPOCH,
     deletedAt = null,

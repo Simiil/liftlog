@@ -95,6 +95,7 @@ data class SessionDto(
     val startedAt: String,
     val endedAt: String?,
     val note: String?,
+    val rpe: Double? = null, // default = v1-import compat; still always on the wire because the codec sets encodeDefaults = true
     val createdAt: String,
     val updatedAt: String,
     val deletedAt: String?,
@@ -122,8 +123,6 @@ data class LoggedSetDto(
     val reps: Int,
     val position: Int,
     val completedAt: String,
-    val rpe: Double?,
-    val note: String?,
     val createdAt: String,
     val updatedAt: String,
     val deletedAt: String?,

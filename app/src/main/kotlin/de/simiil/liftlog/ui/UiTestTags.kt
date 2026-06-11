@@ -31,4 +31,9 @@ object UiTestTags {
 
     // Exercise Picker multi-select
     const val PICKER_ADD_SELECTED = "picker_add_selected"
+
+    // Workout-level RPE / note (session meta)
+    const val RPE_INCREMENT = "rpe_increment"
+    const val SESSION_META_ROW = "session_meta_row"
+    const val SESSION_META_NOTE = "session_meta_note"
 }

@@ -17,10 +17,13 @@ import de.simiil.liftlog.domain.repository.SettingsRepository
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,6 +37,8 @@ enum class NumpadTarget { WEIGHT, REPS }
 data class ActiveSessionUiState(
     val sessionId: String = "",
     val name: String? = null, // null -> "Quick workout" (resolved in UI)
+    val sessionRpe: Double? = null,
+    val sessionNote: String? = null,
     val startedAt: Instant? = null,
     val unit: WeightUnit = WeightUnit.KG,
     val cards: List<ExerciseCardUi> = emptyList(),
@@ -70,6 +75,7 @@ data class NumpadUi(
     val text: String,
 )
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class ActiveSessionViewModel
     @Inject
@@ -92,6 +98,10 @@ class ActiveSessionViewModel
         private val ghostCache = MutableStateFlow<Map<String, List<LoggedSet>>>(emptyMap())
         private val nav = MutableStateFlow(NavSignals())
         private val editingSetIdFlow = MutableStateFlow<String?>(null)
+
+        // Debounced note persistence: every keystroke lands here; the repo write happens
+        // 500 ms after typing pauses. onFinish flushes synchronously so nothing is lost.
+        private val pendingNote = MutableStateFlow<String?>(null)
 
         // Mirrors of the streams, so event handlers can compute without re-collecting.
         @Volatile
@@ -164,6 +174,11 @@ class ActiveSessionViewModel
             viewModelScope.launch {
                 settingsRepository.weightUnit.collect { currentUnit = it }
             }
+            viewModelScope.launch {
+                pendingNote.filterNotNull().debounce(500).collect { text ->
+                    sessionRepository.updateSessionNote(sessionId, text)
+                }
+            }
         }
 
         // --- Pure transform ---
@@ -220,6 +235,8 @@ class ActiveSessionViewModel
             return ActiveSessionUiState(
                 sessionId = sessionId,
                 name = details.session.templateNameSnapshot,
+                sessionRpe = details.session.rpe,
+                sessionNote = details.session.note,
                 startedAt = details.session.startedAt,
                 unit = unit,
                 cards = cards,
@@ -350,11 +367,9 @@ class ActiveSessionViewModel
             setId: String,
             weightKg: Double,
             reps: Int,
-            rpe: Double?,
-            note: String?,
         ) {
             viewModelScope.launch {
-                sessionRepository.updateSet(setId, weightKg, reps, rpe, note)
+                sessionRepository.updateSet(setId, weightKg, reps)
                 if (editingSetIdFlow.value == setId) editingSetIdFlow.value = null
             }
         }
@@ -366,8 +381,23 @@ class ActiveSessionViewModel
             }
         }
 
+        fun onSessionRpeChange(rpe: Double?) {
+            viewModelScope.launch { sessionRepository.updateSessionRpe(sessionId, rpe) }
+        }
+
+        fun onSessionNoteChange(text: String) {
+            pendingNote.value = text
+        }
+
+        /** Synchronous note flush for collapse/focus-loss — closes the debounce-window loss gap. */
+        fun onNoteFlush() {
+            val text = pendingNote.value ?: return
+            viewModelScope.launch { sessionRepository.updateSessionNote(sessionId, text) }
+        }
+
         fun onFinish() {
             viewModelScope.launch {
+                pendingNote.value?.let { sessionRepository.updateSessionNote(sessionId, it) }
                 val count = latestDetails?.exercises?.sumOf { it.sets.size } ?: 0
                 sessionRepository.finishSession(sessionId)
                 nav.update { it.copy(finished = true, lastFinishedSetCount = count) }

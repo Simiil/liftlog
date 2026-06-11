@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,6 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -41,6 +46,7 @@ import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.SetEntry
 import de.simiil.liftlog.domain.analytics.volumeKg
 import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.LoggedSetRow
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
@@ -59,6 +65,7 @@ fun SessionDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val name = uiState.name ?: stringResource(R.string.session_untitled)
+    var showEditSheet by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -71,6 +78,16 @@ fun SessionDetailScreen(
                             Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = stringResource(R.string.navigate_back),
                         )
+                    }
+                },
+                actions = {
+                    if (uiState.startedAt != null && uiState.endedAt != null) {
+                        IconButton(onClick = { showEditSheet = true }) {
+                            Icon(
+                                Icons.Outlined.Edit,
+                                contentDescription = stringResource(R.string.cd_edit_workout),
+                            )
+                        }
                     }
                 },
             )
@@ -117,7 +134,24 @@ fun SessionDetailScreen(
                             endedAt = uiState.endedAt,
                             totalSets = totalSets,
                             volumeKg = totalVolumeKg,
+                            rpe = uiState.rpe,
                         )
+                    }
+                    uiState.note?.let { note ->
+                        item(key = "note") {
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(
+                                    text = note,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(14.dp),
+                                )
+                            }
+                        }
                     }
                     item(key = "hint") {
                         Text(
@@ -159,6 +193,19 @@ fun SessionDetailScreen(
             }
         }
     }
+
+    val startedAt = uiState.startedAt
+    val endedAt = uiState.endedAt
+    if (showEditSheet && startedAt != null && endedAt != null) {
+        EditWorkoutSheet(
+            startedAt = startedAt,
+            endedAt = endedAt,
+            rpe = uiState.rpe,
+            note = uiState.note,
+            onSave = viewModel::onEditDetailsSave,
+            onDismiss = { showEditSheet = false },
+        )
+    }
 }
 
 // ── Date strip: "Mon 2 Jun · 2026 · started 18:30" ────────────────────────────
@@ -182,13 +229,14 @@ private fun DateStrip(startedAt: Instant) {
     )
 }
 
-// ── Summary stat strip: duration · sets · volume ──────────────────────────────
+// ── Summary stat strip: duration · sets · volume · RPE ───────────────────────
 @Composable
 private fun SummaryStrip(
     startedAt: Instant?,
     endedAt: Instant?,
     totalSets: Int,
     volumeKg: Double,
+    rpe: Double? = null,
 ) {
     val duration =
         if (startedAt != null && endedAt != null) {
@@ -203,9 +251,7 @@ private fun SummaryStrip(
             String.format(Locale.getDefault(), "%.1f", volumeKg / 1000.0),
         )
     Surface(
-        shape =
-            androidx.compose.foundation.shape
-                .RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(22.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -216,6 +262,11 @@ private fun SummaryStrip(
             SummaryStat(duration, stringResource(R.string.session_stat_duration), Modifier.weight(1f))
             SummaryStat(totalSets.toString(), stringResource(R.string.session_stat_sets), Modifier.weight(1f))
             SummaryStat(volume, stringResource(R.string.session_stat_volume), Modifier.weight(1f))
+            SummaryStat(
+                value = rpe?.let { Decimals.format(it) } ?: stringResource(R.string.rpe_unset_value),
+                label = stringResource(R.string.session_stat_rpe),
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -253,14 +304,12 @@ private fun DetailCard(
     unit: de.simiil.liftlog.domain.model.WeightUnit,
     editingSetId: String?,
     onLongPress: (String) -> Unit,
-    onSave: (String, Double, Int, Double?, String?) -> Unit,
+    onSave: (String, Double, Int) -> Unit,
     onDelete: (String) -> Unit,
     onCollapse: () -> Unit,
 ) {
     Surface(
-        shape =
-            androidx.compose.foundation.shape
-                .RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(22.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -286,7 +335,7 @@ private fun DetailCard(
                         unit = unit,
                         expanded = editingSetId == set.id,
                         onLongPress = { onLongPress(set.id) },
-                        onSave = { w, r, rpe, note -> onSave(set.id, w, r, rpe, note) },
+                        onSave = { w, r -> onSave(set.id, w, r) },
                         onDelete = { onDelete(set.id) },
                         onCollapse = onCollapse,
                         modifier = Modifier.fillMaxWidth(),

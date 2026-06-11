@@ -128,6 +128,15 @@
     <!-- History screen -->
     <string name="history_empty">Noch keine abgeschlossenen Trainings</string>
 
+    <!-- Edit workout sheet -->
+    <string name="session_edit_title">Einheit bearbeiten</string>
+    <string name="session_edit_start">Beginn</string>
+    <string name="session_edit_end">Ende</string>
+    <string name="session_edit_error_end_before_start">Das Ende muss nach dem Beginn liegen</string>
+    <string name="session_stat_rpe">RPE</string>
+    <string name="cd_edit_workout">Einheit bearbeiten</string>
+    <string name="common_ok">OK</string>
+
     <!-- Session Detail screen -->
     <string name="session_detail_empty">Keine Sätze geloggt</string>
     <string name="session_detail_hint">Drücke lange auf einen Satz, um einen Tippfehler zu korrigieren.</string>
@@ -145,14 +154,37 @@
     <!-- LoggedSetRow -->
     <string name="rpe_label">RPE</string>
     <string name="rpe_value">RPE %1$s</string>
+
+    <!-- Workout RPE stepper (6–10 halves, 2026-06-11 spec) -->
+    <string name="rpe_clear">Entfernen</string>
+    <string name="rpe_unset_hint">Tippe +, um das Workout zu bewerten</string>
+    <!-- rpe_descriptor_*: %1$s = short label (e.g. Hard), %2$s = detail phrase / second label -->
+    <string name="rpe_descriptor_whole">%1$s — %2$s</string>
+    <string name="rpe_descriptor_half">Zwischen „%1$s“ und „%2$s“</string>
+    <string name="rpe_short_6">Leicht</string>
+    <string name="rpe_short_7">Moderat</string>
+    <string name="rpe_short_8">Hart</string>
+    <string name="rpe_short_9">Sehr hart</string>
+    <string name="rpe_short_10">Maximal</string>
+    <string name="rpe_detail_6">viel Reserve übrig</string>
+    <string name="rpe_detail_7">fordernd, aber weit vom Limit</string>
+    <string name="rpe_detail_8">anstrengend, mit Reserven</string>
+    <string name="rpe_detail_9">nah am Limit</string>
+    <string name="rpe_detail_10">nichts mehr übrig</string>
+    <string name="cd_decrease_rpe">RPE verringern</string>
+    <string name="cd_increase_rpe">RPE erhöhen</string>
+    <string name="cd_rpe_value">RPE %1$s</string>
+    <string name="cd_rpe_clear">RPE entfernen</string>
+
+    <!-- Session meta row (workout note + RPE) -->
+    <string name="session_meta_add">Notiz · RPE hinzufügen</string>
+    <string name="workout_note">Notiz</string>
+    <string name="common_done">Fertig</string>
+
     <string name="set_number">Satz %1$d</string>
-    <string name="set_note">Notiz</string>
     <string name="set_delete">Löschen</string>
     <string name="set_save">Speichern</string>
-    <string name="rpe_none">—</string>
     <string name="cd_set_logged">Satz %1$d geloggt: %2$s %3$s, %4$d Wdh.</string>
-    <string name="cd_set_has_rpe">, RPE %1$s</string>
-    <string name="cd_set_has_note">, hat Notiz</string>
     <string name="cd_edit_set">Satz bearbeiten</string>
 
     <plurals name="set_count">

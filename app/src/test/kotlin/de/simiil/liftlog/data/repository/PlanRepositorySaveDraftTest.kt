@@ -408,6 +408,7 @@ class PlanRepositorySaveDraftTest {
                     startedAt = 1L,
                     endedAt = 2L,
                     note = null,
+                    rpe = null,
                     createdAt = 1L,
                     updatedAt = 1L,
                     deletedAt = null,

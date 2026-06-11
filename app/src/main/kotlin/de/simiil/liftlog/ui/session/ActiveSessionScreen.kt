@@ -164,6 +164,16 @@ fun ActiveSessionScreen(
             }
 
             item { AddExerciseRow(onClick = onAddExercise) }
+
+            item(key = "session_meta") {
+                SessionMetaRow(
+                    rpe = uiState.sessionRpe,
+                    note = uiState.sessionNote,
+                    onRpeChange = viewModel::onSessionRpeChange,
+                    onNoteChange = viewModel::onSessionNoteChange,
+                    onNoteFlush = viewModel::onNoteFlush,
+                )
+            }
         }
     }
 
@@ -315,8 +325,6 @@ private fun fakeSet(
     reps = reps,
     position = 0,
     completedAt = fakeInstant,
-    rpe = null,
-    note = null,
     createdAt = fakeInstant,
     updatedAt = fakeInstant,
     deletedAt = null,
@@ -400,7 +408,7 @@ private fun PreviewActiveSession() {
                         onRequestReplaceExercise = {},
                         onAddExercise = {},
                         onLongPressSet = {},
-                        onEditSetSave = { _, _, _, _, _ -> },
+                        onEditSetSave = { _, _, _ -> },
                         onDeleteSet = {},
                         onCollapseEdit = {},
                         modifier = Modifier.fillMaxWidth(),

@@ -157,6 +157,7 @@ class PlansViewModelTest {
                     startedAt = now,
                     endedAt = null,
                     note = null,
+                    rpe = null,
                     createdAt = now,
                     updatedAt = now,
                     deletedAt = null,

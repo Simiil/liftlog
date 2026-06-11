@@ -21,7 +21,7 @@ Four user-facing capabilities plus a minimal settings surface:
 
 | # | Capability | Summary | Detailed spec |
 |---|---|---|---|
-| 1 | **Training diary** | Start a session (from a day template or empty); log sets with weight/reps pre-filled from the previous set / last session; 1 tap to repeat a set. RPE + per-set note exist but live behind a long-press — never on the hot path. | [03-ux-spec](03-ux-spec.md) |
+| 1 | **Training diary** | Start a session (from a day template or empty); log sets with weight/reps pre-filled from the previous set / last session; 1 tap to repeat a set. Session-level RPE and a workout note are available via the `SessionMetaRow` at the bottom of the Active Session screen (and editable on Session Detail) — never on the hot path. | [03-ux-spec](03-ux-spec.md) |
 | 2 | **Training plans** | Named plans (e.g. "PPL") containing reusable **day templates** ("Push Day") — an ordered exercise list with optional target sets × rep-range. **No weekday binding**: the user picks a template when training. Templates pre-populate sessions. | [02-data-spec](02-data-spec.md) §3, [03-ux-spec](03-ux-spec.md) |
 | 3 | **Analytics** | Per-exercise progress (top-set weight, estimated 1RM, volume), an at-a-glance trend badge answering "am I progressing on X?", PR detection, weekly summary card. | [04-analytics-spec](04-analytics-spec.md) |
 | 4 | **Export / import** | Full database to/from a single versioned, human-readable JSON file. Serves as manual backup and phone-migration path. Import is full-replace with confirmation. | [02-data-spec](02-data-spec.md) §6 |
