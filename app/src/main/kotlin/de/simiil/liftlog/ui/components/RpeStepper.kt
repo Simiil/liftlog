@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.R
@@ -36,7 +38,7 @@ fun RpeStepper(
         StepperShell(
             onDecrement = { onValueChange(Rpe.decrement(value)) },
             onIncrement = { onValueChange(Rpe.increment(value)) },
-            onValueClick = { /* no numpad for RPE */ },
+            onValueClick = null,
             decrementCd = stringResource(R.string.cd_decrease_rpe),
             incrementCd = stringResource(R.string.cd_increase_rpe),
             valueCd =
@@ -60,7 +62,11 @@ fun RpeStepper(
                 modifier = Modifier.weight(1f).padding(start = 4.dp),
             )
             if (value != null) {
-                TextButton(onClick = { onValueChange(null) }) {
+                val clearCd = stringResource(R.string.cd_rpe_clear)
+                TextButton(
+                    onClick = { onValueChange(null) },
+                    modifier = Modifier.semantics { contentDescription = clearCd },
+                ) {
                     Text(stringResource(R.string.rpe_clear))
                 }
             }
@@ -68,9 +74,12 @@ fun RpeStepper(
     }
 }
 
-/** "Hard — tough, with some reserve left" for wholes; "Between "Hard" and "Very hard"" for halves. */
+/**
+ * Whole values render as "label — detail" (e.g. Hard — tough, with some reserve left);
+ * halves render as a between-phrase of the two neighbouring labels.
+ */
 @Composable
-fun rpeDescriptor(value: Double?): String {
+private fun rpeDescriptor(value: Double?): String {
     if (value == null) return stringResource(R.string.rpe_unset_hint)
     return if (Rpe.isWhole(value)) {
         stringResource(R.string.rpe_descriptor_whole, rpeShort(value.toInt()), rpeDetail(value.toInt()))

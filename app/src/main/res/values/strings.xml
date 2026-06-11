@@ -148,8 +148,9 @@
 
     <!-- Workout RPE stepper (6–10 halves, 2026-06-11 spec) -->
     <string name="rpe_clear">Clear</string>
-    <string name="rpe_unset_value">—</string>
+    <string name="rpe_unset_value" translatable="false">—</string>
     <string name="rpe_unset_hint">Tap + to rate the workout</string>
+    <!-- rpe_descriptor_*: %1$s = short label (e.g. Hard), %2$s = detail phrase / second label -->
     <string name="rpe_descriptor_whole">%1$s — %2$s</string>
     <string name="rpe_descriptor_half">Between “%1$s” and “%2$s”</string>
     <string name="rpe_short_6">Easy</string>
@@ -165,6 +166,7 @@
     <string name="cd_decrease_rpe">Decrease RPE</string>
     <string name="cd_increase_rpe">Increase RPE</string>
     <string name="cd_rpe_value">RPE %1$s</string>
+    <string name="cd_rpe_clear">Clear RPE</string>
     <string name="set_number">Set %1$d</string>
     <string name="set_delete">Delete</string>
     <string name="set_save">Save</string>
