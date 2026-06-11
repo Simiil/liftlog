@@ -22,6 +22,8 @@ class PlanEditorViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val names = de.simiil.liftlog.ui.exercises.ExerciseNameResolver { _, fallback -> fallback }
+
     private fun exercise(id: String, name: String) = Exercise(
         id = id,
         name = name,
@@ -42,6 +44,7 @@ class PlanEditorViewModelTest {
         savedStateHandle = SavedStateHandle(if (planId != null) mapOf("planId" to planId) else emptyMap()),
         planRepository = planRepo,
         exerciseRepository = exerciseRepo,
+        names = names,
     )
 
     // ── New plan, full happy path ────────────────────────────────────────────

@@ -44,6 +44,7 @@ import de.simiil.liftlog.domain.repository.TrainedExercise
 import de.simiil.liftlog.domain.repository.WeekSummary
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.charts.Sparkline
+import de.simiil.liftlog.ui.exercises.exerciseDisplayName
 import de.simiil.liftlog.ui.theme.LocalLiftLogColors
 
 @Composable
@@ -166,7 +167,7 @@ private fun ExerciseRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(Modifier.weight(1f)) {
-            Text(ex.name, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            Text(exerciseDisplayName(ex.id, ex.name), fontSize = 16.sp, fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(5.dp))
             val s = summary
             Row(

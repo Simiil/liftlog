@@ -11,6 +11,7 @@ import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.PlanDraft
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
+import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,6 +59,7 @@ class PlanEditorViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val planRepository: PlanRepository,
     private val exerciseRepository: ExerciseRepository,
+    private val names: ExerciseNameResolver,
 ) : ViewModel() {
 
     // Type-safe route fields land in the handle under their field name; reading the key directly
@@ -237,7 +239,7 @@ class PlanEditorViewModel @Inject constructor(
                 EditorItemUi(
                     key = item.key,
                     exerciseId = item.exerciseId,
-                    name = ex?.name.orEmpty(),
+                    name = ex?.let { names.displayName(it.id, it.name) }.orEmpty(),
                     equipment = ex?.equipment ?: Equipment.MACHINE,
                     muscleGroup = ex?.muscleGroup ?: MuscleGroup.OTHER,
                     targetSets = item.targetSets,

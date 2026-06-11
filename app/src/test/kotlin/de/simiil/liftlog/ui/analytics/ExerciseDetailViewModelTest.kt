@@ -24,6 +24,8 @@ class ExerciseDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val names = de.simiil.liftlog.ui.exercises.ExerciseNameResolver { _, fallback -> fallback }
+
     private val day = 86_400_000L
     private val now = 1_000_000_000_000L
 
@@ -51,6 +53,7 @@ class ExerciseDetailViewModelTest {
         },
         FakeSettings(),
         Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC),
+        names,
     )
 
     private class FakeSettings : de.simiil.liftlog.domain.repository.SettingsRepository {
