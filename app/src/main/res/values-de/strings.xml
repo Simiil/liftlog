@@ -151,7 +151,7 @@
     <string name="rpe_unset_value">—</string>
     <string name="rpe_unset_hint">Tippe +, um das Workout zu bewerten</string>
     <string name="rpe_descriptor_whole">%1$s — %2$s</string>
-    <string name="rpe_descriptor_half">Zwischen „%1$s" und „%2$s"</string>
+    <string name="rpe_descriptor_half">Zwischen „%1$s“ und „%2$s“</string>
     <string name="rpe_short_6">Leicht</string>
     <string name="rpe_short_7">Moderat</string>
     <string name="rpe_short_8">Hart</string>
