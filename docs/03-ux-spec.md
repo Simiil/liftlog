@@ -132,16 +132,16 @@ Bottom-sheet-style pad replacing the stepper area inline (the card stays visible
 
 Last item in the `LazyColumn`, after `AddExerciseRow`. Unobtrusive by design — it never interrupts the core logging path.
 
-**Collapsed, nothing set:** quiet tonal row with a `＋` icon and the label "Note · RPE".
+**Collapsed, nothing set:** quiet tonal row with a `＋` icon and the label "Add note · RPE".
 
 **Collapsed, values set:** compact one-line summary of whichever values exist, joined with " · " — e.g. "RPE 8 · Felt strong today", "RPE 8", or just a note preview (truncated to one line).
 
-**Expanded (tap):** `RpeStepper` (§8) at the top, then a multi-line `OutlinedTextField` for the workout note (up to 3 lines visible), then a **Done** button that collapses the row. No Save button.
+**Expanded (tap):** `RpeStepper` (§7) at the top, then a multi-line `OutlinedTextField` for the workout note (up to 3 lines visible), then a **Done** button that collapses the row. No Save button.
 
 **Auto-save semantics:**
 - RPE persists to Room immediately on every stepper change (`updateSessionRpe`).
 - Note is debounced 500 ms (`updateSessionNote`), with a flush triggered on collapse, focus loss, or session finish — blank notes are trimmed to null.
-- All values live on the `sessions` row; process death loses nothing.
+- All values live on the `sessions` row; process death keeps the DB at most one debounce-window (500 ms) behind; the draft itself is restored via `rememberSaveable`.
 
 ### 4.6 Tap math (HANDOFF §5 walkthrough)
 
@@ -209,7 +209,7 @@ Bodyweight exercises (0 kg added) swap weight metrics for max-reps/total-reps ch
 - **History**: reverse-chronological session cards (name, date, sets, PR count) → session detail:
   - **Summary strip** (4 stats): duration · sets · volume · **RPE** (shows "—" when unset).
   - **Workout note block**: rendered as a text block below the strip, only when a note is present.
-  - **Edit workout** (pencil icon in top app bar): `ModalBottomSheet` containing start and end date-time fields (tapping each opens a Material 3 date picker → time picker two-stage flow; local timezone; any date allowed), an `RpeStepper` (§8), and a note field. **Save is disabled with an inline error** while end ≤ start. Save calls `updateSessionDetails`; duration, date strip, and History ordering recompute reactively from the updated timestamps.
+  - **Edit workout** (pencil icon in top app bar): `ModalBottomSheet` containing start and end date-time fields (tapping each opens a Material 3 date picker → time picker two-stage flow; local timezone; any date allowed), an `RpeStepper` (§7), and a note field. **Save is disabled with an inline error** while end ≤ start. Save calls `updateSessionDetails`; duration, date strip, and History ordering recompute reactively from the updated timestamps.
   - Sets are editable via the same long-press row (weight/reps only, e.g. fixing a typo after the fact).
 - **Settings**: unit toggle (kg/lb), theme (system/light/dark), export / import (SAF file picker), library version + licenses. One screen, no nesting.
 

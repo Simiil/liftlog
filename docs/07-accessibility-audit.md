@@ -1,11 +1,11 @@
 # 07 — Accessibility Audit (M5)
 
 > **Status:** In progress · 2026-06-10
-> Audits the app against [03-ux-spec](03-ux-spec.md) §7. Covers the M5 exit
+> Audits the app against [03-ux-spec](03-ux-spec.md) §8. Covers the M5 exit
 > criterion "a11y audit checklist passes (TalkBack walkthrough, 200% font scale,
 > target sizes)". Static code review is complete; on-device verification in §3.
 
-## 1. Checklist (03-ux-spec §7)
+## 1. Checklist (03-ux-spec §8)
 
 | # | Criterion | Status | Notes |
 |---|-----------|--------|-------|
