@@ -140,4 +140,70 @@ class ExerciseDetailViewModelTest {
                 cancelAndIgnoreRemainingEvents()
             }
         }
+
+    // Regression: real sessions land at millisecond-precision wall-clock times (unlike the
+    // midnight-aligned fixtures above). Chart x values must survive Vico's x-delta GCD check or
+    // CartesianChartHost crashes with "The x values are too precise. The maximum precision is
+    // four decimal places."
+    @Test fun chartPoints_atMillisecondTimestamps_surviveVicoPrecisionCheck() =
+        runTest {
+            val times =
+                listOf(
+                    now - 30 * day + 37_043_123,
+                    now - 20 * day + 67_511_741,
+                    now - 10 * day + 51_804_007,
+                )
+            vm(summaryAt(times)).uiState.test {
+                var s = awaitItem()
+                while (s.summary == null) s = awaitItem()
+                val xs = s.chartPoints.map { it.x }
+                assertEquals(times.size, xs.size)
+                assertTrue("Vico would crash: x-delta GCD rounds to 0 for xs=$xs", vicoXDeltaGcd(xs) >= 1e-4)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    private fun summaryAt(times: List<Long>): ExerciseSummary {
+        val sessions =
+            times.mapIndexed { i, t ->
+                val m = sessionMetrics(listOf(SetEntry(100.0 + i, 5)))
+                SessionPoint("s$i", t, listOf(SetEntry(100.0 + i, 5)), m, m.e1rmKg, false, false, false, false)
+            }
+        return ExerciseSummary(false, sessions, TrendResult.Insufficient, sessions.last().primary, sessions.last().timeMillis)
+    }
+
+    // Mirrors Vico 2.1.3's getXDeltaGcd (CartesianLayerModel.kt) + gcdWith (Math.kt): Euclid's
+    // algorithm with a 1e-5 cutoff, each result rounded to the nearest 1e-4. A final result of
+    // 0.0 is exactly the condition under which Vico throws.
+    private fun vicoXDeltaGcd(xs: List<Float>): Double {
+        var prev = xs.first().toDouble()
+        var gcd: Double? = null
+        for (i in 1 until xs.size) {
+            val x = xs[i].toDouble()
+            val delta = kotlin.math.abs(x - prev)
+            prev = x
+            if (delta != 0.0) gcd = gcd?.let { vicoGcdWith(it, delta) } ?: delta
+        }
+        return gcd ?: 1.0
+    }
+
+    private fun vicoGcdWith(
+        a: Double,
+        b: Double,
+    ): Double {
+        var x = a
+        var y = b
+        while (true) {
+            if (x < y) {
+                val t = x
+                x = y
+                y = t
+            }
+            if (kotlin.math.abs(y) < 1e-5) break
+            val r = x - kotlin.math.floor(x / y) * y
+            x = y
+            y = r
+        }
+        return kotlin.math.round(x * 10_000f) / 10_000.0
+    }
 }

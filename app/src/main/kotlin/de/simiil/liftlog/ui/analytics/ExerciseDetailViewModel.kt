@@ -105,17 +105,21 @@ class ExerciseDetailViewModel
                 val agg = if (zeroBased) Aggregation.SUM else Aggregation.MAX
                 val raw = inRange.map { TrendPoint(it.timeMillis, valueOf(it, metric)) }
                 val ds = downsample(raw, agg)
-                // x = days since the first in-range session: preserves real spacing (sparse-data honesty,
-                // 04-analytics-spec §6) while staying small enough for Float (epoch-ms would lose precision).
+                // x = whole minutes since the first in-range session: preserves real spacing
+                // (sparse-data honesty, 04-analytics-spec §6) at sub-pixel resolution. x must keep
+                // integral deltas: Vico rejects x grids finer than 1e-4 ("The x values are too
+                // precise"), which fractional days violate at millisecond timestamps, and whole
+                // minutes stay exact through Float (epoch-ms doesn't: its Float quantum is ~2.2 min,
+                // which jitters and collapses nearby sessions).
                 val t0 = inRange.first().timeMillis
 
-                fun dayX(t: Long) = ((t - t0) / 86_400_000.0).toFloat()
+                fun minuteX(t: Long) = ((t - t0) / 60_000L).toFloat()
                 val pts =
                     if (ds.size == inRange.size) {
                         // 1:1 with sessions — can carry PR flags
-                        inRange.map { ChartPoint(dayX(it.timeMillis), valueOf(it, metric).toFloat(), prFor(it, metric)) }
+                        inRange.map { ChartPoint(minuteX(it.timeMillis), valueOf(it, metric).toFloat(), prFor(it, metric)) }
                     } else {
-                        ds.map { ChartPoint(dayX(it.timeMillis), it.value.toFloat(), false) }
+                        ds.map { ChartPoint(minuteX(it.timeMillis), it.value.toFloat(), false) }
                     }
 
                 // Trend over the selected window (primary metric), so the badge tracks the range pills.
