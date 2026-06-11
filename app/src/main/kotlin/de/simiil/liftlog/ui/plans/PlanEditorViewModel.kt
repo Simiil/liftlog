@@ -101,7 +101,7 @@ class PlanEditorViewModel
                 val editing = dayKey?.let { key -> days.firstOrNull { it.key == key } }
                 PlanEditorUiState(
                     mode = if (editing != null) PlanEditorMode.DAY else PlanEditorMode.PLAN,
-                    isNewPlan = currentDraft.planId == null,
+                    isNewPlan = planId == null,
                     planName = currentDraft.name,
                     days = days,
                     editingDay = editing,
