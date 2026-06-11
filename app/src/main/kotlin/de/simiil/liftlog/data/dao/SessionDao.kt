@@ -36,6 +36,12 @@ interface SessionDao {
 
     @Insert suspend fun insertLoggedSet(loggedSet: LoggedSetEntity)
 
+    @Query("UPDATE sessions SET endedAt = :now, updatedAt = :now WHERE id = :id AND endedAt IS NULL AND deletedAt IS NULL")
+    suspend fun finishSession(
+        id: String,
+        now: Long,
+    )
+
     @Query("UPDATE sessions SET rpe = :rpe, updatedAt = :now WHERE id = :id AND deletedAt IS NULL")
     suspend fun updateSessionRpe(
         id: String,

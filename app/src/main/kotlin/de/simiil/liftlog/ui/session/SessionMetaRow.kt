@@ -22,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,12 +46,13 @@ fun SessionMetaRow(
     note: String?,
     onRpeChange: (Double?) -> Unit,
     onNoteChange: (String) -> Unit,
+    onNoteFlush: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
-    // The draft starts as null and is seeded from the persisted note on first expand, so a
-    // process-death restore shows the stored value instead of an empty field.
+    // Draft is seeded from the persisted note on first expand. rememberSaveable restores it
+    // across process death; the flush-on-collapse/focus-loss + debounce keep the DB close behind.
     var noteDraft by rememberSaveable { mutableStateOf<String?>(null) }
 
     if (!expanded) {
@@ -119,11 +121,19 @@ fun SessionMetaRow(
                         onNoteChange(it)
                     },
                     label = { Text(stringResource(R.string.workout_note)) },
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag(UiTestTags.SESSION_META_NOTE),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                            .testTag(UiTestTags.SESSION_META_NOTE)
+                            .onFocusChanged { if (!it.isFocused) onNoteFlush() },
                     maxLines = 3,
                 )
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = { expanded = false }) {
+                    TextButton(onClick = {
+                        expanded = false
+                        onNoteFlush()
+                    }) {
                         Text(stringResource(R.string.common_done))
                     }
                 }
@@ -138,7 +148,7 @@ fun SessionMetaRow(
 @Composable
 private fun PreviewSessionMetaRowEmpty() {
     LiftLogTheme {
-        SessionMetaRow(rpe = null, note = null, onRpeChange = {}, onNoteChange = {}, modifier = Modifier.padding(16.dp))
+        SessionMetaRow(rpe = null, note = null, onRpeChange = {}, onNoteChange = {}, onNoteFlush = {}, modifier = Modifier.padding(16.dp))
     }
 }
 
@@ -146,6 +156,7 @@ private fun PreviewSessionMetaRowEmpty() {
 @Composable
 private fun PreviewSessionMetaRowValues() {
     LiftLogTheme {
-        SessionMetaRow(rpe = 8.0, note = "Felt strong today", onRpeChange = {}, onNoteChange = {}, modifier = Modifier.padding(16.dp))
+        SessionMetaRow(rpe = 8.0, note = "Felt strong today", onRpeChange = {
+        }, onNoteChange = {}, onNoteFlush = {}, modifier = Modifier.padding(16.dp))
     }
 }

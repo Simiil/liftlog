@@ -59,10 +59,7 @@ class SessionRepositoryImpl
             }
 
         override suspend fun finishSession(id: String) {
-            val session = dao.findSession(id) ?: return
-            if (session.endedAt != null) return // already-ended guard
-            val now = clock.millis()
-            dao.updateSession(session.copy(endedAt = now, updatedAt = now))
+            dao.finishSession(id, clock.millis())
         }
 
         override suspend fun softDeleteSession(id: String) =

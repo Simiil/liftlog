@@ -389,6 +389,12 @@ class ActiveSessionViewModel
             pendingNote.value = text
         }
 
+        /** Synchronous note flush for collapse/focus-loss — closes the debounce-window loss gap. */
+        fun onNoteFlush() {
+            val text = pendingNote.value ?: return
+            viewModelScope.launch { sessionRepository.updateSessionNote(sessionId, text) }
+        }
+
         fun onFinish() {
             viewModelScope.launch {
                 pendingNote.value?.let { sessionRepository.updateSessionNote(sessionId, it) }

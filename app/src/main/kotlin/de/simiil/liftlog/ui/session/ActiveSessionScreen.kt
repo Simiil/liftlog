@@ -171,6 +171,7 @@ fun ActiveSessionScreen(
                     note = uiState.sessionNote,
                     onRpeChange = viewModel::onSessionRpeChange,
                     onNoteChange = viewModel::onSessionNoteChange,
+                    onNoteFlush = viewModel::onNoteFlush,
                 )
             }
         }
