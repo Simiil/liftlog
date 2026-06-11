@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.WeightUnit
+import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 
@@ -58,11 +59,7 @@ fun WeightStepper(
         WeightUnit.LB -> stringResource(R.string.weight_pounds)
     }
     val stepDisplay = Weights.stepIncrementDisplay(unit)
-    val stepText = if (stepDisplay == stepDisplay.toLong().toDouble()) {
-        stepDisplay.toLong().toString()
-    } else {
-        stepDisplay.toString()
-    }
+    val stepText = Decimals.format(stepDisplay)
     val decrementCd = stringResource(R.string.cd_decrease_weight, stepText, unitLong)
     val incrementCd = stringResource(R.string.cd_increase_weight, stepText, unitLong)
 
