@@ -16,7 +16,12 @@ object Decimals {
             .apply { roundingMode = RoundingMode.HALF_UP }
             .format(value)
 
-    /** Parse user-entered text that may use the locale decimal separator. */
+    /**
+     * Parse user-entered text that may use the locale decimal separator.
+     * Lenient: '.' is always accepted too (toDoubleOrNull understands it), so
+     * "8.5" parses as 8.5 under any locale and "1.000" is 1.0, never 1000.
+     * Safe because input comes from the in-app numpad, which controls the buffer.
+     */
     fun parse(text: String, locale: Locale = Locale.getDefault()): Double? =
         text.replace(separator(locale), '.').toDoubleOrNull()
 }

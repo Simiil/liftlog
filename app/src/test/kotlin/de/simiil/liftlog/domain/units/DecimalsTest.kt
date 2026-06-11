@@ -25,4 +25,13 @@ class DecimalsTest {
         assertNull(Decimals.parse("abc", Locale.US))
         assertNull(Decimals.parse("", Locale.US))
     }
+
+    @Test fun parse_alwaysAcceptsPlainDot() {
+        // toDoubleOrNull understands '.' under any locale; pinned as the lenient contract.
+        assertEquals(8.5, Decimals.parse("8.5", Locale.GERMANY)!!, 1e-9)
+    }
+
+    @Test fun parse_neverTreatsDotAsThousandsSeparator() {
+        assertEquals(1.0, Decimals.parse("1.000", Locale.GERMANY)!!, 1e-9)
+    }
 }
