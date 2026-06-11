@@ -216,6 +216,8 @@
     <string name="trend_insufficient">need 3+ sessions</string>
 
     <!-- Analytics browser screen -->
+    <string name="analytics_title">Analytics</string>
+    <string name="analytics_stat_volume_value">%1$st</string>
     <string name="analytics_week_head">This week</string>
     <string name="analytics_stat_sessions">sessions</string>
     <string name="analytics_stat_sets">sets</string>

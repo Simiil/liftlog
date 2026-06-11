@@ -55,7 +55,7 @@ fun AnalyticsScreen(
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
     Column(modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
         Text(
-            "Analytics",
+            stringResource(R.string.analytics_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(vertical = 12.dp),
@@ -98,7 +98,14 @@ private fun WeekCard(week: WeekSummary, unit: WeightUnit) {
             ) {
                 Stat(week.sessions.toString(), stringResource(R.string.analytics_stat_sessions), Modifier.weight(1f))
                 Stat(week.sets.toString(), stringResource(R.string.analytics_stat_sets), Modifier.weight(1f))
-                Stat("%.1ft".format(week.volumeKg / 1000), stringResource(R.string.analytics_stat_volume), Modifier.weight(1f))
+                Stat(
+                    stringResource(
+                        R.string.analytics_stat_volume_value,
+                        String.format(java.util.Locale.getDefault(), "%.1f", week.volumeKg / 1000),
+                    ),
+                    stringResource(R.string.analytics_stat_volume),
+                    Modifier.weight(1f),
+                )
             }
             val delta = if (week.prevVolumeKg > 0)
                 ((week.volumeKg - week.prevVolumeKg) / week.prevVolumeKg * 100).toInt() else 0
