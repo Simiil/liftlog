@@ -11,6 +11,7 @@ package de.simiil.liftlog.ui
 object UiTestTags {
     const val HOME_START_EMPTY = "home_start_empty"
     const val HOME_RESUME_CARD = "home_resume_card"
+    const val HOME_RECENT_ROW = "home_recent_row" // applied to EACH recent-workout row
     const val LOG_SET_BUTTON = "log_set_button"
     const val WEIGHT_INCREMENT = "weight_increment"
     const val WEIGHT_VALUE = "weight_value"

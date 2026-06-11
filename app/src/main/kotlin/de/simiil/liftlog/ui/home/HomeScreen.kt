@@ -447,6 +447,7 @@ private fun RecentSessionItem(
                 Modifier
                     .fillMaxWidth()
                     .clickable(onClick = onClick)
+                    .testTag(UiTestTags.HOME_RECENT_ROW)
                     .semantics(mergeDescendants = true) {}
                     .padding(horizontal = 6.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
