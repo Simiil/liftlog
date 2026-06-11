@@ -16,6 +16,7 @@ import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
@@ -27,7 +28,11 @@ import com.patrykandpatrick.vico.core.common.Fill
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 
-/** A single data point: x = session time (epoch ms), y = the selected metric value. */
+/**
+ * A single data point: x = whole minutes since the first charted session, y = the selected metric
+ * value. x values must sit on a grid no finer than 1e-4 — Vico crashes on finer grids ("The x
+ * values are too precise") — and integral minutes also survive Float→Double conversion exactly.
+ */
 data class ChartPoint(
     val x: Float,
     val y: Float,
@@ -97,9 +102,14 @@ fun ProgressLineChart(
         }
     }
 
-    // Y axis only: x is epoch-ms, so a default bottom axis would render raw-millis labels.
+    // Y axis only: x is minutes-since-first, so a default bottom axis would render raw offsets.
     // Real date labels on x are a deferred refinement (M4 "simple Vico" decision).
     CartesianChartHost(
+        // Scrolling off → the host zooms to fit the whole series in the viewport (Zoom.Content).
+        // With scrolling on (the default), Vico sizes content at one x-step (= the GCD of the
+        // x deltas, often 1 minute) per ~20dp, so all but the first few minutes of the range
+        // landed off-screen and the line read as flat.
+        scrollState = rememberVicoScrollState(scrollEnabled = false),
         chart =
             rememberCartesianChart(
                 rememberLineCartesianLayer(
