@@ -11,12 +11,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Docs under `/docs` are approved (owner green-lit implementation 2026-06-07).
 Implementation follows the milestones in `docs/05-roadmap.md`; M0 (scaffold),
 M1 (data layer), M2 (logging flow — Home, Active Session, Exercise Picker,
-History), M3 (Plans), and M4 (Analytics) are done and merged. **M5 (export/import
-+ polish) is in progress**: versioned JSON export/import is done and merged (PR #9)
-— SAF picker, validation, full-replace confirmation, golden-file + round-trip
-tests, Settings Data section. Remaining M5 work: accessibility audit, release
-build config (R8, signing), app icon, and the final app-name decision. Each
-milestone is a reviewable PR series with a review gate at its exit criteria.
+History), M3 (Plans), M4 (Analytics), and M5 (export/import + polish) are done
+and merged. **M6 (internationalization — German) is in progress** per
+`docs/08-i18n-spec.md` and the plan in `docs/superpowers/plans/2026-06-11-m6-i18n.md`:
+PR1 (locale-correct numbers/entry + lint gate + localeConfig), PR2 (built-in
+exercise name localization via stable-UUID → string-resource map), PR3 (full
+`values-de/` translation; first pass, native-speaker review requested —
+on-device findings in `docs/09-i18n-german-spot-check.md`). Each milestone is
+a reviewable PR series with a review gate at its exit criteria.
 
 ## Build & test
 
