@@ -15,6 +15,7 @@ import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
 import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
+import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import java.time.Instant
 import javax.inject.Inject
@@ -268,7 +269,7 @@ class ActiveSessionViewModel @Inject constructor(
                     val weightKg = if (text.isBlank()) {
                         null
                     } else {
-                        text.toDoubleOrNull()
+                        Decimals.parse(text)
                             ?.let { Weights.displayToKg(it, currentUnit) }
                             ?: current.weightKg
                     }

@@ -21,6 +21,7 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         testInstrumentationRunner = "de.simiil.liftlog.HiltTestRunner"
+        androidResources.localeFilters += listOf("en", "de")
     }
 
     signingConfigs {
