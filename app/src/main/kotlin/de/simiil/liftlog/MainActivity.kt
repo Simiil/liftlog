@@ -59,4 +59,3 @@ class MainActivity : ComponentActivity() {
         val DARK_NAV_SCRIM: Int = Color.argb(0x80, 0x1B, 0x1B, 0x1B)
     }
 }
-//
