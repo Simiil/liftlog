@@ -37,4 +37,5 @@ object UiTestTags {
     const val SESSION_META_ROW = "session_meta_row"
     const val SESSION_META_NOTE = "session_meta_note"
     const val SESSION_EDIT_DELETE = "session_edit_delete"
+    const val SESSION_DELETE_CONFIRM = "session_delete_confirm"
 }

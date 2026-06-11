@@ -416,13 +416,16 @@ class SessionDetailViewModelTest {
             }
 
             var invoked = false
-            vm.onDeleteWorkout { invoked = true }
+            vm.onDeleteWorkout {
+                invoked = true
+                // Asserting inside the callback proves it fires only AFTER the persist.
+                assertEquals(listOf("s1"), sessionRepo.softDeleteSessionCalls)
+            }
 
             vm.uiState.test {
                 awaitItem()
                 cancelAndIgnoreRemainingEvents()
             }
-            assertEquals(listOf("s1"), sessionRepo.softDeleteSessionCalls)
             assertTrue("onDeleted callback should have been invoked", invoked)
         }
 

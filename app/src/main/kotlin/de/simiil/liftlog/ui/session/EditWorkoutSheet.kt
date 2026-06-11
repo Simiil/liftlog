@@ -278,6 +278,7 @@ fun EditWorkoutSheet(
                         showDeleteConfirm = false
                         onDelete()
                     },
+                    modifier = Modifier.testTag(UiTestTags.SESSION_DELETE_CONFIRM),
                 ) {
                     Text(
                         text = stringResource(R.string.common_delete),
