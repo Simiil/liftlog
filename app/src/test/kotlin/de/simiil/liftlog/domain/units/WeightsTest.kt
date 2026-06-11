@@ -40,4 +40,9 @@ class WeightsTest {
         assertEquals(WeightUnit.KG, WeightUnit.fromStorageValue("STONE"))
         assertEquals(WeightUnit.LB, WeightUnit.fromStorageValue("LB"))
     }
+
+    @Test fun format_usesLocaleDecimalSeparator() {
+        assertEquals("82.5", Weights.format(82.5, WeightUnit.KG, java.util.Locale.US))
+        assertEquals("82,5", Weights.format(82.5, WeightUnit.KG, java.util.Locale.GERMANY))
+    }
 }
