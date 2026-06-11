@@ -77,6 +77,12 @@ android {
             }
         }
     }
+
+    lint {
+        lintConfig = file("lint.xml")
+        warningsAsErrors = false
+        abortOnError = true
+    }
 }
 
 kotlin {
