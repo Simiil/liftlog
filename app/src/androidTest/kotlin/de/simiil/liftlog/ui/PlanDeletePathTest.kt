@@ -2,6 +2,7 @@ package de.simiil.liftlog.ui
 
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -78,7 +79,7 @@ class PlanDeletePathTest {
     fun planDelete_editorToConfirm_tombstonesAndPopsToPlansList() {
         // 1. Switch to the Plans tab (bottom-nav item addressed by its localized label).
         val plansLabel = composeRule.activity.getString(R.string.tab_plans)
-        composeRule.waitForIdle()
+        await(hasText(plansLabel), atLeast = 1, timeoutMillis = 10_000)
         composeRule.onNodeWithText(plansLabel).performClick()
 
         // 2. The seeded plan's row appears once the plans Flow emits → open the editor.
@@ -86,6 +87,7 @@ class PlanDeletePathTest {
         composeRule.onNodeWithTag(PLAN_ROW).performClick()
 
         // 3. "Delete plan" is the LAST LazyColumn item — scroll it into view, then tap.
+        // Assumes the delete row is composed because the single-day seed fits the viewport; performScrollTo guards partial visibility.
         awaitTag(PLAN_EDITOR_DELETE, timeoutMillis = 10_000)
         composeRule.onNodeWithTag(PLAN_EDITOR_DELETE).performScrollTo().performClick()
 

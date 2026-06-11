@@ -95,8 +95,10 @@ class WorkoutDeletePathTest {
         composeRule.onNodeWithTag(SESSION_DELETE_CONFIRM).performClick()
 
         // 5a. Back on Home (the deleted session was the only one, so the start card shows
-        //     either in HomeContent or the FirstLaunch empty state — both carry the tag).
+        //     either in HomeContent or the FirstLaunch empty state — both carry the tag),
+        //     and the deleted session's "Recent" row is gone.
         awaitTag(HOME_START_EMPTY, timeoutMillis = 10_000)
+        awaitGone(HOME_RECENT_ROW)
 
         // 5b. Room-level tombstone: the soft-deleted session no longer resolves.
         awaitSessionGone(sessionId)
@@ -134,6 +136,24 @@ class WorkoutDeletePathTest {
         )
     }
 
+    /** Same loop as [await], but waits until ZERO nodes match [tag]. */
+    private fun awaitGone(
+        tag: String,
+        timeoutMillis: Long = 5_000,
+    ) {
+        val matcher = hasTestTag(tag)
+        val deadline = System.currentTimeMillis() + timeoutMillis
+        while (System.currentTimeMillis() < deadline) {
+            composeRule.waitForIdle()
+            if (nodeCount(matcher) == 0) return
+            Thread.sleep(50)
+        }
+        throw AssertionError(
+            "Timed out after ${timeoutMillis}ms waiting for 0 nodes matching " +
+                "${matcher.description}; found ${nodeCount(matcher)}",
+        )
+    }
+
     /**
      * Polls [SessionRepository.observeSessionDetails] every 100 ms until it emits null
      * (soft-delete tombstone), or throws [AssertionError] after [timeoutMillis] ms.
@@ -149,8 +169,10 @@ class WorkoutDeletePathTest {
             if (sessionRepository.observeSessionDetails(id).first() == null) return@runBlocking
             delay(100)
         }
+        val last = sessionRepository.observeSessionDetails(id).first()?.session
         throw AssertionError(
-            "Timed out after ${timeoutMillis}ms waiting for session $id to be soft-deleted",
+            "Timed out after ${timeoutMillis}ms waiting for session $id to be soft-deleted; " +
+                "last seen ${last?.let { "non-null session (endedAt=${it.endedAt}, deletedAt=${it.deletedAt})" } ?: "null"}",
         )
     }
 }
