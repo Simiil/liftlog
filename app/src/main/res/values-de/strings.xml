@@ -113,7 +113,10 @@
     <string name="session_discard_confirm_title">Training verwerfen?</string>
     <string name="session_discard_confirm_message">Damit werden die aktuelle Einheit und alle geloggten Sätze gelöscht.</string>
     <string name="session_discard_confirm">Verwerfen</string>
+    <string name="session_delete_confirm_title">Training löschen?</string>
+    <string name="session_delete_confirm_message">Damit werden das Training und alle geloggten Sätze gelöscht.</string>
     <string name="common_cancel">Abbrechen</string>
+    <string name="common_delete">Löschen</string>
     <string name="session_remove_exercise">Übung entfernen</string>
     <string name="session_replace_exercise">Übung ersetzen</string>
     <string name="session_finish_summary">%1$s — %2$d Sätze</string>
@@ -220,6 +223,9 @@
     <string name="plan_add_day">Trainingstag hinzufügen</string>
     <string name="plan_remove_day">Tag entfernen</string>
     <string name="plan_untitled_day">Unbenannter Tag</string>
+    <string name="plan_delete">Plan löschen</string>
+    <string name="plan_delete_confirm_title">Plan löschen?</string>
+    <string name="plan_delete_confirm_message">Bereits geloggte Trainings bleiben erhalten.</string>
 
     <!-- Day editor (M3 redesign) -->
     <string name="day_editor_new">Neuer Tag</string>

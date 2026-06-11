@@ -135,4 +135,11 @@ class SessionDetailViewModel
                 sessionRepository.updateSessionDetails(sessionId, startedAt, endedAt, rpe, note)
             }
         }
+
+        fun onDeleteWorkout(onDeleted: () -> Unit) {
+            viewModelScope.launch {
+                sessionRepository.softDeleteSession(sessionId)
+                onDeleted()
+            }
+        }
     }

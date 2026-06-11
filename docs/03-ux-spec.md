@@ -205,11 +205,11 @@ Bodyweight exercises (0 kg added) swap weight metrics for max-reps/total-reps ch
 ## 6. Remaining screens (brief)
 
 - **Exercise picker**: search-first list, filter chips (muscle group / equipment), recent on top; "+ create exercise" inline (name + group + equipment, 3 fields). Returns to caller — no nav stack detour.
-- **Plans / template editor**: plan list → templates → editor: reorderable exercise list (drag handle), optional target sets/rep-range per row. Edits never touch past sessions ([02-data-spec](02-data-spec.md) §1).
+- **Plans / template editor**: plan list → templates → editor: reorderable exercise list (drag handle), optional target sets/rep-range per row. Edits never touch past sessions ([02-data-spec](02-data-spec.md) §1). When editing an existing plan, a red-text **Delete plan** button sits at the bottom of the editor list (below "Add training day"); it opens a confirmation dialog noting that already-logged workouts are kept, and on confirm soft-deletes the plan (cascading to its day templates and template exercises) and returns to the plan list.
 - **History**: reverse-chronological session cards (name, date, sets, PR count) → session detail:
   - **Summary strip** (4 stats): duration · sets · volume · **RPE** (shows "—" when unset).
   - **Workout note block**: rendered as a text block below the strip, only when a note is present.
-  - **Edit workout** (pencil icon in top app bar): `ModalBottomSheet` containing start and end date-time fields (tapping each opens a Material 3 date picker → time picker two-stage flow; local timezone; any date allowed), an `RpeStepper` (§7), and a note field. **Save is disabled with an inline error** while end ≤ start. Save calls `updateSessionDetails`; duration, date strip, and History ordering recompute reactively from the updated timestamps.
+  - **Edit workout** (pencil icon in top app bar): `ModalBottomSheet` containing start and end date-time fields (tapping each opens a Material 3 date picker → time picker two-stage flow; local timezone; any date allowed), an `RpeStepper` (§7), and a note field. **Save is disabled with an inline error** while end ≤ start. Save calls `updateSessionDetails`; duration, date strip, and History ordering recompute reactively from the updated timestamps. A red-text **Delete** button sits on the left of the Cancel/Save row; it opens a confirmation dialog ("Delete workout?") and, on confirm, soft-deletes the session (cascading to its sets) and navigates back.
   - Sets are editable via the same long-press row (weight/reps only, e.g. fixing a typo after the fact).
 - **Settings**: unit toggle (kg/lb), theme (system/light/dark), export / import (SAF file picker), library version + licenses. One screen, no nesting.
 

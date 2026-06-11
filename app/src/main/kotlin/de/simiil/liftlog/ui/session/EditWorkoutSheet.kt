@@ -1,7 +1,6 @@
 package de.simiil.liftlog.ui.session
 
 import android.text.format.DateFormat
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,12 +35,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.R
+import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.RpeStepper
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -89,6 +90,7 @@ fun EditWorkoutSheet(
     rpe: Double?,
     note: String?,
     onSave: (Instant, Instant, Double?, String?) -> Unit,
+    onDelete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val zone = ZoneId.systemDefault()
@@ -99,6 +101,7 @@ fun EditWorkoutSheet(
     var pickField by remember { mutableStateOf<PickField?>(null) }
     var pickStage by remember { mutableStateOf(PickStage.DATE) }
     var pendingDateMillis by remember { mutableStateOf<Long?>(null) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     val valid = endMillis > startMillis
     val sheetState = rememberModalBottomSheetState()
@@ -162,9 +165,18 @@ fun EditWorkoutSheet(
             }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                TextButton(
+                    onClick = { showDeleteConfirm = true },
+                    modifier = Modifier.testTag(UiTestTags.SESSION_EDIT_DELETE),
+                ) {
+                    Text(
+                        text = stringResource(R.string.common_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                Spacer(Modifier.weight(1f))
                 TextButton(onClick = ::animateDismiss) { Text(stringResource(R.string.common_cancel)) }
                 Spacer(Modifier.width(8.dp))
                 Button(
@@ -252,6 +264,33 @@ fun EditWorkoutSheet(
                 }) { Text(stringResource(R.string.common_cancel)) }
             },
             text = { TimePicker(state = timeState) },
+        )
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(stringResource(R.string.session_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.session_delete_confirm_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirm = false
+                        onDelete()
+                    },
+                    modifier = Modifier.testTag(UiTestTags.SESSION_DELETE_CONFIRM),
+                ) {
+                    Text(
+                        text = stringResource(R.string.common_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
         )
     }
 }

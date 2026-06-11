@@ -400,6 +400,36 @@ class SessionDetailViewModelTest {
         }
 
     @Test
+    fun `onDeleteWorkout soft-deletes the session and invokes the callback`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val sess = session("s1")
+            val se = sessionExercise("se-1", "s1", "ex-1")
+            sessionRepo.setSessionDetails(
+                "s1",
+                SessionWithDetails(session = sess, exercises = listOf(SessionExerciseWithSets(se, listOf(loggedSet("set-1", "se-1"))))),
+            )
+            val vm = makeVm(sessionRepo)
+            vm.uiState.test {
+                awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
+
+            var invoked = false
+            vm.onDeleteWorkout {
+                invoked = true
+                // Asserting inside the callback proves it fires only AFTER the persist.
+                assertEquals(listOf("s1"), sessionRepo.softDeleteSessionCalls)
+            }
+
+            vm.uiState.test {
+                awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
+            assertTrue("onDeleted callback should have been invoked", invoked)
+        }
+
+    @Test
     fun `editingSetId is cleared after onDeleteSet`() =
         runTest {
             val sessionRepo = FakeSessionRepository()

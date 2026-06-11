@@ -101,7 +101,7 @@ class PlanEditorViewModel
                 val editing = dayKey?.let { key -> days.firstOrNull { it.key == key } }
                 PlanEditorUiState(
                     mode = if (editing != null) PlanEditorMode.DAY else PlanEditorMode.PLAN,
-                    isNewPlan = currentDraft.planId == null,
+                    isNewPlan = planId == null,
                     planName = currentDraft.name,
                     days = days,
                     editingDay = editing,
@@ -188,6 +188,15 @@ class PlanEditorViewModel
         fun save(onSaved: (String) -> Unit) {
             viewModelScope.launch {
                 onSaved(planRepository.savePlanDraft(currentDraftDroppingInvalidDays()))
+            }
+        }
+
+        /** Soft-deletes the plan being edited; no-op for a new, never-saved plan. */
+        fun deletePlan(onDeleted: () -> Unit) {
+            val id = planId ?: return
+            viewModelScope.launch {
+                planRepository.softDeletePlan(id)
+                onDeleted()
             }
         }
 

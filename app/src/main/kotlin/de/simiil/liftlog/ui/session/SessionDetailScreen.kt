@@ -203,6 +203,10 @@ fun SessionDetailScreen(
             rpe = uiState.rpe,
             note = uiState.note,
             onSave = viewModel::onEditDetailsSave,
+            onDelete = {
+                showEditSheet = false
+                viewModel.onDeleteWorkout(onBack)
+            },
             onDismiss = { showEditSheet = false },
         )
     }

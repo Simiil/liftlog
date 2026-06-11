@@ -11,6 +11,7 @@ package de.simiil.liftlog.ui
 object UiTestTags {
     const val HOME_START_EMPTY = "home_start_empty"
     const val HOME_RESUME_CARD = "home_resume_card"
+    const val HOME_RECENT_ROW = "home_recent_row" // applied to EACH recent-workout row
     const val LOG_SET_BUTTON = "log_set_button"
     const val WEIGHT_INCREMENT = "weight_increment"
     const val WEIGHT_VALUE = "weight_value"
@@ -24,6 +25,8 @@ object UiTestTags {
     const val PLAN_DAY_START = "plan_day_start" // the play button that starts a day's session
     const val PLAN_EDITOR_SAVE = "plan_editor_save"
     const val PLAN_EDITOR_CANCEL = "plan_editor_cancel"
+    const val PLAN_EDITOR_DELETE = "plan_editor_delete"
+    const val PLAN_DELETE_CONFIRM = "plan_delete_confirm"
     const val DAY_EDITOR_DONE = "day_editor_done"
     const val TEMPLATE_ADD_EXERCISE = "template_add_exercise"
     const val TEMPLATE_EXERCISE_ROW = "template_exercise_row"
@@ -36,4 +39,6 @@ object UiTestTags {
     const val RPE_INCREMENT = "rpe_increment"
     const val SESSION_META_ROW = "session_meta_row"
     const val SESSION_META_NOTE = "session_meta_note"
+    const val SESSION_EDIT_DELETE = "session_edit_delete"
+    const val SESSION_DELETE_CONFIRM = "session_delete_confirm"
 }

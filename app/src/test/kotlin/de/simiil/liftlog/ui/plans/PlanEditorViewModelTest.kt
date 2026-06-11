@@ -261,6 +261,8 @@ class PlanEditorViewModelTest {
             val vm = makeVm(planId = plan.id, planRepo = planRepo, exerciseRepo = exerciseRepo)
             vm.uiState.test {
                 var state = awaitItemUntil { it.planName == "PPL" && it.days.size == 2 }
+                // isNewPlan=false shows the Delete-plan row (PlanEditorScreen gates it on !isNewPlan).
+                assertFalse(state.isNewPlan)
                 assertEquals(listOf("Day A", "Day B"), state.days.map { it.name })
                 // existing day keys == template ids (so reconciliation preserves rows)
                 assertEquals(dayA.id, state.days[0].key)
@@ -359,6 +361,49 @@ class PlanEditorViewModelTest {
             }
         }
 
+    // ── Delete plan ──────────────────────────────────────────────────────────
+
+    @Test
+    fun `deletePlan soft-deletes the edited plan and invokes the callback`() =
+        runTest {
+            val planRepo = FakePlanRepository()
+            val exerciseRepo = FakeExerciseRepository()
+            exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
+            val plan = planRepo.createPlan("PPL")
+            val day = planRepo.createDayTemplate(plan.id, "Day A")
+            val te = planRepo.addExerciseToTemplate(day.id, "ex1")
+
+            val vm = makeVm(planId = plan.id, planRepo = planRepo, exerciseRepo = exerciseRepo)
+            vm.uiState.test {
+                awaitItemUntil { it.planName == "PPL" }
+                cancelAndIgnoreRemainingEvents()
+            }
+
+            var invoked = false
+            vm.deletePlan {
+                invoked = true
+                // Asserting inside the callback proves it fires only AFTER the soft-delete.
+                assertTrue(planRepo.plans[plan.id]!!.deletedAt != null)
+                assertTrue(planRepo.dayTemplates[day.id]!!.deletedAt != null)
+                assertTrue(planRepo.templateExercises[te.id]!!.deletedAt != null)
+            }
+
+            assertTrue("onDeleted callback should have been invoked", invoked)
+        }
+
+    @Test
+    fun `deletePlan is a no-op for a new plan`() =
+        runTest {
+            val planRepo = FakePlanRepository()
+            val vm = makeVm(planRepo = planRepo)
+
+            var invoked = false
+            vm.deletePlan { invoked = true }
+
+            assertFalse("onDeleted must not fire for a never-saved plan", invoked)
+            assertTrue("no plan should have been touched", planRepo.plans.isEmpty())
+        }
+
     @Test
     fun `new plan starts empty when no planId`() =
         runTest {
@@ -366,6 +411,7 @@ class PlanEditorViewModelTest {
             vm.uiState.test {
                 val state = awaitItem()
                 assertEquals(PlanEditorMode.PLAN, state.mode)
+                // isNewPlan=true hides the Delete-plan row (PlanEditorScreen gates it on !isNewPlan).
                 assertTrue(state.isNewPlan)
                 assertEquals("", state.planName)
                 assertTrue(state.days.isEmpty())
