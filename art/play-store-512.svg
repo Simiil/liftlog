@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Play Store listing icon: full-bleed square, Google applies the corner mask -->
+  <rect width="512" height="512" fill="#F6F1E7"/>
+  <rect x="244" y="116" width="24" height="276" rx="12" fill="#B9B2A4"/>
+  <rect x="136" y="150" width="240" height="44" rx="14" fill="#2A2A2E"/>
+  <rect x="136" y="206" width="240" height="44" rx="14" fill="#2A2A2E"/>
+  <rect x="136" y="262" width="240" height="44" rx="14" fill="#2A2A2E"/>
+  <rect x="136" y="318" width="240" height="44" rx="14" fill="#2A2A2E"/>
+  <circle cx="256" cy="284" r="17" fill="#FF5A36"/>
+  <circle cx="256" cy="284" r="6" fill="#F6F1E7"/>
+</svg>
