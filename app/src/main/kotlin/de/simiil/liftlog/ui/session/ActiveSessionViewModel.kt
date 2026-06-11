@@ -14,10 +14,6 @@ import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
-import de.simiil.liftlog.domain.units.Decimals
-import de.simiil.liftlog.domain.units.Weights
-import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
-import java.time.Instant
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
