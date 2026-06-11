@@ -42,6 +42,26 @@ class FakeSessionDao : SessionDao {
         loggedSets[loggedSet.id] = loggedSet
     }
 
+    override suspend fun updateSessionRpe(
+        id: String,
+        rpe: Double?,
+        now: Long,
+    ) {
+        val s = sessions[id] ?: return
+        if (s.deletedAt != null) return
+        sessions[id] = s.copy(rpe = rpe, updatedAt = now)
+    }
+
+    override suspend fun updateSessionNote(
+        id: String,
+        note: String?,
+        now: Long,
+    ) {
+        val s = sessions[id] ?: return
+        if (s.deletedAt != null) return
+        sessions[id] = s.copy(note = note, updatedAt = now)
+    }
+
     override suspend fun softDeleteSession(
         id: String,
         now: Long,

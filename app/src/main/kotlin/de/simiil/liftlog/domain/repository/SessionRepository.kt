@@ -60,7 +60,7 @@ interface SessionRepository {
      */
     suspend fun startSessionFromTemplate(templateId: String): Session
 
-    /** Sets or clears the workout-level RPE (6.0–10.0 in 0.5 steps; null = not rated). Bumps updatedAt. */
+    /** Sets or clears the workout-level RPE, 6.0–10.0 (UI uses 0.5 steps; null = not rated). Bumps updatedAt. */
     suspend fun updateSessionRpe(
         sessionId: String,
         rpe: Double?,

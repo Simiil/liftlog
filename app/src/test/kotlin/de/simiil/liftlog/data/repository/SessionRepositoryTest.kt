@@ -565,6 +565,7 @@ class SessionRepositoryTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionNote("sess-1", "  felt strong  ")
             assertEquals("felt strong", dao.sessions["sess-1"]!!.note)
+            assertEquals(clockMillis, dao.sessions["sess-1"]!!.updatedAt)
             repo.updateSessionNote("sess-1", "   ")
             assertNull(dao.sessions["sess-1"]!!.note)
         }
@@ -578,7 +579,7 @@ class SessionRepositoryTest {
                 startedAt = Instant.ofEpochMilli(100L),
                 endedAt = Instant.ofEpochMilli(200L),
                 rpe = 9.0,
-                note = "rough one",
+                note = "  rough one  ",
             )
             val stored = dao.sessions["sess-1"]!!
             assertEquals(100L, stored.startedAt)
@@ -599,6 +600,53 @@ class SessionRepositoryTest {
                 rpe = null,
                 note = null,
             )
+        }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `updateSessionRpe rejects out-of-range rpe`() =
+        runTest {
+            dao.sessions["sess-1"] = storedSession()
+            repo.updateSessionRpe("sess-1", 5.5)
+        }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `updateSessionDetails rejects out-of-range rpe`() =
+        runTest {
+            dao.sessions["sess-1"] = storedSession()
+            repo.updateSessionDetails(
+                "sess-1",
+                startedAt = Instant.ofEpochMilli(100L),
+                endedAt = Instant.ofEpochMilli(200L),
+                rpe = 10.5,
+                note = null,
+            )
+        }
+
+    @Test
+    fun `updateSessionRpe with missing id is a no-op`() =
+        runTest {
+            repo.updateSessionRpe("ghost", 8.0)
+            assertTrue(dao.sessions.isEmpty())
+        }
+
+    @Test
+    fun `updateSessionNote with missing id is a no-op`() =
+        runTest {
+            repo.updateSessionNote("ghost", "some note")
+            assertTrue(dao.sessions.isEmpty())
+        }
+
+    @Test
+    fun `updateSessionDetails with missing id is a no-op`() =
+        runTest {
+            repo.updateSessionDetails(
+                "ghost",
+                startedAt = Instant.ofEpochMilli(100L),
+                endedAt = Instant.ofEpochMilli(200L),
+                rpe = null,
+                note = null,
+            )
+            assertTrue(dao.sessions.isEmpty())
         }
 
     // ─── observeSetCountsBySession ────────────────────────────────────────────

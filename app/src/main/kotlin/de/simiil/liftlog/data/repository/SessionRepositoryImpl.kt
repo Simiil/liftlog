@@ -189,18 +189,14 @@ class SessionRepositoryImpl
             rpe: Double?,
         ) {
             require(rpe == null || rpe in 6.0..10.0) { "rpe must be within 6.0..10.0" }
-            val session = dao.findSession(sessionId) ?: return
-            dao.updateSession(session.copy(rpe = rpe, updatedAt = clock.millis()))
+            dao.updateSessionRpe(sessionId, rpe, clock.millis())
         }
 
         override suspend fun updateSessionNote(
             sessionId: String,
             note: String?,
         ) {
-            val session = dao.findSession(sessionId) ?: return
-            dao.updateSession(
-                session.copy(note = note?.trim()?.takeIf { it.isNotEmpty() }, updatedAt = clock.millis()),
-            )
+            dao.updateSessionNote(sessionId, note?.trim()?.takeIf { it.isNotEmpty() }, clock.millis())
         }
 
         override suspend fun updateSessionDetails(
@@ -212,16 +208,18 @@ class SessionRepositoryImpl
         ) {
             require(endedAt.isAfter(startedAt)) { "endedAt must be after startedAt" }
             require(rpe == null || rpe in 6.0..10.0) { "rpe must be within 6.0..10.0" }
-            val session = dao.findSession(sessionId) ?: return
-            dao.updateSession(
-                session.copy(
-                    startedAt = startedAt.toEpochMilli(),
-                    endedAt = endedAt.toEpochMilli(),
-                    rpe = rpe,
-                    note = note?.trim()?.takeIf { it.isNotEmpty() },
-                    updatedAt = clock.millis(),
-                ),
-            )
+            transactor.immediate {
+                val session = dao.findSession(sessionId) ?: return@immediate
+                dao.updateSession(
+                    session.copy(
+                        startedAt = startedAt.toEpochMilli(),
+                        endedAt = endedAt.toEpochMilli(),
+                        rpe = rpe,
+                        note = note?.trim()?.takeIf { it.isNotEmpty() },
+                        updatedAt = clock.millis(),
+                    ),
+                )
+            }
         }
 
         override suspend fun startSessionFromTemplate(templateId: String): Session =
