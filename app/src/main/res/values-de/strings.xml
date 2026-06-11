@@ -128,6 +128,15 @@
     <!-- History screen -->
     <string name="history_empty">Noch keine abgeschlossenen Trainings</string>
 
+    <!-- Edit workout sheet -->
+    <string name="session_edit_title">Einheit bearbeiten</string>
+    <string name="session_edit_start">Beginn</string>
+    <string name="session_edit_end">Ende</string>
+    <string name="session_edit_error_end_before_start">Das Ende muss nach dem Beginn liegen</string>
+    <string name="session_stat_rpe">RPE</string>
+    <string name="cd_edit_workout">Einheit bearbeiten</string>
+    <string name="common_ok">OK</string>
+
     <!-- Session Detail screen -->
     <string name="session_detail_empty">Keine Sätze geloggt</string>
     <string name="session_detail_hint">Drücke lange auf einen Satz, um einen Tippfehler zu korrigieren.</string>

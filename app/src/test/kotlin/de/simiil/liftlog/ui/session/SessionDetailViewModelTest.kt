@@ -348,6 +348,58 @@ class SessionDetailViewModelTest {
         }
 
     @Test
+    fun `rpe and note are mapped to ui state`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = FakeExerciseRepository()
+            val sess = session("s1").copy(rpe = 8.5, note = "good one")
+            val se = sessionExercise("se-1", "s1", "ex-1")
+            sessionRepo.setSessionDetails(
+                "s1",
+                SessionWithDetails(session = sess, exercises = listOf(SessionExerciseWithSets(se, listOf(loggedSet("set-1", "se-1"))))),
+            )
+            val vm = makeVm(sessionRepo, exerciseRepo)
+            vm.uiState.test {
+                val state = awaitItem()
+                assertEquals(8.5, state.rpe!!, 0.0)
+                assertEquals("good one", state.note)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `onEditDetailsSave delegates to repository`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val sess = session("s1")
+            val se = sessionExercise("se-1", "s1", "ex-1")
+            sessionRepo.setSessionDetails(
+                "s1",
+                SessionWithDetails(session = sess, exercises = listOf(SessionExerciseWithSets(se, listOf(loggedSet("set-1", "se-1"))))),
+            )
+            val vm = makeVm(sessionRepo)
+            vm.uiState.test {
+                awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
+
+            val newStart = Instant.parse("2026-06-08T08:00:00Z")
+            val newEnd = Instant.parse("2026-06-08T09:00:00Z")
+            vm.onEditDetailsSave(newStart, newEnd, 9.0, "rough")
+
+            vm.uiState.test {
+                awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
+            val call = sessionRepo.updateSessionDetailsCalls.single()
+            assertEquals("s1", call.sessionId)
+            assertEquals(newStart, call.startedAt)
+            assertEquals(newEnd, call.endedAt)
+            assertEquals(9.0, call.rpe!!, 0.0)
+            assertEquals("rough", call.note)
+        }
+
+    @Test
     fun `editingSetId is cleared after onDeleteSet`() =
         runTest {
             val sessionRepo = FakeSessionRepository()
