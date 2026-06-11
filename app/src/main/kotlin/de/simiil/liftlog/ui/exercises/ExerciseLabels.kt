@@ -34,3 +34,7 @@ fun equipmentLabel(equipment: Equipment): String = stringResource(
         Equipment.BODYWEIGHT -> R.string.equipment_bodyweight
     },
 )
+
+@Composable
+fun exerciseDisplayName(id: String, fallbackName: String): String =
+    BuiltInExerciseNames.resById[id]?.let { stringResource(it) } ?: fallbackName

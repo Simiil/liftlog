@@ -7,6 +7,7 @@ import de.simiil.liftlog.domain.analytics.ExerciseSummary
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
+import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import de.simiil.liftlog.domain.repository.TrainedExercise
 import de.simiil.liftlog.domain.repository.WeekSummary
 import javax.inject.Inject
@@ -28,6 +29,7 @@ data class AnalyticsBrowserUiState(
 class AnalyticsBrowserViewModel @Inject constructor(
     private val analyticsRepository: AnalyticsRepository,
     private val settingsRepository: SettingsRepository,
+    private val names: ExerciseNameResolver,
 ) : ViewModel() {
 
     private val query = MutableStateFlow("")
@@ -42,7 +44,10 @@ class AnalyticsBrowserViewModel @Inject constructor(
             week = week,
             query = q,
             exercises = if (q.isBlank()) exercises
-                else exercises.filter { it.name.contains(q, ignoreCase = true) },
+                else exercises.filter {
+                    names.displayName(it.id, it.name).contains(q, ignoreCase = true) ||
+                        it.name.contains(q, ignoreCase = true)
+                },
             unit = unit,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AnalyticsBrowserUiState())

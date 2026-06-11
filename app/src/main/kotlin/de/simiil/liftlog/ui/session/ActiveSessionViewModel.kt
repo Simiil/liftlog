@@ -14,6 +14,7 @@ import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
+import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import java.time.Instant
@@ -72,6 +73,7 @@ class ActiveSessionViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
     private val settingsRepository: SettingsRepository,
     private val savedStateHandle: SavedStateHandle,
+    private val names: ExerciseNameResolver,
 ) : ViewModel() {
 
     // Type-safe route fields land in the handle under their field name; reading the key
@@ -186,7 +188,7 @@ class ActiveSessionViewModel @Inject constructor(
             ExerciseCardUi(
                 sessionExerciseId = se.id,
                 exerciseId = se.exerciseId,
-                name = exercise?.name.orEmpty(),
+                name = exercise?.let { names.displayName(it.id, it.name) }.orEmpty(),
                 equipment = exercise?.equipment ?: Equipment.MACHINE,
                 targetSets = se.targetSets,
                 targetRepsMin = se.targetRepsMin,

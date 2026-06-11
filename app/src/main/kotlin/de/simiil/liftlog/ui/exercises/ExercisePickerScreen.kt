@@ -500,7 +500,7 @@ private fun PickerExerciseRow(
             modifier = Modifier.weight(1f),
         ) {
             Text(
-                text = exercise.name,
+                text = exerciseDisplayName(exercise.id, exercise.name),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,

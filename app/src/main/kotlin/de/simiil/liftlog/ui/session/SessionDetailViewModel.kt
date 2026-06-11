@@ -11,6 +11,7 @@ import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
+import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import java.time.Instant
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +45,7 @@ class SessionDetailViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
     private val settingsRepository: SettingsRepository,
     private val savedStateHandle: SavedStateHandle,
+    private val names: ExerciseNameResolver,
 ) : ViewModel() {
 
     // Type-safe route fields land in the handle under their field name; reading the key
@@ -67,7 +69,7 @@ class SessionDetailViewModel @Inject constructor(
             val exercise = exerciseMap[ews.sessionExercise.exerciseId]
             DetailExerciseUi(
                 sessionExerciseId = ews.sessionExercise.id,
-                name = exercise?.name.orEmpty(),
+                name = exercise?.let { names.displayName(it.id, it.name) }.orEmpty(),
                 equipment = exercise?.equipment ?: Equipment.MACHINE,
                 muscleGroup = exercise?.muscleGroup ?: MuscleGroup.OTHER,
                 sets = ews.sets,
