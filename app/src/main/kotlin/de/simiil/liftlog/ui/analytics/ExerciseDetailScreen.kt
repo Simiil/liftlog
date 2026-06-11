@@ -70,9 +70,10 @@ fun ExerciseDetailScreen(
         // Single LazyColumn: the chips/range/chart/value are header items that scroll away above
         // the full (lazy) session list, so the screen scrolls smoothly with a long history.
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(inner),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(inner),
             contentPadding = PaddingValues(horizontal = 16.dp),
         ) {
             item {
@@ -100,20 +101,29 @@ fun ExerciseDetailScreen(
                         val selected = r == ui.selectedRange
                         Surface(
                             onClick = { viewModel.onRangeChange(r) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(36.dp),
+                            modifier =
+                                Modifier
+                                    .weight(1f)
+                                    .height(36.dp),
                             shape = RoundedCornerShape(10.dp),
-                            color = if (selected) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            color =
+                                if (selected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceContainerHigh
+                                },
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
                                     rangeLabel(r),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = if (selected) MaterialTheme.colorScheme.onPrimary
-                                            else MaterialTheme.colorScheme.onSurface,
+                                    color =
+                                        if (selected) {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        },
                                 )
                             }
                         }
@@ -144,11 +154,12 @@ fun ExerciseDetailScreen(
                             ProgressLineChart(
                                 ui.chartPoints,
                                 zeroBased = ui.chartZeroBased,
-                                contentDescription = stringResource(
-                                    R.string.cd_progress_chart,
-                                    metricLabel(ui.selectedMetric),
-                                    ui.chartPoints.size,
-                                ),
+                                contentDescription =
+                                    stringResource(
+                                        R.string.cd_progress_chart,
+                                        metricLabel(ui.selectedMetric),
+                                        ui.chartPoints.size,
+                                    ),
                             )
                         }
                     }
@@ -187,7 +198,11 @@ fun ExerciseDetailScreen(
 }
 
 @Composable
-private fun SessionRow(row: RecentSessionRow, dateLabel: String, onOpenSession: (String) -> Unit) {
+private fun SessionRow(
+    row: RecentSessionRow,
+    dateLabel: String,
+    onOpenSession: (String) -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -213,22 +228,24 @@ private fun SessionRow(row: RecentSessionRow, dateLabel: String, onOpenSession: 
 private fun rememberDateFormat() = remember { SimpleDateFormat("EEE d MMM", Locale.getDefault()) }
 
 @Composable
-private fun metricLabel(m: Metric) = stringResource(
-    when (m) {
-        Metric.E1RM -> R.string.metric_e1rm
-        Metric.TOP_SET -> R.string.metric_top_set
-        Metric.VOLUME -> R.string.metric_volume
-        Metric.MAX_REPS -> R.string.metric_max_reps
-        Metric.TOTAL_REPS -> R.string.metric_total_reps
-    }
-)
+private fun metricLabel(m: Metric) =
+    stringResource(
+        when (m) {
+            Metric.E1RM -> R.string.metric_e1rm
+            Metric.TOP_SET -> R.string.metric_top_set
+            Metric.VOLUME -> R.string.metric_volume
+            Metric.MAX_REPS -> R.string.metric_max_reps
+            Metric.TOTAL_REPS -> R.string.metric_total_reps
+        },
+    )
 
 @Composable
-private fun rangeLabel(r: Range) = stringResource(
-    when (r) {
-        Range.D30 -> R.string.range_30d
-        Range.D90 -> R.string.range_90d
-        Range.Y1 -> R.string.range_1y
-        Range.ALL -> R.string.range_all
-    }
-)
+private fun rangeLabel(r: Range) =
+    stringResource(
+        when (r) {
+            Range.D30 -> R.string.range_30d
+            Range.D90 -> R.string.range_90d
+            Range.Y1 -> R.string.range_1y
+            Range.ALL -> R.string.range_all
+        },
+    )

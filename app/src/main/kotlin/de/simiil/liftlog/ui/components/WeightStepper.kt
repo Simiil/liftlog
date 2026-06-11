@@ -56,10 +56,11 @@ fun WeightStepper(
     valueTestTag: String? = null,
     incrementTestTag: String? = null,
 ) {
-    val unitLong = when (unit) {
-        WeightUnit.KG -> stringResource(R.string.weight_kilograms)
-        WeightUnit.LB -> stringResource(R.string.weight_pounds)
-    }
+    val unitLong =
+        when (unit) {
+            WeightUnit.KG -> stringResource(R.string.weight_kilograms)
+            WeightUnit.LB -> stringResource(R.string.weight_pounds)
+        }
     val stepDisplay = Weights.stepIncrementDisplay(unit)
     val stepText = Decimals.format(stepDisplay)
     val decrementCd = stringResource(R.string.cd_decrease_weight, stepText, unitLong)
@@ -123,13 +124,14 @@ internal fun StepperShell(
                 contentDesc = decrementCd,
             )
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .then(if (valueTestTag != null) Modifier.testTag(valueTestTag) else Modifier)
-                    .clickable(enabled = enabled, onClick = onValueClick)
-                    .semantics { contentDescription = valueCd }
-                    .padding(horizontal = 8.dp),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .then(if (valueTestTag != null) Modifier.testTag(valueTestTag) else Modifier)
+                        .clickable(enabled = enabled, onClick = onValueClick)
+                        .semantics { contentDescription = valueCd }
+                        .padding(horizontal = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -139,17 +141,19 @@ internal fun StepperShell(
                 val valueStyle = MaterialTheme.typography.headlineSmall
                 BasicText(
                     text = numberText,
-                    style = valueStyle.copy(
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.38f),
-                    ),
+                    style =
+                        valueStyle.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.38f),
+                        ),
                     maxLines = 1,
-                    autoSize = TextAutoSize.StepBased(
-                        minFontSize = 8.sp,
-                        maxFontSize = valueStyle.fontSize,
-                        stepSize = 1.sp,
-                    ),
+                    autoSize =
+                        TextAutoSize.StepBased(
+                            minFontSize = 8.sp,
+                            maxFontSize = valueStyle.fontSize,
+                            stepSize = 1.sp,
+                        ),
                 )
                 Text(
                     text = unitText,
@@ -178,12 +182,13 @@ private fun StepSideButton(
     testTag: String? = null,
 ) {
     Box(
-        modifier = modifier
-            .width(56.dp)
-            .fillMaxHeight()
-            .then(if (testTag != null) Modifier.testTag(testTag) else Modifier)
-            .clickable(enabled = enabled, onClick = onClick)
-            .semantics { contentDescription = contentDesc },
+        modifier =
+            modifier
+                .width(56.dp)
+                .fillMaxHeight()
+                .then(if (testTag != null) Modifier.testTag(testTag) else Modifier)
+                .clickable(enabled = enabled, onClick = onClick)
+                .semantics { contentDescription = contentDesc },
         contentAlignment = Alignment.Center,
     ) {
         Text(

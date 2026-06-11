@@ -23,7 +23,11 @@ import androidx.compose.ui.unit.dp
  * row than a full chart host.
  */
 @Composable
-fun Sparkline(values: List<Float>, color: Color, modifier: Modifier = Modifier) {
+fun Sparkline(
+    values: List<Float>,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
     if (values.size < 2) return
     Canvas(modifier.width(120.dp).height(34.dp)) {
         val min = values.min()
@@ -32,6 +36,7 @@ fun Sparkline(values: List<Float>, color: Color, modifier: Modifier = Modifier) 
         val padY = size.height * 0.15f
         val usableH = size.height - 2 * padY
         val stepX = size.width / (values.size - 1)
+
         // y inverts the normalized value so the highest point sits at the top.
         fun yFor(v: Float) = padY + (1f - (v - min) / span) * usableH
 

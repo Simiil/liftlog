@@ -11,9 +11,11 @@ class ConvertersTest {
     @Test fun muscleGroup_roundTrips() {
         MuscleGroup.entries.forEach { assertEquals(it, c.toMuscleGroup(c.fromMuscleGroup(it))) }
     }
+
     @Test fun equipment_roundTrips() {
         Equipment.entries.forEach { assertEquals(it, c.toEquipment(c.fromEquipment(it))) }
     }
+
     @Test fun unknownStrings_fallBack() {
         assertEquals(MuscleGroup.OTHER, c.toMuscleGroup("???"))
         assertEquals(Equipment.MACHINE, c.toEquipment("???"))

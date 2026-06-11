@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -93,20 +92,22 @@ fun ExercisePickerScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (multiSelect) {
-                            stringResource(R.string.picker_title_add)
-                        } else {
-                            stringResource(R.string.picker_title)
-                        },
+                        text =
+                            if (multiSelect) {
+                                stringResource(R.string.picker_title_add)
+                            } else {
+                                stringResource(R.string.picker_title)
+                            },
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onCancel) {
                         Icon(
                             if (multiSelect) Icons.AutoMirrored.Outlined.ArrowBack else Icons.Outlined.Close,
-                            contentDescription = stringResource(
-                                if (multiSelect) R.string.navigate_back else R.string.picker_cancel,
-                            ),
+                            contentDescription =
+                                stringResource(
+                                    if (multiSelect) R.string.navigate_back else R.string.picker_cancel,
+                                ),
                         )
                     }
                 },
@@ -121,20 +122,21 @@ fun ExercisePickerScreen(
                     tonalElevation = 0.dp,
                 ) {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant,
-                                shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp),
-                            )
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant,
+                                    shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp),
+                                ).padding(horizontal = 16.dp, vertical = 12.dp),
                     ) {
                         Button(
                             onClick = { onSelectedMany(selection.toList()) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag(UiTestTags.PICKER_ADD_SELECTED),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .testTag(UiTestTags.PICKER_ADD_SELECTED),
                             shape = RoundedCornerShape(100.dp),
                         ) {
                             Text(
@@ -157,9 +159,10 @@ fun ExercisePickerScreen(
                 PickerSearchBar(
                     query = uiState.query,
                     onQueryChange = viewModel::onQueryChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
 
@@ -254,16 +257,18 @@ fun ExercisePickerScreen(
     // Create exercise sheet — shown as overlay
     if (showCreateForm) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.45f))
-                .clickable(onClick = { showCreateForm = false }),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.45f))
+                    .clickable(onClick = { showCreateForm = false }),
         ) {
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .clickable(enabled = false) {},
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .clickable(enabled = false) {},
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
             ) {
@@ -301,9 +306,10 @@ private fun PickerSearchBar(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -311,17 +317,19 @@ private fun PickerSearchBar(
                 Icons.Outlined.Search,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .size(20.dp)
-                    .alpha(0.7f),
+                modifier =
+                    Modifier
+                        .size(20.dp)
+                        .alpha(0.7f),
             )
             androidx.compose.foundation.text.BasicTextField(
                 value = query,
                 onValueChange = onQueryChange,
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
-                ),
+                textStyle =
+                    MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 decorationBox = { innerTextField ->
@@ -372,19 +380,21 @@ private fun PickerFilterChip(
         },
         modifier = modifier.height(48.dp), // ≥48dp touch target (F-09)
         shape = RoundedCornerShape(10.dp),
-        colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        ),
-        border = FilterChipDefaults.filterChipBorder(
-            enabled = true,
-            selected = selected,
-            borderColor = MaterialTheme.colorScheme.outline,
-            selectedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
-            borderWidth = 1.dp,
-        ),
+        colors =
+            FilterChipDefaults.filterChipColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            ),
+        border =
+            FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = selected,
+                borderColor = MaterialTheme.colorScheme.outline,
+                selectedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                borderWidth = 1.dp,
+            ),
     )
 }
 
@@ -396,20 +406,22 @@ private fun CreateRow(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 14.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .clickable(onClick = onClick)
+                .padding(horizontal = 8.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // .create-plus circle: primaryContainer bg, onPrimaryContainer icon
         Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
+            modifier =
+                Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -420,11 +432,12 @@ private fun CreateRow(
             )
         }
         Text(
-            text = if (query.isNotEmpty()) {
-                stringResource(R.string.picker_create_with_query, query)
-            } else {
-                stringResource(R.string.picker_create)
-            },
+            text =
+                if (query.isNotEmpty()) {
+                    stringResource(R.string.picker_create_with_query, query)
+                } else {
+                    stringResource(R.string.picker_create)
+                },
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary,
@@ -449,39 +462,45 @@ private fun PickerExerciseRow(
 ) {
     val disabled = multiSelect && added
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (disabled) Modifier.alpha(0.5f) else Modifier,
-            )
-            .then(
-                if (!disabled) {
-                    Modifier.clickable(onClick = onClick)
-                } else {
-                    Modifier
-                },
-            )
-            .semantics(mergeDescendants = true) {}
-            .padding(horizontal = 8.dp, vertical = 13.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .then(
+                    if (disabled) Modifier.alpha(0.5f) else Modifier,
+                ).then(
+                    if (!disabled) {
+                        Modifier.clickable(onClick = onClick)
+                    } else {
+                        Modifier
+                    },
+                ).semantics(mergeDescendants = true) {}
+                .padding(horizontal = 8.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         if (multiSelect) {
             // .pick-check: 24dp box, radius 7dp, outline border → primary bg + onPrimary check when selected
             Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(RoundedCornerShape(7.dp))
-                    .background(
-                        if (checked) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surface,
-                    )
-                    .border(
-                        width = 2.dp,
-                        color = if (checked) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(7.dp),
-                    ),
+                modifier =
+                    Modifier
+                        .size(24.dp)
+                        .clip(RoundedCornerShape(7.dp))
+                        .background(
+                            if (checked) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.surface
+                            },
+                        ).border(
+                            width = 2.dp,
+                            color =
+                                if (checked) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.outline
+                                },
+                            shape = RoundedCornerShape(7.dp),
+                        ),
                 contentAlignment = Alignment.Center,
             ) {
                 if (checked) {
@@ -540,21 +559,23 @@ private fun CreateExerciseForm(
     var selectedEquipment by remember { mutableStateOf(Equipment.BARBELL) }
 
     Column(
-        modifier = modifier.padding(
-            start = 16.dp,
-            end = 16.dp,
-            top = 16.dp,
-            bottom = 28.dp,
-        ),
+        modifier =
+            modifier.padding(
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp,
+                bottom = 28.dp,
+            ),
     ) {
         // Sheet handle
         Box(
-            modifier = Modifier
-                .width(34.dp)
-                .height(4.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
-                .align(Alignment.CenterHorizontally),
+            modifier =
+                Modifier
+                    .width(34.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                    .align(Alignment.CenterHorizontally),
         )
         Spacer(Modifier.height(14.dp))
 
@@ -572,21 +593,26 @@ private fun CreateExerciseForm(
             modifier = Modifier.fillMaxWidth(),
             label = { Text(stringResource(R.string.picker_create_name)) },
             isError = createError != null,
-            supportingText = if (createError != null) {
-                {
-                    Text(
-                        text = when (createError) {
-                            CreateError.BLANK_NAME -> stringResource(R.string.picker_error_blank)
-                            CreateError.DUPLICATE_NAME -> stringResource(R.string.picker_duplicate_name)
-                        },
-                    )
-                }
-            } else null,
+            supportingText =
+                if (createError != null) {
+                    {
+                        Text(
+                            text =
+                                when (createError) {
+                                    CreateError.BLANK_NAME -> stringResource(R.string.picker_error_blank)
+                                    CreateError.DUPLICATE_NAME -> stringResource(R.string.picker_duplicate_name)
+                                },
+                        )
+                    }
+                } else {
+                    null
+                },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { onCreateClicked(name, selectedMuscle, selectedEquipment) },
-            ),
+            keyboardActions =
+                KeyboardActions(
+                    onDone = { onCreateClicked(name, selectedMuscle, selectedEquipment) },
+                ),
         )
 
         Spacer(Modifier.height(12.dp))

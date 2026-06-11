@@ -58,10 +58,11 @@ fun EmptyState(
         verticalArrangement = Arrangement.Center,
     ) {
         Box(
-            modifier = Modifier
-                .size(84.dp)
-                .clip(RoundedCornerShape(26.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
+            modifier =
+                Modifier
+                    .size(84.dp)
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -91,10 +92,11 @@ fun EmptyState(
             Spacer(Modifier.height(30.dp))
             Button(
                 onClick = action.onClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .then(action.testTag?.let { Modifier.testTag(it) } ?: Modifier),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .then(action.testTag?.let { Modifier.testTag(it) } ?: Modifier),
                 shape = RoundedCornerShape(100.dp),
                 contentPadding = ButtonDefaults.ContentPadding,
             ) {

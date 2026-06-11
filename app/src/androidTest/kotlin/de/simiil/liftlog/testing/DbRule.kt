@@ -6,7 +6,8 @@ import androidx.test.core.app.ApplicationProvider
 import de.simiil.liftlog.data.db.AppDatabase
 
 fun newInMemoryDb(): AppDatabase =
-    Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), AppDatabase::class.java)
+    Room
+        .inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), AppDatabase::class.java)
         .allowMainThreadQueries()
         .build()
 
@@ -15,7 +16,10 @@ fun newInMemoryDb(): AppDatabase =
  * filters — needed to assert cascade soft-deletes actually tombstoned the target rows.
  * Returns null if no row with that id exists. [table] is a trusted test-only table name.
  */
-fun AppDatabase.tombstoneOf(table: String, id: String): Pair<Long?, Long>? {
+fun AppDatabase.tombstoneOf(
+    table: String,
+    id: String,
+): Pair<Long?, Long>? {
     query(SimpleSQLiteQuery("SELECT deletedAt, updatedAt FROM $table WHERE id = ?", arrayOf(id))).use { c ->
         if (!c.moveToFirst()) return null
         val deletedAt = if (c.isNull(0)) null else c.getLong(0)

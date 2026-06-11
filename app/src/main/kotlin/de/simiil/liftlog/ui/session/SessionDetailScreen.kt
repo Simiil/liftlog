@@ -99,9 +99,10 @@ fun SessionDetailScreen(
             }
             else -> {
                 val totalSets = uiState.exercises.sumOf { it.sets.size }
-                val totalVolumeKg = volumeKg(
-                    uiState.exercises.flatMap { e -> e.sets.map { SetEntry(it.weightKg, it.reps) } },
-                )
+                val totalVolumeKg =
+                    volumeKg(
+                        uiState.exercises.flatMap { e -> e.sets.map { SetEntry(it.weightKg, it.reps) } },
+                    )
                 LazyColumn(
                     modifier = Modifier.padding(innerPadding).fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 28.dp),
@@ -141,11 +142,12 @@ fun SessionDetailScreen(
                     uiState.startedAt?.let { startedAt ->
                         item(key = "foot") {
                             Text(
-                                text = stringResource(
-                                    R.string.session_detail_foot,
-                                    name,
-                                    relativeDate(startedAt),
-                                ),
+                                text =
+                                    stringResource(
+                                        R.string.session_detail_foot,
+                                        name,
+                                        relativeDate(startedAt),
+                                    ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
@@ -167,12 +169,13 @@ private val TIME_FMT = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
 private fun DateStrip(startedAt: Instant) {
     val ldt = startedAt.atZone(ZoneId.systemDefault())
     Text(
-        text = stringResource(
-            R.string.session_detail_started,
-            DATE_FMT.format(ldt),
-            ldt.year,
-            TIME_FMT.format(ldt),
-        ),
+        text =
+            stringResource(
+                R.string.session_detail_started,
+                DATE_FMT.format(ldt),
+                ldt.year,
+                TIME_FMT.format(ldt),
+            ),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 4.dp),
@@ -187,18 +190,22 @@ private fun SummaryStrip(
     totalSets: Int,
     volumeKg: Double,
 ) {
-    val duration = if (startedAt != null && endedAt != null) {
-        val sec = Duration.between(startedAt, endedAt).seconds.coerceAtLeast(0)
-        stringResource(R.string.session_duration_value, sec / 60, sec % 60)
-    } else {
-        "—"
-    }
-    val volume = stringResource(
-        R.string.session_stat_volume_value,
-        String.format(Locale.getDefault(), "%.1f", volumeKg / 1000.0),
-    )
+    val duration =
+        if (startedAt != null && endedAt != null) {
+            val sec = Duration.between(startedAt, endedAt).seconds.coerceAtLeast(0)
+            stringResource(R.string.session_duration_value, sec / 60, sec % 60)
+        } else {
+            "—"
+        }
+    val volume =
+        stringResource(
+            R.string.session_stat_volume_value,
+            String.format(Locale.getDefault(), "%.1f", volumeKg / 1000.0),
+        )
     Surface(
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+        shape =
+            androidx.compose.foundation.shape
+                .RoundedCornerShape(22.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -214,7 +221,11 @@ private fun SummaryStrip(
 }
 
 @Composable
-private fun SummaryStat(value: String, label: String, modifier: Modifier = Modifier) {
+private fun SummaryStat(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -247,7 +258,9 @@ private fun DetailCard(
     onCollapse: () -> Unit,
 ) {
     Surface(
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+        shape =
+            androidx.compose.foundation.shape
+                .RoundedCornerShape(22.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -286,21 +299,26 @@ private fun DetailCard(
 
 /** "top 85 kg · 3 sets · Chest" — or "Bodyweight · 3 sets · Back" for bodyweight lifts. */
 @Composable
-private fun exerciseSubtitle(exercise: DetailExerciseUi, unit: de.simiil.liftlog.domain.model.WeightUnit): String {
-    val lead = if (exercise.equipment == Equipment.BODYWEIGHT) {
-        stringResource(R.string.session_detail_bodyweight)
-    } else {
-        val topKg = exercise.sets.maxOfOrNull { it.weightKg } ?: 0.0
-        stringResource(R.string.session_detail_top_weight, Weights.format(topKg, unit), Weights.label(unit))
-    }
+private fun exerciseSubtitle(
+    exercise: DetailExerciseUi,
+    unit: de.simiil.liftlog.domain.model.WeightUnit,
+): String {
+    val lead =
+        if (exercise.equipment == Equipment.BODYWEIGHT) {
+            stringResource(R.string.session_detail_bodyweight)
+        } else {
+            val topKg = exercise.sets.maxOfOrNull { it.weightKg } ?: 0.0
+            stringResource(R.string.session_detail_top_weight, Weights.format(topKg, unit), Weights.label(unit))
+        }
     val sets = pluralStringResource(R.plurals.set_count, exercise.sets.size, exercise.sets.size)
     return stringResource(R.string.session_detail_ex_sub, lead, sets, muscleGroupLabel(exercise.muscleGroup))
 }
 
 @Composable
 private fun relativeDate(startedAt: Instant): String =
-    DateUtils.getRelativeTimeSpanString(
-        startedAt.toEpochMilli(),
-        System.currentTimeMillis(),
-        DateUtils.MINUTE_IN_MILLIS,
-    ).toString()
+    DateUtils
+        .getRelativeTimeSpanString(
+            startedAt.toEpochMilli(),
+            System.currentTimeMillis(),
+            DateUtils.MINUTE_IN_MILLIS,
+        ).toString()

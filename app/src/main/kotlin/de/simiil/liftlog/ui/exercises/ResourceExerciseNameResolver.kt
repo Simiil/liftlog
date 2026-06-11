@@ -6,9 +6,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ResourceExerciseNameResolver @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : ExerciseNameResolver {
-    override fun displayName(id: String, fallbackName: String): String =
-        BuiltInExerciseNames.resById[id]?.let(context::getString) ?: fallbackName
-}
+class ResourceExerciseNameResolver
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+    ) : ExerciseNameResolver {
+        override fun displayName(
+            id: String,
+            fallbackName: String,
+        ): String = BuiltInExerciseNames.resById[id]?.let(context::getString) ?: fallbackName
+    }

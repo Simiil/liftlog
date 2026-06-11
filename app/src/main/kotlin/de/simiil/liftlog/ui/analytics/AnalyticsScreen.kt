@@ -1,6 +1,5 @@
 package de.simiil.liftlog.ui.analytics
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -83,7 +82,10 @@ fun AnalyticsScreen(
 }
 
 @Composable
-private fun WeekCard(week: WeekSummary, unit: WeightUnit) {
+private fun WeekCard(
+    week: WeekSummary,
+    unit: WeightUnit,
+) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(22.dp)) {
         Column(Modifier.fillMaxWidth().padding(18.dp)) {
             Text(
@@ -108,22 +110,34 @@ private fun WeekCard(week: WeekSummary, unit: WeightUnit) {
                     Modifier.weight(1f),
                 )
             }
-            val delta = if (week.prevVolumeKg > 0)
-                ((week.volumeKg - week.prevVolumeKg) / week.prevVolumeKg * 100).toInt() else 0
+            val delta =
+                if (week.prevVolumeKg > 0) {
+                    ((week.volumeKg - week.prevVolumeKg) / week.prevVolumeKg * 100).toInt()
+                } else {
+                    0
+                }
             val sign = if (delta >= 0) "+" else ""
             Text(
                 stringResource(R.string.analytics_week_delta, "$sign$delta"),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = if (delta >= 0) LocalLiftLogColors.current.success
-                        else MaterialTheme.colorScheme.error,
+                color =
+                    if (delta >= 0) {
+                        LocalLiftLogColors.current.success
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
             )
         }
     }
 }
 
 @Composable
-private fun Stat(value: String, label: String, modifier: Modifier) {
+private fun Stat(
+    value: String,
+    label: String,
+    modifier: Modifier,
+) {
     Column(modifier) {
         Text(value, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
         Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -131,7 +145,10 @@ private fun Stat(value: String, label: String, modifier: Modifier) {
 }
 
 @Composable
-private fun SearchBar(query: String, onChange: (String) -> Unit) {
+private fun SearchBar(
+    query: String,
+    onChange: (String) -> Unit,
+) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(100.dp)) {
         Row(
             Modifier.fillMaxWidth().height(50.dp).padding(horizontal = 16.dp),
@@ -182,11 +199,12 @@ private fun ExerciseRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 if (s != null && s.trend !is TrendResult.Stale) {
-                    val metric = if (s.bodyweight) {
-                        stringResource(R.string.analytics_reps_value, s.currentValue.toInt())
-                    } else {
-                        stringResource(R.string.analytics_e1rm_value, Weights.format(s.currentValue, unit), Weights.label(unit))
-                    }
+                    val metric =
+                        if (s.bodyweight) {
+                            stringResource(R.string.analytics_reps_value, s.currentValue.toInt())
+                        } else {
+                            stringResource(R.string.analytics_e1rm_value, Weights.format(s.currentValue, unit), Weights.label(unit))
+                        }
                     Text(metric, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 // In the overview, an insufficient-data row shows just the name + metric —

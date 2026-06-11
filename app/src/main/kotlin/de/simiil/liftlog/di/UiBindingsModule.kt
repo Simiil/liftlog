@@ -10,7 +10,5 @@ import de.simiil.liftlog.ui.exercises.ResourceExerciseNameResolver
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class UiBindingsModule {
-    @Binds abstract fun bindExerciseNameResolver(
-        impl: ResourceExerciseNameResolver,
-    ): ExerciseNameResolver
+    @Binds abstract fun bindExerciseNameResolver(impl: ResourceExerciseNameResolver): ExerciseNameResolver
 }

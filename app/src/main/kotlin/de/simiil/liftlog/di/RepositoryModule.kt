@@ -22,14 +22,18 @@ import de.simiil.liftlog.ui.settings.DocumentIo
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
-
     @Binds
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
 
     @Binds abstract fun bindExerciseRepository(impl: ExerciseRepositoryImpl): ExerciseRepository
+
     @Binds abstract fun bindPlanRepository(impl: PlanRepositoryImpl): PlanRepository
+
     @Binds abstract fun bindSessionRepository(impl: SessionRepositoryImpl): SessionRepository
+
     @Binds abstract fun bindAnalyticsRepository(impl: AnalyticsRepositoryImpl): AnalyticsRepository
+
     @Binds abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
+
     @Binds abstract fun bindDocumentIo(impl: AndroidDocumentIo): DocumentIo
 }

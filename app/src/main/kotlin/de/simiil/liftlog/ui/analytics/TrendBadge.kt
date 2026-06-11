@@ -14,26 +14,40 @@ import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.ui.theme.LocalLiftLogColors
 
 @Composable
-fun TrendBadge(trend: TrendResult, modifier: Modifier = Modifier, large: Boolean = false) {
+fun TrendBadge(
+    trend: TrendResult,
+    modifier: Modifier = Modifier,
+    large: Boolean = false,
+) {
     val success = LocalLiftLogColors.current.success
     val size: TextUnit = if (large) 15.sp else 13.sp
-    val (text, color, weight) = when (trend) {
-        is TrendResult.Stale ->
-            Triple(stringResource(R.string.trend_stale, trend.weeks), MaterialTheme.colorScheme.onSurfaceVariant, FontWeight.Medium)
-        TrendResult.Insufficient ->
-            Triple(stringResource(R.string.trend_insufficient), MaterialTheme.colorScheme.onSurfaceVariant, FontWeight.Medium)
-        is TrendResult.Ok -> {
-            val pct = formatPercent(trend.percent)
-            when (trend.direction) {
-                TrendDirection.UP -> Triple(stringResource(R.string.trend_up, pct), success, FontWeight.Bold)
-                TrendDirection.DOWN -> Triple(stringResource(R.string.trend_down, pct), MaterialTheme.colorScheme.error, FontWeight.Bold)
-                TrendDirection.FLAT -> Triple(stringResource(R.string.trend_flat, pct), MaterialTheme.colorScheme.onSurfaceVariant, FontWeight.Bold)
+    val (text, color, weight) =
+        when (trend) {
+            is TrendResult.Stale ->
+                Triple(stringResource(R.string.trend_stale, trend.weeks), MaterialTheme.colorScheme.onSurfaceVariant, FontWeight.Medium)
+            TrendResult.Insufficient ->
+                Triple(stringResource(R.string.trend_insufficient), MaterialTheme.colorScheme.onSurfaceVariant, FontWeight.Medium)
+            is TrendResult.Ok -> {
+                val pct = formatPercent(trend.percent)
+                when (trend.direction) {
+                    TrendDirection.UP -> Triple(stringResource(R.string.trend_up, pct), success, FontWeight.Bold)
+                    TrendDirection.DOWN ->
+                        Triple(
+                            stringResource(R.string.trend_down, pct),
+                            MaterialTheme.colorScheme.error,
+                            FontWeight.Bold,
+                        )
+                    TrendDirection.FLAT ->
+                        Triple(
+                            stringResource(R.string.trend_flat, pct),
+                            MaterialTheme.colorScheme.onSurfaceVariant,
+                            FontWeight.Bold,
+                        )
+                }
             }
         }
-    }
     Text(text = text, color = color, fontWeight = weight, fontSize = size, modifier = modifier)
 }
 
 /** "+4.0" / "-2.1" — one decimal, locale separator, explicit sign for non-negative. */
-private fun formatPercent(percent: Double): String =
-    String.format(java.util.Locale.getDefault(), "%+.1f", percent)
+private fun formatPercent(percent: Double): String = String.format(java.util.Locale.getDefault(), "%+.1f", percent)

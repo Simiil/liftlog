@@ -59,23 +59,26 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/json"),
-    ) { uri -> uri?.let(viewModel::export) }
-    val importLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri -> uri?.let(viewModel::prepareImport) }
+    val exportLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument("application/json"),
+        ) { uri -> uri?.let(viewModel::export) }
+    val importLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.OpenDocument(),
+        ) { uri -> uri?.let(viewModel::prepareImport) }
 
     val exported = stringResource(R.string.backup_exported)
     val exportFailed = stringResource(R.string.backup_export_failed)
     val imported = stringResource(R.string.backup_imported)
     LaunchedEffect(uiState.message) {
-        val text = when (uiState.message) {
-            SettingsMessage.EXPORTED -> exported
-            SettingsMessage.EXPORT_FAILED -> exportFailed
-            SettingsMessage.IMPORTED -> imported
-            null -> null
-        }
+        val text =
+            when (uiState.message) {
+                SettingsMessage.EXPORTED -> exported
+                SettingsMessage.EXPORT_FAILED -> exportFailed
+                SettingsMessage.IMPORTED -> imported
+                null -> null
+            }
         if (text != null) {
             try {
                 snackbarHostState.showSnackbar(text)
@@ -103,9 +106,10 @@ fun SettingsScreen(
         },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
+            modifier =
+                Modifier
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState()),
         ) {
             Column(Modifier.selectableGroup()) {
                 SectionHeader(R.string.settings_theme_label)
@@ -138,11 +142,13 @@ fun SettingsScreen(
     }
 
     uiState.pendingImport?.let { summary ->
-        val date = remember(summary) {
-            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-                .withZone(ZoneId.systemDefault())
-                .format(summary.exportedAt)
-        }
+        val date =
+            remember(summary) {
+                DateTimeFormatter
+                    .ofLocalizedDate(FormatStyle.MEDIUM)
+                    .withZone(ZoneId.systemDefault())
+                    .format(summary.exportedAt)
+            }
         AlertDialog(
             onDismissRequest = viewModel::dismissImport,
             title = { Text(stringResource(R.string.backup_import_confirm_title)) },
@@ -161,14 +167,17 @@ fun SettingsScreen(
     }
 
     uiState.dialog?.let { dialog ->
-        val body = when (dialog) {
-            SettingsDialog.LiveSession -> stringResource(R.string.backup_error_live_session)
-            is SettingsDialog.Newer -> stringResource(R.string.backup_error_newer)
-            is SettingsDialog.Invalid -> when (dialog.reason) {
-                InvalidReason.MALFORMED, InvalidReason.MISSING_FIELDS, InvalidReason.BAD_TIMESTAMP,
-                InvalidReason.FK_ORPHAN, InvalidReason.UNKNOWN_ENUM -> stringResource(R.string.backup_error_corrupt)
+        val body =
+            when (dialog) {
+                SettingsDialog.LiveSession -> stringResource(R.string.backup_error_live_session)
+                is SettingsDialog.Newer -> stringResource(R.string.backup_error_newer)
+                is SettingsDialog.Invalid ->
+                    when (dialog.reason) {
+                        InvalidReason.MALFORMED, InvalidReason.MISSING_FIELDS, InvalidReason.BAD_TIMESTAMP,
+                        InvalidReason.FK_ORPHAN, InvalidReason.UNKNOWN_ENUM,
+                        -> stringResource(R.string.backup_error_corrupt)
+                    }
             }
-        }
         AlertDialog(
             onDismissRequest = viewModel::dismissDialog,
             title = { Text(stringResource(R.string.backup_error_title)) },
@@ -181,13 +190,16 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SectionHeader(@StringRes labelRes: Int) {
+private fun SectionHeader(
+    @StringRes labelRes: Int,
+) {
     Text(
         text = stringResource(labelRes),
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .semantics { heading() },
+        modifier =
+            Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .semantics { heading() },
     )
 }
 
@@ -199,11 +211,12 @@ private fun ActionRow(
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp) // comfortable tap target (a11y §7 floor is 48dp)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp) // comfortable tap target (a11y §7 floor is 48dp)
+                .clickable(role = Role.Button, onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         icon()
@@ -226,15 +239,15 @@ private fun ThemeOptionRow(
     onSelect: (ThemePreference) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .selectable(
-                selected = option == currentSelection,
-                onClick = { onSelect(option) },
-                role = Role.RadioButton,
-            )
-            .padding(horizontal = 16.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .selectable(
+                    selected = option == currentSelection,
+                    onClick = { onSelect(option) },
+                    role = Role.RadioButton,
+                ).padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(selected = option == currentSelection, onClick = null)

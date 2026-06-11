@@ -23,16 +23,18 @@ internal fun Modifier.dashedBorder(
     cornerRadius: Dp,
     on: Dp = 6.dp,
     off: Dp = 4.dp,
-): Modifier = drawBehind {
-    val stroke = width.toPx()
-    drawRoundRect(
-        color = color,
-        topLeft = Offset(stroke / 2f, stroke / 2f),
-        size = Size(size.width - stroke, size.height - stroke),
-        cornerRadius = CornerRadius(cornerRadius.toPx()),
-        style = Stroke(
-            width = stroke,
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(on.toPx(), off.toPx())),
-        ),
-    )
-}
+): Modifier =
+    drawBehind {
+        val stroke = width.toPx()
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(stroke / 2f, stroke / 2f),
+            size = Size(size.width - stroke, size.height - stroke),
+            cornerRadius = CornerRadius(cornerRadius.toPx()),
+            style =
+                Stroke(
+                    width = stroke,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(on.toPx(), off.toPx())),
+                ),
+        )
+    }

@@ -111,19 +111,21 @@ private fun PlansContent(
         if (!loading && plans.isEmpty()) {
             PlansEmptyState(
                 onNewPlan = onNewPlan,
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
+                modifier =
+                    Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
             )
         } else {
             LazyColumn(
                 modifier = Modifier.padding(innerPadding),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 8.dp,
-                    bottom = 24.dp,
-                ),
+                contentPadding =
+                    PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 24.dp,
+                    ),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 items(plans, key = { it.id }) { plan ->
@@ -167,13 +169,14 @@ private fun PlanGroupCard(
             // .plan-group-head — whole-width button → edit plan
             val editCd = stringResource(R.string.plan_edit_cd, plan.name)
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .clickable(onClick = onEditPlan)
-                    .testTag(UiTestTags.PLAN_ROW)
-                    .semantics { contentDescription = editCd }
-                    .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 10.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable(onClick = onEditPlan)
+                        .testTag(UiTestTags.PLAN_ROW)
+                        .semantics { contentDescription = editCd }
+                        .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
@@ -185,10 +188,11 @@ private fun PlanGroupCard(
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
-                        text = stringResource(
-                            R.string.plan_group_sub,
-                            pluralStringResource(R.plurals.plan_days_count, plan.days.size, plan.days.size),
-                        ),
+                        text =
+                            stringResource(
+                                R.string.plan_group_sub,
+                                pluralStringResource(R.plurals.plan_days_count, plan.days.size, plan.days.size),
+                            ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -221,21 +225,23 @@ private fun PlanDayRow(
 ) {
     val startCd = stringResource(R.string.plan_start_day_cd, day.name)
     Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .testTag(UiTestTags.PLAN_DAY_ROW)
-            .padding(start = 12.dp, top = 6.dp, bottom = 6.dp, end = 6.dp),
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(16.dp))
+                .testTag(UiTestTags.PLAN_DAY_ROW)
+                .padding(start = 12.dp, top = 6.dp, bottom = 6.dp, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         // .plan-row-main → start day
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(12.dp))
-                .clickable(onClick = onStart)
-                .semantics(mergeDescendants = true) {}
-                .padding(vertical = 10.dp),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(onClick = onStart)
+                    .semantics(mergeDescendants = true) {}
+                    .padding(vertical = 10.dp),
         ) {
             Text(
                 text = day.name,
@@ -251,13 +257,14 @@ private fun PlanDayRow(
         }
         // .row-play — 48dp circular primary/onPrimary play button → start day (F-08)
         Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable(onClick = onStart)
-                .testTag(UiTestTags.PLAN_DAY_START)
-                .semantics { contentDescription = startCd },
+            modifier =
+                Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable(onClick = onStart)
+                    .testTag(UiTestTags.PLAN_DAY_START)
+                    .semantics { contentDescription = startCd },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -316,35 +323,39 @@ private fun PlansEmptyState(
         icon = Icons.Outlined.FitnessCenter,
         title = stringResource(R.string.plans_empty_title),
         subtitle = stringResource(R.string.plans_empty_sub),
-        action = EmptyStateAction(
-            label = stringResource(R.string.plans_create),
-            onClick = onNewPlan,
-        ),
+        action =
+            EmptyStateAction(
+                label = stringResource(R.string.plans_create),
+                onClick = onNewPlan,
+            ),
         modifier = modifier,
     )
 }
 
 // ─── Previews ──────────────────────────────────────────────────────────────────
 
-private val previewPlans = listOf(
-    PlanCardUi(
-        id = "1",
-        name = "Push Pull Legs",
-        days = listOf(
-            PlanDayUi("d1", "Push Day", 5, listOf(MuscleGroup.CHEST, MuscleGroup.SHOULDERS, MuscleGroup.TRICEPS)),
-            PlanDayUi("d2", "Pull Day", 5, listOf(MuscleGroup.BACK, MuscleGroup.BICEPS)),
-            PlanDayUi("d3", "Leg Day", 4, listOf(MuscleGroup.QUADS, MuscleGroup.HAMSTRINGS, MuscleGroup.GLUTES)),
+private val previewPlans =
+    listOf(
+        PlanCardUi(
+            id = "1",
+            name = "Push Pull Legs",
+            days =
+                listOf(
+                    PlanDayUi("d1", "Push Day", 5, listOf(MuscleGroup.CHEST, MuscleGroup.SHOULDERS, MuscleGroup.TRICEPS)),
+                    PlanDayUi("d2", "Pull Day", 5, listOf(MuscleGroup.BACK, MuscleGroup.BICEPS)),
+                    PlanDayUi("d3", "Leg Day", 4, listOf(MuscleGroup.QUADS, MuscleGroup.HAMSTRINGS, MuscleGroup.GLUTES)),
+                ),
         ),
-    ),
-    PlanCardUi(
-        id = "2",
-        name = "Upper / Lower",
-        days = listOf(
-            PlanDayUi("d4", "Upper A", 6, listOf(MuscleGroup.CHEST, MuscleGroup.BACK)),
-            PlanDayUi("d5", "Lower A", 0, emptyList()),
+        PlanCardUi(
+            id = "2",
+            name = "Upper / Lower",
+            days =
+                listOf(
+                    PlanDayUi("d4", "Upper A", 6, listOf(MuscleGroup.CHEST, MuscleGroup.BACK)),
+                    PlanDayUi("d5", "Lower A", 0, emptyList()),
+                ),
         ),
-    ),
-)
+    )
 
 @Preview(name = "Plans — empty (light)", showBackground = true)
 @Composable

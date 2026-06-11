@@ -18,8 +18,8 @@ import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLa
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
@@ -28,7 +28,11 @@ import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 
 /** A single data point: x = session time (epoch ms), y = the selected metric value. */
-data class ChartPoint(val x: Float, val y: Float, val isPr: Boolean)
+data class ChartPoint(
+    val x: Float,
+    val y: Float,
+    val isPr: Boolean,
+)
 
 /**
  * Progress line chart (04-analytics-spec §6, chart 2). A `primary` line with a dot at every
@@ -48,35 +52,43 @@ fun ProgressLineChart(
     val lineColor = MaterialTheme.colorScheme.primary
     // Filled with the chart-card color so each regular session reads as a hollow cut-out on the
     // line in both light and dark (PR sessions get the prominent tertiary dot below).
-    val regularPoint = LineCartesianLayer.Point(
-        rememberShapeComponent(fill = Fill(MaterialTheme.colorScheme.tertiary.toArgb()), shape = CorneredShape.Pill),
-        sizeDp = 7f,
-    )
-    val prPoint = LineCartesianLayer.Point(
-        rememberShapeComponent(fill = Fill(MaterialTheme.colorScheme.tertiary.toArgb()), shape = CorneredShape.Pill),
-        sizeDp = 11f,
-    )
+    val regularPoint =
+        LineCartesianLayer.Point(
+            rememberShapeComponent(fill = Fill(MaterialTheme.colorScheme.tertiary.toArgb()), shape = CorneredShape.Pill),
+            sizeDp = 7f,
+        )
+    val prPoint =
+        LineCartesianLayer.Point(
+            rememberShapeComponent(fill = Fill(MaterialTheme.colorScheme.tertiary.toArgb()), shape = CorneredShape.Pill),
+            sizeDp = 11f,
+        )
     val prXs = remember(points) { points.filter { it.isPr }.map { it.x.toDouble() }.toSet() }
-    val pointProvider = remember(regularPoint, prPoint, prXs) {
-        object : LineCartesianLayer.PointProvider {
-            override fun getPoint(entry: LineCartesianLayerModel.Entry, seriesIndex: Int, extraStore: ExtraStore) =
-                if (entry.x in prXs) prPoint else regularPoint
-            override fun getLargestPoint(extraStore: ExtraStore) = prPoint
+    val pointProvider =
+        remember(regularPoint, prPoint, prXs) {
+            object : LineCartesianLayer.PointProvider {
+                override fun getPoint(
+                    entry: LineCartesianLayerModel.Entry,
+                    seriesIndex: Int,
+                    extraStore: ExtraStore,
+                ) = if (entry.x in prXs) prPoint else regularPoint
+
+                override fun getLargestPoint(extraStore: ExtraStore) = prPoint
+            }
         }
-    }
 
     // Zoom Y to the data (with headroom) for weight/rep metrics; zero-based for cumulative ones.
-    val rangeProvider = remember(points, zeroBased) {
-        val ys = points.map { it.y }
-        val dataMin = ys.min().toDouble()
-        val dataMax = ys.max().toDouble()
-        val pad = ((dataMax - dataMin).takeIf { it > 0.0 } ?: (dataMax.takeIf { it != 0.0 } ?: 1.0)) * 0.12
-        if (zeroBased) {
-            CartesianLayerRangeProvider.fixed(minY = 0.0, maxY = dataMax + pad)
-        } else {
-            CartesianLayerRangeProvider.fixed(minY = dataMin - pad, maxY = dataMax + pad)
+    val rangeProvider =
+        remember(points, zeroBased) {
+            val ys = points.map { it.y }
+            val dataMin = ys.min().toDouble()
+            val dataMax = ys.max().toDouble()
+            val pad = ((dataMax - dataMin).takeIf { it > 0.0 } ?: (dataMax.takeIf { it != 0.0 } ?: 1.0)) * 0.12
+            if (zeroBased) {
+                CartesianLayerRangeProvider.fixed(minY = 0.0, maxY = dataMax + pad)
+            } else {
+                CartesianLayerRangeProvider.fixed(minY = dataMin - pad, maxY = dataMax + pad)
+            }
         }
-    }
 
     val modelProducer = remember { CartesianChartModelProducer() }
     LaunchedEffect(points) {
@@ -88,30 +100,33 @@ fun ProgressLineChart(
     // Y axis only: x is epoch-ms, so a default bottom axis would render raw-millis labels.
     // Real date labels on x are a deferred refinement (M4 "simple Vico" decision).
     CartesianChartHost(
-        chart = rememberCartesianChart(
-            rememberLineCartesianLayer(
-                lineProvider = LineCartesianLayer.LineProvider.series(
-                    LineCartesianLayer.rememberLine(
-                        fill = LineCartesianLayer.LineFill.single(Fill(lineColor.toArgb())),
-                        pointProvider = pointProvider,
-                    ),
+        chart =
+            rememberCartesianChart(
+                rememberLineCartesianLayer(
+                    lineProvider =
+                        LineCartesianLayer.LineProvider.series(
+                            LineCartesianLayer.rememberLine(
+                                fill = LineCartesianLayer.LineFill.single(Fill(lineColor.toArgb())),
+                                pointProvider = pointProvider,
+                            ),
+                        ),
+                    rangeProvider = rangeProvider,
                 ),
-                rangeProvider = rangeProvider,
+                startAxis = VerticalAxis.rememberStart(),
             ),
-            startAxis = VerticalAxis.rememberStart(),
-        ),
         modelProducer = modelProducer,
         // The chart is non-text content; expose a spoken summary so screen-reader users get the
         // trend the line conveys visually (F-06).
-        modifier = modifier
-            .fillMaxWidth()
-            .height(188.dp)
-            .then(
-                if (contentDescription != null) {
-                    Modifier.semantics { this.contentDescription = contentDescription }
-                } else {
-                    Modifier
-                },
-            ),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(188.dp)
+                .then(
+                    if (contentDescription != null) {
+                        Modifier.semantics { this.contentDescription = contentDescription }
+                    } else {
+                        Modifier
+                    },
+                ),
     )
 }

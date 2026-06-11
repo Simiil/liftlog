@@ -19,41 +19,114 @@ import org.junit.Test
 import java.time.Instant
 
 class BackupCodecTest {
-
     private val appInfo = AppInfo(name = "LiftLog", versionName = "0.1.0", dbSchemaVersion = 1)
     private val exportedAt = Instant.parse("2026-06-09T12:00:00Z")
 
     // One row per table; includes a tombstone (exercise ex2) and a hidden exercise.
-    private fun fixture() = BackupSnapshot(
-        exercises = listOf(
-            ExerciseEntity("ex1", "Bench Press", MuscleGroup.CHEST, Equipment.BARBELL,
-                isBuiltIn = true, isHidden = false, createdAt = 1000L, updatedAt = 2000L, deletedAt = null),
-            ExerciseEntity("ex2", "Old Curl", MuscleGroup.BICEPS, Equipment.DUMBBELL,
-                isBuiltIn = false, isHidden = true, createdAt = 1000L, updatedAt = 5000L, deletedAt = 6000L),
-        ),
-        workoutPlans = listOf(
-            WorkoutPlanEntity("pl1", "PPL", 0, createdAt = 1000L, updatedAt = 2000L, deletedAt = null)),
-        planDayTemplates = listOf(
-            PlanDayTemplateEntity("td1", "pl1", "Push", 0, createdAt = 1000L, updatedAt = 2000L, deletedAt = null)),
-        templateExercises = listOf(
-            TemplateExerciseEntity("te1", "td1", "ex1", 0, targetSets = 3, targetRepsMin = 5,
-                targetRepsMax = 8, createdAt = 1000L, updatedAt = 2000L, deletedAt = null)),
-        sessions = listOf(
-            SessionEntity("s1", templateId = "td1", templateNameSnapshot = "Push", startedAt = 3000L,
-                endedAt = 4000L, note = null, createdAt = 3000L, updatedAt = 4000L, deletedAt = null)),
-        sessionExercises = listOf(
-            SessionExerciseEntity("se1", "s1", "ex1", 0, targetSets = 3, targetRepsMin = 5,
-                targetRepsMax = 8, createdAt = 3000L, updatedAt = 4000L, deletedAt = null)),
-        loggedSets = listOf(
-            LoggedSetEntity("ls1", "se1", weightKg = 82.5, reps = 5, position = 1, completedAt = 3500L,
-                rpe = 8.0, note = null, createdAt = 3500L, updatedAt = 3500L, deletedAt = null)),
-        weightUnit = WeightUnit.LB,
-        theme = ThemePreference.DARK,
-    )
+    private fun fixture() =
+        BackupSnapshot(
+            exercises =
+                listOf(
+                    ExerciseEntity(
+                        "ex1",
+                        "Bench Press",
+                        MuscleGroup.CHEST,
+                        Equipment.BARBELL,
+                        isBuiltIn = true,
+                        isHidden = false,
+                        createdAt = 1000L,
+                        updatedAt = 2000L,
+                        deletedAt = null,
+                    ),
+                    ExerciseEntity(
+                        "ex2",
+                        "Old Curl",
+                        MuscleGroup.BICEPS,
+                        Equipment.DUMBBELL,
+                        isBuiltIn = false,
+                        isHidden = true,
+                        createdAt = 1000L,
+                        updatedAt = 5000L,
+                        deletedAt = 6000L,
+                    ),
+                ),
+            workoutPlans =
+                listOf(
+                    WorkoutPlanEntity("pl1", "PPL", 0, createdAt = 1000L, updatedAt = 2000L, deletedAt = null),
+                ),
+            planDayTemplates =
+                listOf(
+                    PlanDayTemplateEntity("td1", "pl1", "Push", 0, createdAt = 1000L, updatedAt = 2000L, deletedAt = null),
+                ),
+            templateExercises =
+                listOf(
+                    TemplateExerciseEntity(
+                        "te1",
+                        "td1",
+                        "ex1",
+                        0,
+                        targetSets = 3,
+                        targetRepsMin = 5,
+                        targetRepsMax = 8,
+                        createdAt = 1000L,
+                        updatedAt = 2000L,
+                        deletedAt = null,
+                    ),
+                ),
+            sessions =
+                listOf(
+                    SessionEntity(
+                        "s1",
+                        templateId = "td1",
+                        templateNameSnapshot = "Push",
+                        startedAt = 3000L,
+                        endedAt = 4000L,
+                        note = null,
+                        createdAt = 3000L,
+                        updatedAt = 4000L,
+                        deletedAt = null,
+                    ),
+                ),
+            sessionExercises =
+                listOf(
+                    SessionExerciseEntity(
+                        "se1",
+                        "s1",
+                        "ex1",
+                        0,
+                        targetSets = 3,
+                        targetRepsMin = 5,
+                        targetRepsMax = 8,
+                        createdAt = 3000L,
+                        updatedAt = 4000L,
+                        deletedAt = null,
+                    ),
+                ),
+            loggedSets =
+                listOf(
+                    LoggedSetEntity(
+                        "ls1",
+                        "se1",
+                        weightKg = 82.5,
+                        reps = 5,
+                        position = 1,
+                        completedAt = 3500L,
+                        rpe = 8.0,
+                        note = null,
+                        createdAt = 3500L,
+                        updatedAt = 3500L,
+                        deletedAt = null,
+                    ),
+                ),
+            weightUnit = WeightUnit.LB,
+            theme = ThemePreference.DARK,
+        )
 
     private fun golden(): String =
-        this::class.java.getResourceAsStream("/backup/golden-backup.json")!!
-            .bufferedReader().use { it.readText() }
+        this::class.java
+            .getResourceAsStream("/backup/golden-backup.json")!!
+            .bufferedReader()
+            .use { it.readText() }
 
     @Test
     fun `encode matches the golden file`() {
@@ -84,9 +157,12 @@ class BackupCodecTest {
 
     @Test
     fun `missing required field is rejected`() {
-        val noData = """{"formatVersion":1,"exportedAt":"2026-06-09T12:00:00Z",
+        val noData =
+            """
+            {"formatVersion":1,"exportedAt":"2026-06-09T12:00:00Z",
             "app":{"name":"LiftLog","versionName":"0.1.0","dbSchemaVersion":1},
-            "settings":{"weightUnit":"KG","theme":"SYSTEM"}}""".trimIndent()
+            "settings":{"weightUnit":"KG","theme":"SYSTEM"}}
+            """.trimIndent()
         assertEquals(ParseResult.Invalid(InvalidReason.MISSING_FIELDS), BackupCodec.decode(noData))
     }
 
@@ -104,14 +180,22 @@ class BackupCodecTest {
 
     @Test
     fun `bad timestamp is rejected`() {
-        val bad = BackupCodec.encode(fixture(), exportedAt, appInfo)
-            .replace("\"completedAt\": \"", "\"completedAt\": \"NOPE")
+        val bad =
+            BackupCodec
+                .encode(fixture(), exportedAt, appInfo)
+                .replace("\"completedAt\": \"", "\"completedAt\": \"NOPE")
         assertEquals(ParseResult.Invalid(InvalidReason.BAD_TIMESTAMP), BackupCodec.decode(bad))
     }
 
     @Test
     fun `fk orphan is rejected`() {
-        val bad = BackupCodec.encode(fixture(), exportedAt, appInfo).replace("\"sessionExerciseId\": \"se1\"", "\"sessionExerciseId\": \"ghost\"")
+        val bad =
+            BackupCodec
+                .encode(
+                    fixture(),
+                    exportedAt,
+                    appInfo,
+                ).replace("\"sessionExerciseId\": \"se1\"", "\"sessionExerciseId\": \"ghost\"")
         assertEquals(ParseResult.Invalid(InvalidReason.FK_ORPHAN), BackupCodec.decode(bad))
     }
 
@@ -125,24 +209,68 @@ class BackupCodecTest {
 
     @Test
     fun `bad top-level exportedAt is rejected`() {
-        val bad = BackupCodec.encode(fixture(), exportedAt, appInfo)
-            .replace("\"exportedAt\": \"2026-06-09T12:00:00Z\"", "\"exportedAt\": \"not-a-date\"")
+        val bad =
+            BackupCodec
+                .encode(fixture(), exportedAt, appInfo)
+                .replace("\"exportedAt\": \"2026-06-09T12:00:00Z\"", "\"exportedAt\": \"not-a-date\"")
         assertEquals(ParseResult.Invalid(InvalidReason.BAD_TIMESTAMP), BackupCodec.decode(bad))
     }
 
     @Test
     fun `ad-hoc session with null templateId round-trips`() {
-        val snap = BackupSnapshot(
-            exercises = listOf(ExerciseEntity("ex1", "Bench", MuscleGroup.CHEST, Equipment.BARBELL,
-                isBuiltIn = false, isHidden = false, createdAt = 1000L, updatedAt = 1000L, deletedAt = null)),
-            workoutPlans = emptyList(), planDayTemplates = emptyList(), templateExercises = emptyList(),
-            sessions = listOf(SessionEntity("s1", templateId = null, templateNameSnapshot = null,
-                startedAt = 3000L, endedAt = 4000L, note = null, createdAt = 3000L, updatedAt = 4000L, deletedAt = null)),
-            sessionExercises = listOf(SessionExerciseEntity("se1", "s1", "ex1", 0, null, null, null, 3000L, 4000L, null)),
-            loggedSets = listOf(LoggedSetEntity("ls1", "se1", 60.0, 10, 1, completedAt = 3500L,
-                rpe = null, note = null, createdAt = 3500L, updatedAt = 3500L, deletedAt = null)),
-            weightUnit = WeightUnit.KG, theme = ThemePreference.SYSTEM,
-        )
+        val snap =
+            BackupSnapshot(
+                exercises =
+                    listOf(
+                        ExerciseEntity(
+                            "ex1",
+                            "Bench",
+                            MuscleGroup.CHEST,
+                            Equipment.BARBELL,
+                            isBuiltIn = false,
+                            isHidden = false,
+                            createdAt = 1000L,
+                            updatedAt = 1000L,
+                            deletedAt = null,
+                        ),
+                    ),
+                workoutPlans = emptyList(),
+                planDayTemplates = emptyList(),
+                templateExercises = emptyList(),
+                sessions =
+                    listOf(
+                        SessionEntity(
+                            "s1",
+                            templateId = null,
+                            templateNameSnapshot = null,
+                            startedAt = 3000L,
+                            endedAt = 4000L,
+                            note = null,
+                            createdAt = 3000L,
+                            updatedAt = 4000L,
+                            deletedAt = null,
+                        ),
+                    ),
+                sessionExercises = listOf(SessionExerciseEntity("se1", "s1", "ex1", 0, null, null, null, 3000L, 4000L, null)),
+                loggedSets =
+                    listOf(
+                        LoggedSetEntity(
+                            "ls1",
+                            "se1",
+                            60.0,
+                            10,
+                            1,
+                            completedAt = 3500L,
+                            rpe = null,
+                            note = null,
+                            createdAt = 3500L,
+                            updatedAt = 3500L,
+                            deletedAt = null,
+                        ),
+                    ),
+                weightUnit = WeightUnit.KG,
+                theme = ThemePreference.SYSTEM,
+            )
         val result = BackupCodec.decode(BackupCodec.encode(snap, exportedAt, appInfo))
         assertTrue(result is ParseResult.Ready)
         assertEquals(snap, (result as ParseResult.Ready).parsed as BackupSnapshot)
@@ -158,8 +286,10 @@ class BackupCodecTest {
 
     @Test
     fun `out-of-range timestamp is rejected`() {
-        val bad = BackupCodec.encode(fixture(), exportedAt, appInfo)
-            .replace("\"completedAt\": \"1970-01-01T00:00:03.500Z\"", "\"completedAt\": \"+999999999-12-31T23:59:59Z\"")
+        val bad =
+            BackupCodec
+                .encode(fixture(), exportedAt, appInfo)
+                .replace("\"completedAt\": \"1970-01-01T00:00:03.500Z\"", "\"completedAt\": \"+999999999-12-31T23:59:59Z\"")
         assertEquals(ParseResult.Invalid(InvalidReason.BAD_TIMESTAMP), BackupCodec.decode(bad))
     }
 

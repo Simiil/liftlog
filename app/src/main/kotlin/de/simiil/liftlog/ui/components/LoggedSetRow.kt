@@ -80,8 +80,14 @@ fun LoggedSetRow(
             index = index,
             set = set,
             unit = unit,
-            onSave = { w, r, rpe, note -> onSave(w, r, rpe, note); onCollapse() },
-            onDelete = { onDelete(); onCollapse() },
+            onSave = { w, r, rpe, note ->
+                onSave(w, r, rpe, note)
+                onCollapse()
+            },
+            onDelete = {
+                onDelete()
+                onCollapse()
+            },
             onCollapse = onCollapse,
             modifier = modifier,
         )
@@ -106,15 +112,17 @@ private fun CollapsedSetRow(
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val unitLong = when (unit) {
-        WeightUnit.KG -> stringResource(R.string.weight_kilograms)
-        WeightUnit.LB -> stringResource(R.string.weight_pounds)
-    }
+    val unitLong =
+        when (unit) {
+            WeightUnit.KG -> stringResource(R.string.weight_kilograms)
+            WeightUnit.LB -> stringResource(R.string.weight_pounds)
+        }
     val weightFormatted = Weights.format(set.weightKg, unit)
     val unitLabel = Weights.label(unit)
-    val rpeFormatted = set.rpe?.let { rpe ->
-        Decimals.format(rpe)
-    }
+    val rpeFormatted =
+        set.rpe?.let { rpe ->
+            Decimals.format(rpe)
+        }
     val cdBase = stringResource(R.string.cd_set_logged, index, weightFormatted, unitLong, set.reps)
     val cdRpe = rpeFormatted?.let { stringResource(R.string.cd_set_has_rpe, it) } ?: ""
     val cdNote = if (set.note != null) stringResource(R.string.cd_set_has_note) else ""
@@ -125,32 +133,40 @@ private fun CollapsedSetRow(
         // The clickable merge-root MUST be the same node that carries the LOGGED_SET_ROW
         // testTag (from `modifier`) so the critical UI test's `tag AND text` matcher finds
         // one node with both the tag and the merged "{weight} {unit} × {reps}" text.
-        modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .combinedClickable(
-                onLongClick = onLongPress,
-                onClick = { /* collapsed row: nothing on single tap */ },
-            )
-            .semantics {
-                contentDescription = cd
-                customActions = listOf(CustomAccessibilityAction(editLabel) { onLongPress(); true })
-            },
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(14.dp))
+                .combinedClickable(
+                    onLongClick = onLongPress,
+                    onClick = { /* collapsed row: nothing on single tap */ },
+                ).semantics {
+                    contentDescription = cd
+                    customActions =
+                        listOf(
+                            CustomAccessibilityAction(editLabel) {
+                                onLongPress()
+                                true
+                            },
+                        )
+                },
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Row(
             // ≥48dp tall so the tap/long-press target meets the M3 minimum (F-10).
-            modifier = Modifier
-                .heightIn(min = 48.dp)
-                .padding(horizontal = 12.dp, vertical = 9.dp),
+            modifier =
+                Modifier
+                    .heightIn(min = 48.dp)
+                    .padding(horizontal = 12.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Numbered chip
             Box(
-                modifier = Modifier
-                    .size(22.dp)
-                    .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+                modifier =
+                    Modifier
+                        .size(22.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -183,9 +199,10 @@ private fun CollapsedSetRow(
             }
             if (set.note != null) {
                 Box(
-                    modifier = Modifier
-                        .size(7.dp)
-                        .background(MaterialTheme.colorScheme.tertiary, CircleShape),
+                    modifier =
+                        Modifier
+                            .size(7.dp)
+                            .background(MaterialTheme.colorScheme.tertiary, CircleShape),
                 )
             }
             Icon(
@@ -260,9 +277,10 @@ private fun ExpandedSetRow(
             )
             Spacer(Modifier.height(4.dp))
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 FilterChip(
@@ -317,19 +335,20 @@ private fun ExpandedSetRow(
 
 // ─── Previews ─────────────────────────────────────────────────────────────────
 
-private val previewSet = LoggedSet(
-    id = "s1",
-    sessionExerciseId = "se1",
-    weightKg = 85.0,
-    reps = 8,
-    position = 0,
-    completedAt = Instant.ofEpochSecond(0),
-    rpe = 8.5,
-    note = "Felt strong",
-    createdAt = Instant.ofEpochSecond(0),
-    updatedAt = Instant.ofEpochSecond(0),
-    deletedAt = null,
-)
+private val previewSet =
+    LoggedSet(
+        id = "s1",
+        sessionExerciseId = "se1",
+        weightKg = 85.0,
+        reps = 8,
+        position = 0,
+        completedAt = Instant.ofEpochSecond(0),
+        rpe = 8.5,
+        note = "Felt strong",
+        createdAt = Instant.ofEpochSecond(0),
+        updatedAt = Instant.ofEpochSecond(0),
+        deletedAt = null,
+    )
 
 @Preview(name = "LoggedSetRow – collapsed", showBackground = true)
 @Composable

@@ -29,22 +29,34 @@ interface SessionDao {
     suspend fun findSession(id: String): SessionEntity?
 
     @Insert suspend fun insertSession(session: SessionEntity)
+
     @Update suspend fun updateSession(session: SessionEntity)
+
     @Insert suspend fun insertSessionExercise(sessionExercise: SessionExerciseEntity)
+
     @Insert suspend fun insertLoggedSet(loggedSet: LoggedSetEntity)
 
     @Query("UPDATE sessions SET deletedAt = :now, updatedAt = :now WHERE id = :id")
-    suspend fun softDeleteSession(id: String, now: Long)
+    suspend fun softDeleteSession(
+        id: String,
+        now: Long,
+    )
 
     @Query("UPDATE session_exercises SET deletedAt = :now, updatedAt = :now WHERE sessionId = :sessionId AND deletedAt IS NULL")
-    suspend fun softDeleteSessionExercisesFor(sessionId: String, now: Long)
+    suspend fun softDeleteSessionExercisesFor(
+        sessionId: String,
+        now: Long,
+    )
 
     @Query(
         """UPDATE logged_sets SET deletedAt = :now, updatedAt = :now
            WHERE deletedAt IS NULL
-             AND sessionExerciseId IN (SELECT id FROM session_exercises WHERE sessionId = :sessionId)"""
+             AND sessionExerciseId IN (SELECT id FROM session_exercises WHERE sessionId = :sessionId)""",
     )
-    suspend fun softDeleteLoggedSetsForSession(sessionId: String, now: Long)
+    suspend fun softDeleteLoggedSetsForSession(
+        sessionId: String,
+        now: Long,
+    )
 
     @Query("SELECT MAX(position) FROM session_exercises WHERE sessionId = :sessionId AND deletedAt IS NULL")
     suspend fun maxExercisePosition(sessionId: String): Int?
@@ -61,22 +73,35 @@ interface SessionDao {
     @Update suspend fun updateLoggedSet(set: LoggedSetEntity)
 
     @Query("UPDATE logged_sets SET deletedAt = :now, updatedAt = :now WHERE id = :id")
-    suspend fun softDeleteLoggedSet(id: String, now: Long)
+    suspend fun softDeleteLoggedSet(
+        id: String,
+        now: Long,
+    )
 
     @Query("UPDATE session_exercises SET deletedAt = :now, updatedAt = :now WHERE id = :id")
-    suspend fun softDeleteSessionExercise(id: String, now: Long)
+    suspend fun softDeleteSessionExercise(
+        id: String,
+        now: Long,
+    )
 
-    @Query("""UPDATE logged_sets SET deletedAt = :now, updatedAt = :now
-              WHERE sessionExerciseId = :sessionExerciseId AND deletedAt IS NULL""")
-    suspend fun softDeleteLoggedSetsForSessionExercise(sessionExerciseId: String, now: Long)
+    @Query(
+        """UPDATE logged_sets SET deletedAt = :now, updatedAt = :now
+              WHERE sessionExerciseId = :sessionExerciseId AND deletedAt IS NULL""",
+    )
+    suspend fun softDeleteLoggedSetsForSessionExercise(
+        sessionExerciseId: String,
+        now: Long,
+    )
 
-    @Query("""
+    @Query(
+        """
         SELECT se.sessionId AS sessionId, COUNT(ls.id) AS setCount
         FROM session_exercises se
         JOIN logged_sets ls ON ls.sessionExerciseId = se.id AND ls.deletedAt IS NULL
         JOIN sessions s     ON s.id = se.sessionId           AND s.deletedAt IS NULL
         WHERE se.deletedAt IS NULL
         GROUP BY se.sessionId
-    """)
+    """,
+    )
     fun observeSetCountsBySession(): Flow<List<SessionSetCount>>
 }

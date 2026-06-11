@@ -9,11 +9,11 @@ package de.simiil.liftlog.domain.model
 enum class ThemePreference {
     SYSTEM,
     LIGHT,
-    DARK;
+    DARK,
+    ;
 
     companion object {
         /** Unknown or absent persisted values fall back to [SYSTEM]. */
-        fun fromStorageValue(value: String?): ThemePreference =
-            entries.firstOrNull { it.name == value } ?: SYSTEM
+        fun fromStorageValue(value: String?): ThemePreference = entries.firstOrNull { it.name == value } ?: SYSTEM
     }
 }

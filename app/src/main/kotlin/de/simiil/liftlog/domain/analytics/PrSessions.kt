@@ -12,10 +12,11 @@ fun prSessionIds(
     setsByExercise: Map<String, List<DatedSet>>,
     equipmentById: Map<String, Equipment>,
     nowMillis: Long,
-): Set<String> = buildSet {
-    for ((exerciseId, sets) in setsByExercise) {
-        val equipment = equipmentById[exerciseId] ?: continue
-        val summary = summarize(equipment, sets, nowMillis) ?: continue
-        summary.sessions.forEach { if (it.isPr) add(it.sessionId) }
+): Set<String> =
+    buildSet {
+        for ((exerciseId, sets) in setsByExercise) {
+            val equipment = equipmentById[exerciseId] ?: continue
+            val summary = summarize(equipment, sets, nowMillis) ?: continue
+            summary.sessions.forEach { if (it.isPr) add(it.sessionId) }
+        }
     }
-}

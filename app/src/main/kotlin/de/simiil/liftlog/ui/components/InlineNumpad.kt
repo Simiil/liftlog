@@ -87,9 +87,10 @@ fun InlineNumpad(
     Column(modifier = modifier) {
         // ── Head: running value + Cancel ──────────────────────────────────────
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 4.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -194,15 +195,17 @@ fun InlineNumpad(
         // ── Confirm (full width) ──────────────────────────────────────────────
         Button(
             onClick = { onConfirm(currentText) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .semantics { contentDescription = confirmCd },
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .semantics { contentDescription = confirmCd },
             shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
         ) {
             Icon(imageVector = Icons.Filled.Check, contentDescription = null)
             Spacer(Modifier.width(8.dp))
@@ -224,10 +227,11 @@ private fun QuickChip(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier
-            .height(48.dp)
-            .clickable(onClick = onClick)
-            .semantics { contentDescription = contentDesc },
+        modifier =
+            modifier
+                .height(48.dp)
+                .clickable(onClick = onClick)
+                .semantics { contentDescription = contentDesc },
         shape = RoundedCornerShape(100.dp),
         color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
@@ -250,10 +254,11 @@ private fun NumKey(
     content: @Composable () -> Unit,
 ) {
     Surface(
-        modifier = modifier
-            .height(56.dp)
-            .clickable(onClick = onClick)
-            .semantics { contentDescription = contentDesc },
+        modifier =
+            modifier
+                .height(56.dp)
+                .clickable(onClick = onClick)
+                .semantics { contentDescription = contentDesc },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
@@ -262,7 +267,10 @@ private fun NumKey(
 }
 
 @Composable
-private fun NumKeyText(text: String, color: Color = MaterialTheme.colorScheme.onSurface) {
+private fun NumKeyText(
+    text: String,
+    color: Color = MaterialTheme.colorScheme.onSurface,
+) {
     Text(
         text = text,
         fontFamily = FontFamily.Monospace,
@@ -285,9 +293,10 @@ private fun PreviewInlineNumpadWeight() {
             onConfirm = {},
             onDismiss = {},
             unitLabel = "kg",
-            modifier = Modifier
-                .width(360.dp)
-                .padding(8.dp),
+            modifier =
+                Modifier
+                    .width(360.dp)
+                    .padding(8.dp),
         )
     }
 }
@@ -303,9 +312,10 @@ private fun PreviewInlineNumpadReps() {
             onConfirm = {},
             onDismiss = {},
             unitLabel = "reps",
-            modifier = Modifier
-                .width(360.dp)
-                .padding(8.dp),
+            modifier =
+                Modifier
+                    .width(360.dp)
+                    .padding(8.dp),
         )
     }
 }

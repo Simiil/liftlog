@@ -8,7 +8,10 @@ class TrendTest {
     private val day = 86_400_000L
     private val now = 1_000_000_000_000L // fixed "today"
 
-    private fun pointsEndingNow(values: List<Double>, everyDays: Int): List<TrendPoint> {
+    private fun pointsEndingNow(
+        values: List<Double>,
+        everyDays: Int,
+    ): List<TrendPoint> {
         val n = values.size
         return values.mapIndexed { i, v -> TrendPoint(now - (n - 1 - i).toLong() * everyDays * day, v) }
     }
@@ -43,11 +46,12 @@ class TrendTest {
 
     @Test fun lastPointThirtyDaysOld_isStale() {
         // newest point 30 days ago ⇒ stale, ~4 weeks
-        val pts = listOf(
-            TrendPoint(now - 44 * day, 100.0),
-            TrendPoint(now - 37 * day, 101.0),
-            TrendPoint(now - 30 * day, 102.0),
-        )
+        val pts =
+            listOf(
+                TrendPoint(now - 44 * day, 100.0),
+                TrendPoint(now - 37 * day, 101.0),
+                TrendPoint(now - 30 * day, 102.0),
+            )
         val r = trend(pts, now) as TrendResult.Stale
         assertEquals(4, r.weeks)
     }

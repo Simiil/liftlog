@@ -11,7 +11,9 @@ import javax.inject.Inject
 @HiltAndroidApp
 class LiftLogApplication : Application() {
     @Inject lateinit var seeder: ExerciseSeeder
-    @Inject @ApplicationScope lateinit var appScope: CoroutineScope
+
+    @Inject @ApplicationScope
+    lateinit var appScope: CoroutineScope
 
     override fun onCreate() {
         super.onCreate()

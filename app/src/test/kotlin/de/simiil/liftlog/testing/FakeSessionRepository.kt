@@ -5,13 +5,11 @@ import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.model.SessionExercise
 import de.simiil.liftlog.domain.model.SessionWithDetails
 import de.simiil.liftlog.domain.repository.SessionRepository
-import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
+import java.time.Instant
 
 class FakeSessionRepository : SessionRepository {
-
     // --- Observable state ---
 
     val activeSession: MutableStateFlow<Session?> = MutableStateFlow(null)
@@ -26,7 +24,10 @@ class FakeSessionRepository : SessionRepository {
     val details: MutableMap<String, MutableStateFlow<SessionWithDetails?>> = mutableMapOf()
 
     /** Convenience setter. */
-    fun setSessionDetails(id: String, value: SessionWithDetails?) {
+    fun setSessionDetails(
+        id: String,
+        value: SessionWithDetails?,
+    ) {
         details.getOrPut(id) { MutableStateFlow(null) }.value = value
     }
 
@@ -55,8 +56,7 @@ class FakeSessionRepository : SessionRepository {
 
     override fun observeHistory(): Flow<List<Session>> = history
 
-    override fun observeSessionDetails(id: String): Flow<SessionWithDetails?> =
-        details.getOrPut(id) { MutableStateFlow(null) }
+    override fun observeSessionDetails(id: String): Flow<SessionWithDetails?> = details.getOrPut(id) { MutableStateFlow(null) }
 
     override fun observeSetCountsBySession(): Flow<Map<String, Int>> = setCounts
 
@@ -64,17 +64,18 @@ class FakeSessionRepository : SessionRepository {
         startEmptySessionCalls += Unit
         val id = "new-session-${++sessionIdCounter}"
         val now = Instant.now()
-        val session = Session(
-            id = id,
-            templateId = null,
-            templateNameSnapshot = null,
-            startedAt = now,
-            endedAt = null,
-            note = null,
-            createdAt = now,
-            updatedAt = now,
-            deletedAt = null,
-        )
+        val session =
+            Session(
+                id = id,
+                templateId = null,
+                templateNameSnapshot = null,
+                startedAt = now,
+                endedAt = null,
+                note = null,
+                createdAt = now,
+                updatedAt = now,
+                deletedAt = null,
+            )
         activeSession.value = session
         return session
     }
@@ -90,11 +91,14 @@ class FakeSessionRepository : SessionRepository {
         if (activeSession.value?.id == id) activeSession.value = null
     }
 
-    override suspend fun addExerciseToSession(sessionId: String, exerciseId: String): SessionExercise {
+    override suspend fun addExerciseToSession(
+        sessionId: String,
+        exerciseId: String,
+    ): SessionExercise {
         addExerciseCalls += sessionId to exerciseId
         val now = Instant.now()
         return SessionExercise(
-            id = "se-${sessionId}-${exerciseId}",
+            id = "se-$sessionId-$exerciseId",
             sessionId = sessionId,
             exerciseId = exerciseId,
             position = 0,
@@ -107,7 +111,11 @@ class FakeSessionRepository : SessionRepository {
         )
     }
 
-    override suspend fun logSet(sessionExerciseId: String, weightKg: Double, reps: Int): LoggedSet {
+    override suspend fun logSet(
+        sessionExerciseId: String,
+        weightKg: Double,
+        reps: Int,
+    ): LoggedSet {
         logSetCalls += Triple(sessionExerciseId, weightKg, reps)
         val now = Instant.now()
         return LoggedSet(
@@ -125,7 +133,13 @@ class FakeSessionRepository : SessionRepository {
         )
     }
 
-    override suspend fun updateSet(setId: String, weightKg: Double, reps: Int, rpe: Double?, note: String?) {
+    override suspend fun updateSet(
+        setId: String,
+        weightKg: Double,
+        reps: Int,
+        rpe: Double?,
+        note: String?,
+    ) {
         updateSetCalls += setId
     }
 
@@ -137,11 +151,14 @@ class FakeSessionRepository : SessionRepository {
         removeExerciseCalls += sessionExerciseId
     }
 
-    override suspend fun replaceExercise(sessionExerciseId: String, newExerciseId: String): SessionExercise {
+    override suspend fun replaceExercise(
+        sessionExerciseId: String,
+        newExerciseId: String,
+    ): SessionExercise {
         replaceExerciseCalls += sessionExerciseId to newExerciseId
         val now = Instant.now()
         return SessionExercise(
-            id = "se-${sessionExerciseId}-replaced",
+            id = "se-$sessionExerciseId-replaced",
             sessionId = "unknown",
             exerciseId = newExerciseId,
             position = 0,
@@ -162,17 +179,18 @@ class FakeSessionRepository : SessionRepository {
         startFromTemplateCalls += templateId
         val id = "new-session-${++sessionIdCounter}"
         val now = Instant.now()
-        val session = Session(
-            id = id,
-            templateId = templateId,
-            templateNameSnapshot = "Snapshot $templateId",
-            startedAt = now,
-            endedAt = null,
-            note = null,
-            createdAt = now,
-            updatedAt = now,
-            deletedAt = null,
-        )
+        val session =
+            Session(
+                id = id,
+                templateId = templateId,
+                templateNameSnapshot = "Snapshot $templateId",
+                startedAt = now,
+                endedAt = null,
+                note = null,
+                createdAt = now,
+                updatedAt = now,
+                deletedAt = null,
+            )
         activeSession.value = session
         return session
     }

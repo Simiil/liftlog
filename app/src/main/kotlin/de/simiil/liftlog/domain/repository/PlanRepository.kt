@@ -7,20 +7,28 @@ import de.simiil.liftlog.domain.model.WorkoutPlan
 import kotlinx.coroutines.flow.Flow
 
 /** A plan with its training days, for the Plans list. */
-data class PlanWithDays(val id: String, val name: String, val days: List<DaySummary>)
+data class PlanWithDays(
+    val id: String,
+    val name: String,
+    val days: List<DaySummary>,
+)
 
 data class DaySummary(
     val templateId: String,
     val name: String,
     val exerciseCount: Int,
-    val exerciseIds: List<String>,   // ordered; VM maps to muscle groups for the sub-line
+    val exerciseIds: List<String>, // ordered; VM maps to muscle groups for the sub-line
 )
 
 interface PlanRepository {
     fun observePlans(): Flow<List<WorkoutPlan>>
+
     fun observePlan(id: String): Flow<WorkoutPlan?>
+
     fun observeDayTemplates(planId: String): Flow<List<PlanDayTemplate>>
+
     fun observeTemplateExercises(templateId: String): Flow<List<TemplateExercise>>
+
     /** Day templates' owning plan for Home quick-start: most-recently-used plan, else first plan, else null. */
     fun observeMostUsedOrFirstPlanId(): Flow<String?>
 
@@ -34,21 +42,44 @@ interface PlanRepository {
     suspend fun savePlanDraft(draft: PlanDraft): String
 
     suspend fun createPlan(name: String): WorkoutPlan
-    suspend fun renamePlan(id: String, name: String)
+
+    suspend fun renamePlan(
+        id: String,
+        name: String,
+    )
+
     /** Soft-deletes the plan and cascades to its day templates and their template-exercises (atomic). */
     suspend fun softDeletePlan(id: String)
 
     suspend fun getDayTemplate(id: String): PlanDayTemplate?
-    suspend fun createDayTemplate(planId: String, name: String): PlanDayTemplate
-    suspend fun renameDayTemplate(id: String, name: String)
+
+    suspend fun createDayTemplate(
+        planId: String,
+        name: String,
+    ): PlanDayTemplate
+
+    suspend fun renameDayTemplate(
+        id: String,
+        name: String,
+    )
+
     /** Soft-deletes the day template and cascades to its template-exercises (atomic). */
     suspend fun softDeleteDayTemplate(id: String)
 
-    suspend fun addExerciseToTemplate(templateId: String, exerciseId: String): TemplateExercise
+    suspend fun addExerciseToTemplate(
+        templateId: String,
+        exerciseId: String,
+    ): TemplateExercise
+
     suspend fun updateTemplateExerciseTargets(
-        id: String, targetSets: Int?, targetRepsMin: Int?, targetRepsMax: Int?,
+        id: String,
+        targetSets: Int?,
+        targetRepsMin: Int?,
+        targetRepsMax: Int?,
     )
+
     suspend fun removeTemplateExercise(id: String)
+
     /** Persists a new order: position = index of each id in [orderedTemplateExerciseIds]. Atomic. */
     suspend fun reorderTemplateExercises(orderedTemplateExerciseIds: List<String>)
 }

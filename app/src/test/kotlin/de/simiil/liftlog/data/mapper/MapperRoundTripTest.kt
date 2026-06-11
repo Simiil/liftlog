@@ -9,14 +9,36 @@ import org.junit.Test
 
 class MapperRoundTripTest {
     @Test fun exercise_entity_to_domain_to_entity_isIdentity() {
-        val e = ExerciseEntity("id1", "Bench", MuscleGroup.CHEST, Equipment.BARBELL,
-            isBuiltIn = true, isHidden = false, createdAt = 1_000, updatedAt = 2_000, deletedAt = null)
+        val e =
+            ExerciseEntity(
+                "id1",
+                "Bench",
+                MuscleGroup.CHEST,
+                Equipment.BARBELL,
+                isBuiltIn = true,
+                isHidden = false,
+                createdAt = 1_000,
+                updatedAt = 2_000,
+                deletedAt = null,
+            )
         assertEquals(e, e.toDomain().toEntity())
     }
 
     @Test fun loggedSet_nullableTimestamps_roundTrip() {
-        val s = LoggedSetEntity("s1", "se1", 82.5, 5, 1, completedAt = 3_000,
-            rpe = 8.0, note = null, createdAt = 3_000, updatedAt = 3_000, deletedAt = 4_000)
+        val s =
+            LoggedSetEntity(
+                "s1",
+                "se1",
+                82.5,
+                5,
+                1,
+                completedAt = 3_000,
+                rpe = 8.0,
+                note = null,
+                createdAt = 3_000,
+                updatedAt = 3_000,
+                deletedAt = 4_000,
+            )
         assertEquals(s, s.toDomain().toEntity())
     }
 }

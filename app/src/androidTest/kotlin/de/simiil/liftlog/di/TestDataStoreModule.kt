@@ -23,7 +23,6 @@ import javax.inject.Singleton
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [DataStoreModule::class])
 object TestDataStoreModule {
-
     @Provides
     @Singleton
     fun provideSettingsDataStore(

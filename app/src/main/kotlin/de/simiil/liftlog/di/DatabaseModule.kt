@@ -30,23 +30,33 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
     @Provides @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, "liftlog.db").build()
+    fun provideDatabase(
+        @ApplicationContext context: Context,
+    ): AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, "liftlog.db").build()
 
     @Provides fun provideExerciseDao(db: AppDatabase): ExerciseDao = db.exerciseDao()
+
     @Provides fun providePlanDao(db: AppDatabase): PlanDao = db.planDao()
+
     @Provides fun provideSessionDao(db: AppDatabase): SessionDao = db.sessionDao()
+
     @Provides fun provideAnalyticsDao(db: AppDatabase): AnalyticsDao = db.analyticsDao()
+
     @Provides fun providePrefillDao(db: AppDatabase): PrefillDao = db.prefillDao()
+
     @Provides fun provideBackupDao(db: AppDatabase): BackupDao = db.backupDao()
 
     @Provides @Singleton
-    fun provideAppInfo(): AppInfo =
-        AppInfo(name = "LiftLog", versionName = BuildConfig.VERSION_NAME, dbSchemaVersion = DB_SCHEMA_VERSION)
+    fun provideAppInfo(): AppInfo = AppInfo(name = "LiftLog", versionName = BuildConfig.VERSION_NAME, dbSchemaVersion = DB_SCHEMA_VERSION)
 
-    @Provides @Singleton fun provideTransactor(db: AppDatabase): Transactor = RoomTransactor(db)
-    @Provides @Singleton fun provideClock(): Clock = Clock.systemUTC()
-    @Provides @Singleton fun provideJson(): Json = Json { ignoreUnknownKeys = true }
+    @Provides @Singleton
+    fun provideTransactor(db: AppDatabase): Transactor = RoomTransactor(db)
+
+    @Provides @Singleton
+    fun provideClock(): Clock = Clock.systemUTC()
+
+    @Provides @Singleton
+    fun provideJson(): Json = Json { ignoreUnknownKeys = true }
 
     @Provides @Singleton @ApplicationScope
     fun provideApplicationScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

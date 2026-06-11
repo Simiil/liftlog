@@ -42,12 +42,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.simiil.liftlog.R
-import de.simiil.liftlog.ui.UiTestTags
+import de.simiil.liftlog.domain.logging.Targets
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
-import de.simiil.liftlog.domain.logging.Targets
 import de.simiil.liftlog.domain.units.Weights
+import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.InlineNumpad
 import de.simiil.liftlog.ui.components.LoggedSetRow
 import de.simiil.liftlog.ui.components.RepsStepper
@@ -84,28 +84,29 @@ fun ExerciseCard(
 ) {
     when (card.state) {
         CardState.COMPLETED -> CompletedCard(card, unit, onActivateCard, modifier)
-        CardState.UPCOMING  -> UpcomingCard(card, onActivateCard, modifier)
-        CardState.ACTIVE    -> ActiveCard(
-            card = card,
-            entry = entry,
-            unit = unit,
-            onWeightIncrement = onWeightIncrement,
-            onWeightDecrement = onWeightDecrement,
-            onRepsIncrement = onRepsIncrement,
-            onRepsDecrement = onRepsDecrement,
-            onOpenNumpad = onOpenNumpad,
-            onNumpadConfirm = onNumpadConfirm,
-            onNumpadDismiss = onNumpadDismiss,
-            onLogSet = onLogSet,
-            onRequestRemoveExercise = onRequestRemoveExercise,
-            onRequestReplaceExercise = onRequestReplaceExercise,
-            onAddExercise = onAddExercise,
-            onLongPressSet = onLongPressSet,
-            onEditSetSave = onEditSetSave,
-            onDeleteSet = onDeleteSet,
-            onCollapseEdit = onCollapseEdit,
-            modifier = modifier,
-        )
+        CardState.UPCOMING -> UpcomingCard(card, onActivateCard, modifier)
+        CardState.ACTIVE ->
+            ActiveCard(
+                card = card,
+                entry = entry,
+                unit = unit,
+                onWeightIncrement = onWeightIncrement,
+                onWeightDecrement = onWeightDecrement,
+                onRepsIncrement = onRepsIncrement,
+                onRepsDecrement = onRepsDecrement,
+                onOpenNumpad = onOpenNumpad,
+                onNumpadConfirm = onNumpadConfirm,
+                onNumpadDismiss = onNumpadDismiss,
+                onLogSet = onLogSet,
+                onRequestRemoveExercise = onRequestRemoveExercise,
+                onRequestReplaceExercise = onRequestReplaceExercise,
+                onAddExercise = onAddExercise,
+                onLongPressSet = onLongPressSet,
+                onEditSetSave = onEditSetSave,
+                onDeleteSet = onDeleteSet,
+                onCollapseEdit = onCollapseEdit,
+                modifier = modifier,
+            )
     }
 }
 
@@ -120,23 +121,28 @@ private fun CompletedCard(
 ) {
     val summary = formatSetsSummary(card.sets, unit)
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .combinedClickable(onClick = { onActivateCard(card.sessionExerciseId) }),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = { onActivateCard(card.sessionExerciseId) }),
         shape = CARD_SHAPE,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+            horizontalArrangement =
+                androidx.compose.foundation.layout.Arrangement
+                    .spacedBy(12.dp),
         ) {
             Box(
-                modifier = Modifier
-                    .size(26.dp)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape),
+                modifier =
+                    Modifier
+                        .size(26.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -172,23 +178,28 @@ private fun UpcomingCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .combinedClickable(onClick = { onActivateCard(card.sessionExerciseId) }),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = { onActivateCard(card.sessionExerciseId) }),
         shape = CARD_SHAPE,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+            horizontalArrangement =
+                androidx.compose.foundation.layout.Arrangement
+                    .spacedBy(12.dp),
         ) {
             Box(
-                modifier = Modifier
-                    .size(26.dp)
-                    .border(2.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                modifier =
+                    Modifier
+                        .size(26.dp)
+                        .border(2.dp, MaterialTheme.colorScheme.outline, CircleShape),
             )
             Text(
                 text = card.name,
@@ -241,7 +252,6 @@ private fun ActiveCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 14.dp)) {
-
             // ── Header ──────────────────────────────────────────────────────
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -308,10 +318,11 @@ private fun ActiveCard(
                     onSave = { w, r, rpe, note -> onEditSetSave(set.id, w, r, rpe, note) },
                     onDelete = { onDeleteSet(set.id) },
                     onCollapse = onCollapseEdit,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 6.dp)
-                        .testTag(UiTestTags.LOGGED_SET_ROW),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp)
+                            .testTag(UiTestTags.LOGGED_SET_ROW),
                 )
             }
 
@@ -324,16 +335,18 @@ private fun ActiveCard(
                     InlineNumpad(
                         initialText = numpad.text,
                         allowDecimal = numpad.target == NumpadTarget.WEIGHT,
-                        quickChips = if (numpad.target == NumpadTarget.WEIGHT) {
-                            listOf(10.0, 5.0, 2.5, -2.5)
-                        } else {
-                            emptyList()
-                        },
-                        unitLabel = if (numpad.target == NumpadTarget.WEIGHT) {
-                            Weights.label(unit)
-                        } else {
-                            stringResource(R.string.reps_label)
-                        },
+                        quickChips =
+                            if (numpad.target == NumpadTarget.WEIGHT) {
+                                listOf(10.0, 5.0, 2.5, -2.5)
+                            } else {
+                                emptyList()
+                            },
+                        unitLabel =
+                            if (numpad.target == NumpadTarget.WEIGHT) {
+                                Weights.label(unit)
+                            } else {
+                                stringResource(R.string.reps_label)
+                            },
                         onConfirm = { onNumpadConfirm(it) },
                         onDismiss = { onNumpadDismiss() },
                         modifier = Modifier.fillMaxWidth(),
@@ -341,7 +354,9 @@ private fun ActiveCard(
                 } else {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+                        horizontalArrangement =
+                            androidx.compose.foundation.layout.Arrangement
+                                .spacedBy(12.dp),
                     ) {
                         WeightStepper(
                             valueKg = entry.weightKg,
@@ -376,7 +391,10 @@ private fun ActiveCard(
 }
 
 @Composable
-private fun ProgressPill(setsDone: Int, target: Int?) {
+private fun ProgressPill(
+    setsDone: Int,
+    target: Int?,
+) {
     Surface(
         shape = RoundedCornerShape(100.dp),
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
@@ -393,24 +411,30 @@ private fun ProgressPill(setsDone: Int, target: Int?) {
 }
 
 @Composable
-private fun LogSetButton(enabled: Boolean, onClick: () -> Unit) {
-    val container = if (enabled) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerHighest
-    }
-    val content = if (enabled) {
-        MaterialTheme.colorScheme.onPrimary
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
+private fun LogSetButton(
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val container =
+        if (enabled) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHighest
+        }
+    val content =
+        if (enabled) {
+            MaterialTheme.colorScheme.onPrimary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
     Surface(
         onClick = onClick,
         enabled = enabled,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .testTag(UiTestTags.LOG_SET_BUTTON),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .testTag(UiTestTags.LOG_SET_BUTTON),
         shape = RoundedCornerShape(20.dp),
         color = container,
         contentColor = content,
@@ -429,7 +453,10 @@ private fun LogSetButton(enabled: Boolean, onClick: () -> Unit) {
 // ─── Formatting helper ────────────────────────────────────────────────────────
 
 /** Compact set summary, e.g. "82.5 kg × 8·8·6" (first set's weight + all reps). */
-internal fun formatSetsSummary(sets: List<LoggedSet>, unit: WeightUnit): String {
+internal fun formatSetsSummary(
+    sets: List<LoggedSet>,
+    unit: WeightUnit,
+): String {
     if (sets.isEmpty()) return ""
     val weightDisplay = "${Weights.format(sets.first().weightKg, unit)} ${Weights.label(unit)}"
     val repsStr = sets.joinToString("·") { it.reps.toString() }
@@ -440,7 +467,13 @@ internal fun formatSetsSummary(sets: List<LoggedSet>, unit: WeightUnit): String 
 
 private val fakeInstant = Instant.ofEpochSecond(0)
 
-private fun fakeSet(id: String, weightKg: Double, reps: Int, rpe: Double? = null, note: String? = null) = LoggedSet(
+private fun fakeSet(
+    id: String,
+    weightKg: Double,
+    reps: Int,
+    rpe: Double? = null,
+    note: String? = null,
+) = LoggedSet(
     id = id,
     sessionExerciseId = "se1",
     weightKg = weightKg,
@@ -457,17 +490,18 @@ private fun fakeSet(id: String, weightKg: Double, reps: Int, rpe: Double? = null
 private val fakeGhostSets = listOf(fakeSet("g1", 82.5, 8), fakeSet("g2", 82.5, 8), fakeSet("g3", 82.5, 7))
 private val fakeLoggedSets = listOf(fakeSet("s1", 85.0, 8), fakeSet("s2", 85.0, 6, rpe = 8.5))
 
-private val fakeActiveCard = ExerciseCardUi(
-    sessionExerciseId = "se1",
-    exerciseId = "ex1",
-    name = "Bench Press",
-    equipment = Equipment.BARBELL,
-    targetSets = null,
-    state = CardState.ACTIVE,
-    sets = fakeLoggedSets,
-    ghostSets = fakeGhostSets,
-    editingSetId = null,
-)
+private val fakeActiveCard =
+    ExerciseCardUi(
+        sessionExerciseId = "se1",
+        exerciseId = "ex1",
+        name = "Bench Press",
+        equipment = Equipment.BARBELL,
+        targetSets = null,
+        state = CardState.ACTIVE,
+        sets = fakeLoggedSets,
+        ghostSets = fakeGhostSets,
+        editingSetId = null,
+    )
 
 private val fakeEntry = EntryUi(sessionExerciseId = "se1", weightKg = 87.5, reps = 8)
 

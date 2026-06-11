@@ -3,15 +3,18 @@ package de.simiil.liftlog.data.seed
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import kotlinx.serialization.json.Json
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
 class SeedAssetTest {
-    private val seed = Json { ignoreUnknownKeys = true }
-        .decodeFromString<SeedFile>(File("src/main/assets/seed/exercises.v1.json").readText())
+    private val seed =
+        Json { ignoreUnknownKeys = true }
+            .decodeFromString<SeedFile>(File("src/main/assets/seed/exercises.v1.json").readText())
 
     @Test fun hasExactlyExpectedCount() = assertEquals(69, seed.exercises.size)
+
     @Test fun seedVersionIsOne() = assertEquals(1, seed.seedVersion)
 
     @Test fun idsAreUniqueValidUuids() {

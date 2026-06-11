@@ -5,8 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class WeightsTest {
-    @Test fun kg_displaysWithoutConversion() =
-        assertEquals("82.5", Weights.format(82.5, WeightUnit.KG))
+    @Test fun kg_displaysWithoutConversion() = assertEquals("82.5", Weights.format(82.5, WeightUnit.KG))
 
     @Test fun kg_stripsTrailingZeros() {
         assertEquals("30", Weights.format(30.0, WeightUnit.KG))

@@ -6,7 +6,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ResolveDarkThemeTest {
-
     @Test
     fun `SYSTEM follows the system setting`() {
         assertTrue(resolveDarkTheme(ThemePreference.SYSTEM, systemInDarkTheme = true))

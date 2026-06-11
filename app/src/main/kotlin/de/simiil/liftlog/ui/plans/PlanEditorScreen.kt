@@ -1,7 +1,6 @@
 package de.simiil.liftlog.ui.plans
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -89,17 +88,18 @@ fun PlanEditorScreen(
     }
 
     when (uiState.mode) {
-        PlanEditorMode.PLAN -> PlanModeContent(
-            state = uiState,
-            onClose = onClose,
-            onSave = { viewModel.save(onSaved) },
-            onPlanNameChange = viewModel::setPlanName,
-            onAddDay = viewModel::addDay,
-            onEditDay = viewModel::editDay,
-            onRemoveDay = viewModel::removeDay,
-            onReorderDays = viewModel::reorderDays,
-            modifier = modifier,
-        )
+        PlanEditorMode.PLAN ->
+            PlanModeContent(
+                state = uiState,
+                onClose = onClose,
+                onSave = { viewModel.save(onSaved) },
+                onPlanNameChange = viewModel::setPlanName,
+                onAddDay = viewModel::addDay,
+                onEditDay = viewModel::editDay,
+                onRemoveDay = viewModel::removeDay,
+                onReorderDays = viewModel::reorderDays,
+                modifier = modifier,
+            )
         PlanEditorMode.DAY -> {
             // System back in day mode returns to the plan editor, not out of the screen.
             BackHandler(onBack = viewModel::closeDayEditor)
@@ -136,13 +136,14 @@ private fun PlanModeContent(
     // Live drag list, synced from upstream when not mid-drag.
     val localDays = remember { mutableStateListOf<EditorDayUi>() }
     val lazyListState = rememberLazyListState()
-    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        val fromIndex = localDays.indexOfFirst { it.key == from.key }
-        val toIndex = localDays.indexOfFirst { it.key == to.key }
-        if (fromIndex != -1 && toIndex != -1) {
-            localDays.add(toIndex, localDays.removeAt(fromIndex))
+    val reorderableState =
+        rememberReorderableLazyListState(lazyListState) { from, to ->
+            val fromIndex = localDays.indexOfFirst { it.key == from.key }
+            val toIndex = localDays.indexOfFirst { it.key == to.key }
+            if (fromIndex != -1 && toIndex != -1) {
+                localDays.add(toIndex, localDays.removeAt(fromIndex))
+            }
         }
-    }
     LaunchedEffect(state.days) {
         if (!reorderableState.isAnyItemDragging) {
             localDays.clear()
@@ -167,9 +168,10 @@ private fun PlanModeContent(
     ) { innerPadding ->
         LazyColumn(
             state = lazyListState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -200,9 +202,10 @@ private fun PlanModeContent(
                         isDragging = isDragging,
                         onEdit = { onEditDay(day.key) },
                         onRemove = { onRemoveDay(day.key) },
-                        dragHandleModifier = Modifier.draggableHandle(
-                            onDragStopped = { onReorderDays(localDays.map { it.key }) },
-                        ),
+                        dragHandleModifier =
+                            Modifier.draggableHandle(
+                                onDragStopped = { onReorderDays(localDays.map { it.key }) },
+                            ),
                         modifier = Modifier.fillMaxWidth().testTag(UiTestTags.PLAN_DAY_ROW),
                     )
                 }
@@ -232,11 +235,12 @@ private fun DayRow(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = if (isDragging) {
-            MaterialTheme.colorScheme.surfaceContainerHighest
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
+        color =
+            if (isDragging) {
+                MaterialTheme.colorScheme.surfaceContainerHighest
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            },
     ) {
         Row(
             modifier = Modifier.padding(start = 4.dp, end = 6.dp, top = 8.dp, bottom = 8.dp),
@@ -247,17 +251,19 @@ private fun DayRow(
                 imageVector = Icons.Default.DragHandle,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = dragHandleModifier
-                    .padding(horizontal = 8.dp, vertical = 12.dp)
-                    .semantics { contentDescription = dragHandleCd },
+                modifier =
+                    dragHandleModifier
+                        .padding(horizontal = 8.dp, vertical = 12.dp)
+                        .semantics { contentDescription = dragHandleCd },
             )
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(onClick = onEdit)
-                    .semantics(mergeDescendants = true) {}
-                    .padding(vertical = 6.dp),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(onClick = onEdit)
+                        .semantics(mergeDescendants = true) {}
+                        .padding(vertical = 6.dp),
             ) {
                 Text(
                     text = day.name.ifBlank { stringResource(R.string.plan_untitled_day) },
@@ -273,9 +279,10 @@ private fun DayRow(
             }
             IconButton(
                 onClick = onRemove,
-                modifier = Modifier
-                    .size(48.dp) // ≥48dp touch target (F-07)
-                    .semantics { contentDescription = removeCd },
+                modifier =
+                    Modifier
+                        .size(48.dp) // ≥48dp touch target (F-07)
+                        .semantics { contentDescription = removeCd },
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
@@ -306,13 +313,14 @@ private fun DayModeContent(
     val day = state.editingDay ?: return
     val localItems = remember { mutableStateListOf<EditorItemUi>() }
     val lazyListState = rememberLazyListState()
-    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        val fromIndex = localItems.indexOfFirst { it.key == from.key }
-        val toIndex = localItems.indexOfFirst { it.key == to.key }
-        if (fromIndex != -1 && toIndex != -1) {
-            localItems.add(toIndex, localItems.removeAt(fromIndex))
+    val reorderableState =
+        rememberReorderableLazyListState(lazyListState) { from, to ->
+            val fromIndex = localItems.indexOfFirst { it.key == from.key }
+            val toIndex = localItems.indexOfFirst { it.key == to.key }
+            if (fromIndex != -1 && toIndex != -1) {
+                localItems.add(toIndex, localItems.removeAt(fromIndex))
+            }
         }
-    }
     LaunchedEffect(day.exercises) {
         if (!reorderableState.isAnyItemDragging) {
             localItems.clear()
@@ -337,9 +345,10 @@ private fun DayModeContent(
     ) { innerPadding ->
         LazyColumn(
             state = lazyListState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -368,9 +377,10 @@ private fun DayModeContent(
                         isDragging = isDragging,
                         onRemove = { onRemoveItem(item.key) },
                         onSetTargets = { sets, min, max -> onSetTargets(item.key, sets, min, max) },
-                        dragHandleModifier = Modifier.draggableHandle(
-                            onDragStopped = { onReorderItems(localItems.map { it.key }) },
-                        ),
+                        dragHandleModifier =
+                            Modifier.draggableHandle(
+                                onDragStopped = { onReorderItems(localItems.map { it.key }) },
+                            ),
                         modifier = Modifier.fillMaxWidth().testTag(UiTestTags.TEMPLATE_EXERCISE_ROW),
                     )
                 }
@@ -379,9 +389,10 @@ private fun DayModeContent(
                 AddRow(
                     label = stringResource(R.string.template_add_exercise),
                     onClick = onAddExercises,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag(UiTestTags.TEMPLATE_ADD_EXERCISE),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .testTag(UiTestTags.TEMPLATE_ADD_EXERCISE),
                 )
             }
         }
@@ -402,11 +413,12 @@ private fun ExerciseEditorRow(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(18.dp),
-        color = if (isDragging) {
-            MaterialTheme.colorScheme.surfaceContainerHighest
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
+        color =
+            if (isDragging) {
+                MaterialTheme.colorScheme.surfaceContainerHighest
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            },
     ) {
         Column(modifier = Modifier.padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 12.dp)) {
             // .ex-edit-top: drag handle · name + "{group} · {equip}" · remove
@@ -415,9 +427,10 @@ private fun ExerciseEditorRow(
                     imageVector = Icons.Default.DragHandle,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = dragHandleModifier
-                        .padding(horizontal = 8.dp, vertical = 8.dp)
-                        .semantics { contentDescription = dragHandleCd },
+                    modifier =
+                        dragHandleModifier
+                            .padding(horizontal = 8.dp, vertical = 8.dp)
+                            .semantics { contentDescription = dragHandleCd },
                 )
                 Column(modifier = Modifier.weight(1f).padding(vertical = 8.dp)) {
                     Text(
@@ -434,9 +447,10 @@ private fun ExerciseEditorRow(
                 }
                 IconButton(
                     onClick = onRemove,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .semantics { contentDescription = removeCd },
+                    modifier =
+                        Modifier
+                            .size(40.dp)
+                            .semantics { contentDescription = removeCd },
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
@@ -534,15 +548,19 @@ private fun TargetStepper(
 }
 
 @Composable
-private fun StepperButton(symbol: String, onClick: () -> Unit) {
+private fun StepperButton(
+    symbol: String,
+    onClick: () -> Unit,
+) {
     // Fills the 48dp-tall stepper row for a full-height touch target; width stays compact
     // (~36dp) because three steppers share one row — a 48dp-wide button would overflow. (F-07)
     Box(
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(36.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick),
+        modifier =
+            Modifier
+                .fillMaxHeight()
+                .width(36.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -598,16 +616,18 @@ private fun EditorHeader(
             Button(
                 onClick = onAction,
                 enabled = actionEnabled,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .height(40.dp)
-                    .testTag(actionTag),
+                modifier =
+                    Modifier
+                        .padding(end = 8.dp)
+                        .height(40.dp)
+                        .testTag(actionTag),
                 shape = RoundedCornerShape(100.dp),
                 contentPadding = PaddingValues(horizontal = 20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
             ) {
                 Text(
                     text = actionLabel,
@@ -620,7 +640,10 @@ private fun EditorHeader(
 }
 
 @Composable
-private fun FieldLabel(text: String, modifier: Modifier = Modifier) {
+private fun FieldLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,
@@ -631,7 +654,11 @@ private fun FieldLabel(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun FieldLabelWithCount(label: String, count: Int, topSpacing: androidx.compose.ui.unit.Dp) {
+private fun FieldLabelWithCount(
+    label: String,
+    count: Int,
+    topSpacing: androidx.compose.ui.unit.Dp,
+) {
     Row(
         modifier = Modifier.padding(top = topSpacing),
         verticalAlignment = Alignment.CenterVertically,
@@ -673,7 +700,10 @@ private fun EditorTextField(
 }
 
 @Composable
-private fun EditorEmpty(text: String, modifier: Modifier = Modifier) {
+private fun EditorEmpty(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     // .editor-empty: surfaceContainerLow bg, radius 16dp, centered, onSurfaceVariant.
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -697,15 +727,15 @@ private fun AddRow(
 ) {
     // .add-row: 1.5dp dashed outline, primary text, radius 16dp, 54dp.
     Box(
-        modifier = modifier
-            .height(54.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .dashedBorder(
-                color = MaterialTheme.colorScheme.outline,
-                width = 1.5.dp,
-                cornerRadius = 16.dp,
-            )
-            .clickable(onClick = onClick),
+        modifier =
+            modifier
+                .height(54.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .dashedBorder(
+                    color = MaterialTheme.colorScheme.outline,
+                    width = 1.5.dp,
+                    cornerRadius = 16.dp,
+                ).clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -728,26 +758,30 @@ private fun AddRow(
 
 // ─── Previews ──────────────────────────────────────────────────────────────────
 
-private val previewDayWithExercises = EditorDayUi(
-    key = "d1",
-    name = "Push Day",
-    isNewDay = false,
-    exercises = listOf(
-        EditorItemUi("i1", "ex1", "Bench Press", Equipment.BARBELL, MuscleGroup.CHEST, 3, 8, 12),
-        EditorItemUi("i2", "ex2", "Overhead Press", Equipment.DUMBBELL, MuscleGroup.SHOULDERS, null, null, null),
-    ),
-)
+private val previewDayWithExercises =
+    EditorDayUi(
+        key = "d1",
+        name = "Push Day",
+        isNewDay = false,
+        exercises =
+            listOf(
+                EditorItemUi("i1", "ex1", "Bench Press", Equipment.BARBELL, MuscleGroup.CHEST, 3, 8, 12),
+                EditorItemUi("i2", "ex2", "Overhead Press", Equipment.DUMBBELL, MuscleGroup.SHOULDERS, null, null, null),
+            ),
+    )
 
-private val previewPlanWithDays = PlanEditorUiState(
-    mode = PlanEditorMode.PLAN,
-    isNewPlan = false,
-    planName = "Push Pull Legs",
-    days = listOf(
-        EditorDayUi("d1", "Push Day", false, previewDayWithExercises.exercises),
-        EditorDayUi("d2", "Pull Day", false, emptyList()),
-    ),
-    canSave = true,
-)
+private val previewPlanWithDays =
+    PlanEditorUiState(
+        mode = PlanEditorMode.PLAN,
+        isNewPlan = false,
+        planName = "Push Pull Legs",
+        days =
+            listOf(
+                EditorDayUi("d1", "Push Day", false, previewDayWithExercises.exercises),
+                EditorDayUi("d2", "Pull Day", false, emptyList()),
+            ),
+        canSave = true,
+    )
 
 @Preview(name = "Plan editor — new (light)", showBackground = true)
 @Composable
@@ -755,8 +789,13 @@ private fun PreviewPlanEditorNewLight() {
     LiftLogTheme(themePreference = ThemePreference.LIGHT, dynamicColor = false) {
         PlanModeContent(
             state = PlanEditorUiState(mode = PlanEditorMode.PLAN, isNewPlan = true),
-            onClose = {}, onSave = {}, onPlanNameChange = {}, onAddDay = {},
-            onEditDay = {}, onRemoveDay = {}, onReorderDays = {},
+            onClose = {},
+            onSave = {},
+            onPlanNameChange = {},
+            onAddDay = {},
+            onEditDay = {},
+            onRemoveDay = {},
+            onReorderDays = {},
         )
     }
 }
@@ -767,8 +806,13 @@ private fun PreviewPlanEditorDaysDark() {
     LiftLogTheme(themePreference = ThemePreference.DARK, dynamicColor = false) {
         PlanModeContent(
             state = previewPlanWithDays,
-            onClose = {}, onSave = {}, onPlanNameChange = {}, onAddDay = {},
-            onEditDay = {}, onRemoveDay = {}, onReorderDays = {},
+            onClose = {},
+            onSave = {},
+            onPlanNameChange = {},
+            onAddDay = {},
+            onEditDay = {},
+            onRemoveDay = {},
+            onReorderDays = {},
         )
     }
 }
@@ -778,13 +822,19 @@ private fun PreviewPlanEditorDaysDark() {
 private fun PreviewDayEditorLight() {
     LiftLogTheme(themePreference = ThemePreference.LIGHT, dynamicColor = false) {
         DayModeContent(
-            state = PlanEditorUiState(
-                mode = PlanEditorMode.DAY,
-                editingDay = previewDayWithExercises,
-                canDone = true,
-            ),
-            onBack = {}, onDone = {}, onDayNameChange = {}, onAddExercises = {},
-            onRemoveItem = {}, onReorderItems = {}, onSetTargets = { _, _, _, _ -> },
+            state =
+                PlanEditorUiState(
+                    mode = PlanEditorMode.DAY,
+                    editingDay = previewDayWithExercises,
+                    canDone = true,
+                ),
+            onBack = {},
+            onDone = {},
+            onDayNameChange = {},
+            onAddExercises = {},
+            onRemoveItem = {},
+            onReorderItems = {},
+            onSetTargets = { _, _, _, _ -> },
         )
     }
 }
@@ -794,13 +844,19 @@ private fun PreviewDayEditorLight() {
 private fun PreviewDayEditorDark() {
     LiftLogTheme(themePreference = ThemePreference.DARK, dynamicColor = false) {
         DayModeContent(
-            state = PlanEditorUiState(
-                mode = PlanEditorMode.DAY,
-                editingDay = previewDayWithExercises,
-                canDone = true,
-            ),
-            onBack = {}, onDone = {}, onDayNameChange = {}, onAddExercises = {},
-            onRemoveItem = {}, onReorderItems = {}, onSetTargets = { _, _, _, _ -> },
+            state =
+                PlanEditorUiState(
+                    mode = PlanEditorMode.DAY,
+                    editingDay = previewDayWithExercises,
+                    canDone = true,
+                ),
+            onBack = {},
+            onDone = {},
+            onDayNameChange = {},
+            onAddExercises = {},
+            onRemoveItem = {},
+            onReorderItems = {},
+            onSetTargets = { _, _, _, _ -> },
         )
     }
 }

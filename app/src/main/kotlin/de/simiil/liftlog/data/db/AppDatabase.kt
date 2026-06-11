@@ -32,9 +32,14 @@ const val DB_SCHEMA_VERSION = 1
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
+
     abstract fun planDao(): PlanDao
+
     abstract fun sessionDao(): SessionDao
+
     abstract fun analyticsDao(): AnalyticsDao
+
     abstract fun prefillDao(): PrefillDao
+
     abstract fun backupDao(): BackupDao
 }

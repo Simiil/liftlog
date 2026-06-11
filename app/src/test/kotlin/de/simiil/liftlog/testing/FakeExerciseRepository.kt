@@ -4,13 +4,12 @@ import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
-import java.time.Instant
-import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.Instant
+import java.util.UUID
 
 class FakeExerciseRepository : ExerciseRepository {
-
     val all: MutableStateFlow<List<Exercise>> = MutableStateFlow(emptyList())
     val visible: MutableStateFlow<List<Exercise>> = MutableStateFlow(emptyList())
     val recentIds: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
@@ -30,30 +29,38 @@ class FakeExerciseRepository : ExerciseRepository {
 
     override fun observeRecentlyUsedIds(): Flow<List<String>> = recentIds
 
-    override suspend fun createCustom(name: String, muscleGroup: MuscleGroup, equipment: Equipment): Exercise {
+    override suspend fun createCustom(
+        name: String,
+        muscleGroup: MuscleGroup,
+        equipment: Equipment,
+    ): Exercise {
         if (name.isBlank()) throw IllegalArgumentException("Name must not be blank")
         if (duplicateNames.contains(name.lowercase())) {
             throw IllegalArgumentException("An exercise with this name already exists")
         }
         val now = Instant.EPOCH
-        val exercise = Exercise(
-            id = UUID.randomUUID().toString(),
-            name = name.trim(),
-            muscleGroup = muscleGroup,
-            equipment = equipment,
-            isBuiltIn = false,
-            isHidden = false,
-            createdAt = now,
-            updatedAt = now,
-            deletedAt = null,
-        )
+        val exercise =
+            Exercise(
+                id = UUID.randomUUID().toString(),
+                name = name.trim(),
+                muscleGroup = muscleGroup,
+                equipment = equipment,
+                isBuiltIn = false,
+                isHidden = false,
+                createdAt = now,
+                updatedAt = now,
+                deletedAt = null,
+            )
         created += exercise
         visible.value = visible.value + exercise
         all.value = all.value + exercise
         return exercise
     }
 
-    override suspend fun setHidden(id: String, hidden: Boolean) {
+    override suspend fun setHidden(
+        id: String,
+        hidden: Boolean,
+    ) {
         setHiddenCalls += id to hidden
     }
 }

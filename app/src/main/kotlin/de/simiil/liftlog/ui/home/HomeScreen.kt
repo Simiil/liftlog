@@ -39,18 +39,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
@@ -98,9 +98,10 @@ fun HomeScreen(
         if (firstLaunch) {
             FirstLaunch(
                 onStart = { viewModel.startOrResume(onOpenSession) },
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
+                modifier =
+                    Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
             )
         } else {
             HomeContent(
@@ -111,9 +112,10 @@ fun HomeScreen(
                     viewModel.startFromTemplate(templateId, onOpenSession)
                 },
                 onOpenSessionDetail = onOpenSessionDetail,
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
+                modifier =
+                    Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
             )
         }
     }
@@ -137,10 +139,11 @@ private fun HomeContent(
                 ResumeCard(
                     resume = resume,
                     onClick = { onResume(resume.sessionId) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp)
-                        .testTag(UiTestTags.HOME_RESUME_CARD),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp)
+                            .testTag(UiTestTags.HOME_RESUME_CARD),
                 )
             }
         }
@@ -195,20 +198,22 @@ private fun ResumeCard(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        ),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
+                modifier =
+                    Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -228,11 +233,12 @@ private fun ResumeCard(
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = stringResource(
-                        R.string.home_resume_meta,
-                        resume.exerciseCount,
-                        elapsedMinutes,
-                    ),
+                    text =
+                        stringResource(
+                            R.string.home_resume_meta,
+                            resume.exerciseCount,
+                            elapsedMinutes,
+                        ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
                 )
@@ -240,10 +246,11 @@ private fun ResumeCard(
             Spacer(Modifier.size(10.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
+                    modifier =
+                        Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
                 )
                 Spacer(Modifier.size(6.dp))
                 Text(
@@ -263,16 +270,16 @@ private fun EmptySessionCard(
 ) {
     val shape = RoundedCornerShape(20.dp)
     Box(
-        modifier = modifier
-            .heightIn(min = 96.dp)
-            .clip(shape)
-            .dashedBorder(
-                color = MaterialTheme.colorScheme.outline,
-                width = 1.5.dp,
-                cornerRadius = 20.dp,
-            )
-            .clickable(onClick = onClick)
-            .padding(16.dp),
+        modifier =
+            modifier
+                .heightIn(min = 96.dp)
+                .clip(shape)
+                .dashedBorder(
+                    color = MaterialTheme.colorScheme.outline,
+                    width = 1.5.dp,
+                    cornerRadius = 20.dp,
+                ).clickable(onClick = onClick)
+                .padding(16.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -317,27 +324,30 @@ private fun TemplateChipGrid(
     ) {
         cells.chunked(2).forEach { rowCells ->
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 rowCells.forEach { cell ->
                     if (cell == null) {
                         EmptySessionCard(
                             onClick = onStartEmpty,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .testTag(UiTestTags.HOME_START_EMPTY),
+                            modifier =
+                                Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .testTag(UiTestTags.HOME_START_EMPTY),
                         )
                     } else {
                         TemplateChip(
                             chip = cell,
                             onClick = { onChipClick(cell.templateId) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight(),
+                            modifier =
+                                Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight(),
                         )
                     }
                 }
@@ -359,10 +369,11 @@ private fun TemplateChip(
     val cd = stringResource(R.string.home_template_chip_cd, chip.name)
     Surface(
         onClick = onClick,
-        modifier = modifier
-            .heightIn(min = 96.dp)
-            .testTag(UiTestTags.HOME_TEMPLATE_CHIP)
-            .semantics { contentDescription = cd },
+        modifier =
+            modifier
+                .heightIn(min = 96.dp)
+                .testTag(UiTestTags.HOME_TEMPLATE_CHIP)
+                .semantics { contentDescription = cd },
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -377,11 +388,12 @@ private fun TemplateChip(
             )
             Spacer(Modifier.height(2.dp))
             Text(
-                text = pluralStringResource(
-                    R.plurals.exercise_count,
-                    chip.exerciseCount,
-                    chip.exerciseCount,
-                ),
+                text =
+                    pluralStringResource(
+                        R.plurals.exercise_count,
+                        chip.exerciseCount,
+                        chip.exerciseCount,
+                    ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -421,19 +433,22 @@ private fun RecentSessionItem(
     modifier: Modifier = Modifier,
 ) {
     val name = session.name ?: stringResource(R.string.session_untitled)
-    val relativeDate = DateUtils.getRelativeTimeSpanString(
-        session.startedAt.toEpochMilli(),
-        Instant.now().toEpochMilli(),
-        DateUtils.DAY_IN_MILLIS,
-    ).toString()
+    val relativeDate =
+        DateUtils
+            .getRelativeTimeSpanString(
+                session.startedAt.toEpochMilli(),
+                Instant.now().toEpochMilli(),
+                DateUtils.DAY_IN_MILLIS,
+            ).toString()
 
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .semantics(mergeDescendants = true) {}
-                .padding(horizontal = 6.dp, vertical = 14.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onClick)
+                    .semantics(mergeDescendants = true) {}
+                    .padding(horizontal = 6.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -477,11 +492,12 @@ private fun FirstLaunch(
         icon = Icons.Outlined.FitnessCenter,
         title = stringResource(R.string.home_first_title),
         subtitle = stringResource(R.string.home_first_sub),
-        action = EmptyStateAction(
-            label = stringResource(R.string.home_first_start),
-            onClick = onStart,
-            testTag = UiTestTags.HOME_START_EMPTY,
-        ),
+        action =
+            EmptyStateAction(
+                label = stringResource(R.string.home_first_start),
+                onClick = onStart,
+                testTag = UiTestTags.HOME_START_EMPTY,
+            ),
         hint = stringResource(R.string.home_first_hint),
         modifier = modifier,
     )
@@ -496,14 +512,16 @@ private fun FirstLaunch(
 private fun PreviewHomeWithChips() {
     LiftLogTheme {
         HomeContent(
-            uiState = HomeUiState(
-                templates = listOf(
-                    TemplateChipUi("t1", "Push", 5, listOf(MuscleGroup.CHEST, MuscleGroup.SHOULDERS, MuscleGroup.TRICEPS)),
-                    TemplateChipUi("t2", "Pull", 5, listOf(MuscleGroup.BACK, MuscleGroup.BICEPS)),
-                    TemplateChipUi("t3", "Legs", 4, listOf(MuscleGroup.QUADS, MuscleGroup.HAMSTRINGS, MuscleGroup.GLUTES)),
+            uiState =
+                HomeUiState(
+                    templates =
+                        listOf(
+                            TemplateChipUi("t1", "Push", 5, listOf(MuscleGroup.CHEST, MuscleGroup.SHOULDERS, MuscleGroup.TRICEPS)),
+                            TemplateChipUi("t2", "Pull", 5, listOf(MuscleGroup.BACK, MuscleGroup.BICEPS)),
+                            TemplateChipUi("t3", "Legs", 4, listOf(MuscleGroup.QUADS, MuscleGroup.HAMSTRINGS, MuscleGroup.GLUTES)),
+                        ),
+                    recent = emptyList(),
                 ),
-                recent = emptyList(),
-            ),
             onResume = {},
             onStartEmpty = {},
             onStartFromTemplate = {},
@@ -518,10 +536,11 @@ private fun PreviewHomeWithChips() {
 private fun PreviewHomeNoPlans() {
     LiftLogTheme {
         HomeContent(
-            uiState = HomeUiState(
-                templates = emptyList(),
-                recent = emptyList(),
-            ),
+            uiState =
+                HomeUiState(
+                    templates = emptyList(),
+                    recent = emptyList(),
+                ),
             onResume = {},
             onStartEmpty = {},
             onStartFromTemplate = {},
@@ -530,4 +549,3 @@ private fun PreviewHomeNoPlans() {
         )
     }
 }
-

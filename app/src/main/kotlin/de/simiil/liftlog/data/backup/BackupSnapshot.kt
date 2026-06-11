@@ -12,7 +12,11 @@ import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.ParsedBackup
 
 /** App identity stamped into the export header (02-data-spec §6). DI-provided. */
-data class AppInfo(val name: String, val versionName: String, val dbSchemaVersion: Int)
+data class AppInfo(
+    val name: String,
+    val versionName: String,
+    val dbSchemaVersion: Int,
+)
 
 /** Lossless in-memory image of the whole DB + the two persisted settings.
  *  Holds entities (not domain models) so round-trips are byte-for-byte. */

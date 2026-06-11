@@ -1,7 +1,6 @@
 package de.simiil.liftlog.ui
 
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -10,7 +9,6 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.junit.Assert.assertTrue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
@@ -23,12 +21,13 @@ import de.simiil.liftlog.ui.UiTestTags.ADD_EXERCISE
 import de.simiil.liftlog.ui.UiTestTags.HOME_TEMPLATE_CHIP
 import de.simiil.liftlog.ui.UiTestTags.LOGGED_SET_ROW
 import de.simiil.liftlog.ui.UiTestTags.LOG_SET_BUTTON
-import javax.inject.Inject
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
 /**
  * M3 exit criterion: "Cold start → template chip → first set = 3 taps" (05-roadmap Task 11).
@@ -51,7 +50,6 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @HiltAndroidTest
 class TemplateStartPathTest {
-
     @get:Rule(order = 0)
     val hiltRule = HiltAndroidRule(this)
 
@@ -59,30 +57,33 @@ class TemplateStartPathTest {
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Inject lateinit var sessionRepository: SessionRepository
+
     @Inject lateinit var exerciseRepository: ExerciseRepository
+
     @Inject lateinit var planRepository: PlanRepository
 
     @Before
-    fun seed() = runBlocking {
-        hiltRule.inject()
+    fun seed() =
+        runBlocking {
+            hiltRule.inject()
 
-        // "Test Squat" is the template exercise; "Test Lunge" is the distinct ad-hoc add (test 2).
-        val squat = exerciseRepository.createCustom("Test Squat", MuscleGroup.QUADS, Equipment.BARBELL)
-        exerciseRepository.createCustom("Test Lunge", MuscleGroup.QUADS, Equipment.DUMBBELL)
+            // "Test Squat" is the template exercise; "Test Lunge" is the distinct ad-hoc add (test 2).
+            val squat = exerciseRepository.createCustom("Test Squat", MuscleGroup.QUADS, Equipment.BARBELL)
+            exerciseRepository.createCustom("Test Lunge", MuscleGroup.QUADS, Equipment.DUMBBELL)
 
-        // Plan + day template with one template-exercise carrying real targets.
-        val plan = planRepository.createPlan("Test Plan")
-        val day = planRepository.createDayTemplate(plan.id, "Push Day")
-        val te = planRepository.addExerciseToTemplate(day.id, squat.id)
-        planRepository.updateTemplateExerciseTargets(te.id, targetSets = 3, targetRepsMin = 8, targetRepsMax = 12)
+            // Plan + day template with one template-exercise carrying real targets.
+            val plan = planRepository.createPlan("Test Plan")
+            val day = planRepository.createDayTemplate(plan.id, "Push Day")
+            val te = planRepository.addExerciseToTemplate(day.id, squat.id)
+            planRepository.updateTemplateExerciseTargets(te.id, targetSets = 3, targetRepsMin = 8, targetRepsMax = 12)
 
-        // A prior COMPLETED session so Home shows HomeContent (recent non-empty) — the chip grid is
-        // hidden by FirstLaunch when both resume and recent are empty.
-        val prior = sessionRepository.startEmptySession()
-        val pse = sessionRepository.addExerciseToSession(prior.id, squat.id)
-        sessionRepository.logSet(pse.id, 60.0, 5)
-        sessionRepository.finishSession(prior.id)
-    }
+            // A prior COMPLETED session so Home shows HomeContent (recent non-empty) — the chip grid is
+            // hidden by FirstLaunch when both resume and recent are empty.
+            val prior = sessionRepository.startEmptySession()
+            val pse = sessionRepository.addExerciseToSession(prior.id, squat.id)
+            sessionRepository.logSet(pse.id, 60.0, 5)
+            sessionRepository.finishSession(prior.id)
+        }
 
     @Test
     fun templateChip_to_loggedSet_3taps() {
@@ -134,26 +135,45 @@ class TemplateStartPathTest {
     private fun nodeCount(matcher: SemanticsMatcher): Int =
         composeRule.onAllNodes(matcher).fetchSemanticsNodes(atLeastOneRootRequired = false).size
 
-    private fun assertNodeCount(matcher: SemanticsMatcher, expected: Int) {
+    private fun assertNodeCount(
+        matcher: SemanticsMatcher,
+        expected: Int,
+    ) {
         composeRule.waitForIdle()
         assertTrue("Expected $expected nodes, found ${nodeCount(matcher)}", nodeCount(matcher) == expected)
     }
 
-    private fun awaitTag(tag: String, timeoutMillis: Long = 5_000) = await(hasTestTag(tag), 1, timeoutMillis)
+    private fun awaitTag(
+        tag: String,
+        timeoutMillis: Long = 5_000,
+    ) = await(hasTestTag(tag), 1, timeoutMillis)
 
-    private fun awaitText(text: String, timeoutMillis: Long = 5_000) =
-        await(hasText(text, substring = true), 1, timeoutMillis)
+    private fun awaitText(
+        text: String,
+        timeoutMillis: Long = 5_000,
+    ) = await(hasText(text, substring = true), 1, timeoutMillis)
 
-    private fun awaitNodeCount(matcher: SemanticsMatcher, count: Int, timeoutMillis: Long = 5_000) =
-        await(matcher, count, timeoutMillis)
+    private fun awaitNodeCount(
+        matcher: SemanticsMatcher,
+        count: Int,
+        timeoutMillis: Long = 5_000,
+    ) = await(matcher, count, timeoutMillis)
 
-    private fun await(matcher: SemanticsMatcher, atLeast: Int, timeoutMillis: Long) {
+    private fun await(
+        matcher: SemanticsMatcher,
+        atLeast: Int,
+        timeoutMillis: Long,
+    ) {
         val deadline = System.currentTimeMillis() + timeoutMillis
         while (System.currentTimeMillis() < deadline) {
             composeRule.waitForIdle()
             if (nodeCount(matcher) >= atLeast) return
             Thread.sleep(50)
         }
-        throw AssertionError("Timed out after ${timeoutMillis}ms waiting for >= $atLeast node(s) matching ${matcher.description}; found ${nodeCount(matcher)}")
+        throw AssertionError(
+            "Timed out after ${timeoutMillis}ms waiting for >= $atLeast node(s) matching ${matcher.description}; found ${nodeCount(
+                matcher,
+            )}",
+        )
     }
 }

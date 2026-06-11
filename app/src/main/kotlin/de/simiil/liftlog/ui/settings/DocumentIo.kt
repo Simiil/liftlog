@@ -11,19 +11,32 @@ import javax.inject.Inject
  *  repository/domain never sees android.net.Uri. */
 interface DocumentIo {
     suspend fun readText(uri: Uri): String
-    suspend fun writeText(uri: Uri, text: String)
+
+    suspend fun writeText(
+        uri: Uri,
+        text: String,
+    )
 }
 
-class AndroidDocumentIo @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : DocumentIo {
-    override suspend fun readText(uri: Uri): String = withContext(Dispatchers.IO) {
-        context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-            ?: error("Cannot open $uri for reading")
-    }
+class AndroidDocumentIo
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+    ) : DocumentIo {
+        override suspend fun readText(uri: Uri): String =
+            withContext(Dispatchers.IO) {
+                context.contentResolver
+                    .openInputStream(uri)
+                    ?.bufferedReader()
+                    ?.use { it.readText() }
+                    ?: error("Cannot open $uri for reading")
+            }
 
-    override suspend fun writeText(uri: Uri, text: String) = withContext(Dispatchers.IO) {
-        context.contentResolver.openOutputStream(uri, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) }
-            ?: error("Cannot open $uri for writing")
+        override suspend fun writeText(
+            uri: Uri,
+            text: String,
+        ) = withContext(Dispatchers.IO) {
+            context.contentResolver.openOutputStream(uri, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) }
+                ?: error("Cannot open $uri for writing")
+        }
     }
-}

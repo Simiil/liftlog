@@ -10,20 +10,20 @@ import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class SessionWithDetailsMapperTest {
-
     // ── fixture helpers ──────────────────────────────────────────────────────
 
-    private fun session(id: String = "s1") = SessionEntity(
-        id = id,
-        templateId = null,
-        templateNameSnapshot = null,
-        startedAt = 1_000L,
-        endedAt = null,
-        note = null,
-        createdAt = 1_000L,
-        updatedAt = 1_000L,
-        deletedAt = null,
-    )
+    private fun session(id: String = "s1") =
+        SessionEntity(
+            id = id,
+            templateId = null,
+            templateNameSnapshot = null,
+            startedAt = 1_000L,
+            endedAt = null,
+            note = null,
+            createdAt = 1_000L,
+            updatedAt = 1_000L,
+            deletedAt = null,
+        )
 
     private fun exercise(
         id: String,
@@ -69,10 +69,11 @@ class SessionWithDetailsMapperTest {
      */
     @Test
     fun `session id is mapped correctly`() {
-        val relation = SessionWithDetailsRelation(
-            session = session("s1"),
-            exercises = emptyList(),
-        )
+        val relation =
+            SessionWithDetailsRelation(
+                session = session("s1"),
+                exercises = emptyList(),
+            )
         val result = relation.toDomain()
         assertEquals("s1", result.session.id)
     }
@@ -85,13 +86,15 @@ class SessionWithDetailsMapperTest {
         val liveEx = exercise("live-ex", position = 1, deletedAt = null)
         val deadEx = exercise("dead-ex", position = 3, deletedAt = 99L)
 
-        val relation = SessionWithDetailsRelation(
-            session = session(),
-            exercises = listOf(
-                SessionExerciseWithSetsRelation(sessionExercise = deadEx, sets = emptyList()),
-                SessionExerciseWithSetsRelation(sessionExercise = liveEx, sets = emptyList()),
-            ),
-        )
+        val relation =
+            SessionWithDetailsRelation(
+                session = session(),
+                exercises =
+                    listOf(
+                        SessionExerciseWithSetsRelation(sessionExercise = deadEx, sets = emptyList()),
+                        SessionExerciseWithSetsRelation(sessionExercise = liveEx, sets = emptyList()),
+                    ),
+            )
         val result = relation.toDomain()
 
         assertEquals(1, result.exercises.size)
@@ -111,14 +114,16 @@ class SessionWithDetailsMapperTest {
         val exPos1 = exercise("ex-pos1", position = 1, deletedAt = null)
         val exPos3Dead = exercise("ex-pos3-dead", position = 3, deletedAt = 99L)
 
-        val relation = SessionWithDetailsRelation(
-            session = session(),
-            exercises = listOf(
-                SessionExerciseWithSetsRelation(sessionExercise = exPos2, sets = emptyList()),
-                SessionExerciseWithSetsRelation(sessionExercise = exPos1, sets = emptyList()),
-                SessionExerciseWithSetsRelation(sessionExercise = exPos3Dead, sets = emptyList()),
-            ),
-        )
+        val relation =
+            SessionWithDetailsRelation(
+                session = session(),
+                exercises =
+                    listOf(
+                        SessionExerciseWithSetsRelation(sessionExercise = exPos2, sets = emptyList()),
+                        SessionExerciseWithSetsRelation(sessionExercise = exPos1, sets = emptyList()),
+                        SessionExerciseWithSetsRelation(sessionExercise = exPos3Dead, sets = emptyList()),
+                    ),
+            )
         val result = relation.toDomain()
 
         assertEquals(listOf(1, 2), result.exercises.map { it.sessionExercise.position })
@@ -134,15 +139,17 @@ class SessionWithDetailsMapperTest {
         val liveSet = loggedSet("set-live", sessionExerciseId = "ex1", position = 1, deletedAt = null)
         val deadSet = loggedSet("set-dead", sessionExerciseId = "ex1", position = 3, deletedAt = 99L)
 
-        val relation = SessionWithDetailsRelation(
-            session = session(),
-            exercises = listOf(
-                SessionExerciseWithSetsRelation(
-                    sessionExercise = ex,
-                    sets = listOf(deadSet, liveSet),
-                ),
-            ),
-        )
+        val relation =
+            SessionWithDetailsRelation(
+                session = session(),
+                exercises =
+                    listOf(
+                        SessionExerciseWithSetsRelation(
+                            sessionExercise = ex,
+                            sets = listOf(deadSet, liveSet),
+                        ),
+                    ),
+            )
         val result = relation.toDomain()
 
         val setIds = result.exercises[0].sets.map { it.id }
@@ -163,15 +170,17 @@ class SessionWithDetailsMapperTest {
         val setPos1 = loggedSet("set-pos1", sessionExerciseId = "ex1", position = 1, deletedAt = null)
         val setPos3Dead = loggedSet("set-pos3-dead", sessionExerciseId = "ex1", position = 3, deletedAt = 99L)
 
-        val relation = SessionWithDetailsRelation(
-            session = session(),
-            exercises = listOf(
-                SessionExerciseWithSetsRelation(
-                    sessionExercise = ex,
-                    sets = listOf(setPos2, setPos1, setPos3Dead),
-                ),
-            ),
-        )
+        val relation =
+            SessionWithDetailsRelation(
+                session = session(),
+                exercises =
+                    listOf(
+                        SessionExerciseWithSetsRelation(
+                            sessionExercise = ex,
+                            sets = listOf(setPos2, setPos1, setPos3Dead),
+                        ),
+                    ),
+            )
         val result = relation.toDomain()
 
         assertEquals(listOf(1, 2), result.exercises[0].sets.map { it.position })
@@ -192,17 +201,19 @@ class SessionWithDetailsMapperTest {
         val setPos1 = loggedSet("set-pos1", sessionExerciseId = "ex-pos1", position = 1, deletedAt = null)
         val setPos3Dead = loggedSet("set-pos3-dead", sessionExerciseId = "ex-pos1", position = 3, deletedAt = 99L)
 
-        val relation = SessionWithDetailsRelation(
-            session = session("s1"),
-            exercises = listOf(
-                SessionExerciseWithSetsRelation(sessionExercise = exPos2, sets = emptyList()),
-                SessionExerciseWithSetsRelation(
-                    sessionExercise = exPos1,
-                    sets = listOf(setPos2, setPos1, setPos3Dead),
-                ),
-                SessionExerciseWithSetsRelation(sessionExercise = exPos3Dead, sets = emptyList()),
-            ),
-        )
+        val relation =
+            SessionWithDetailsRelation(
+                session = session("s1"),
+                exercises =
+                    listOf(
+                        SessionExerciseWithSetsRelation(sessionExercise = exPos2, sets = emptyList()),
+                        SessionExerciseWithSetsRelation(
+                            sessionExercise = exPos1,
+                            sets = listOf(setPos2, setPos1, setPos3Dead),
+                        ),
+                        SessionExerciseWithSetsRelation(sessionExercise = exPos3Dead, sets = emptyList()),
+                    ),
+            )
         val result = relation.toDomain()
 
         // session id passes through

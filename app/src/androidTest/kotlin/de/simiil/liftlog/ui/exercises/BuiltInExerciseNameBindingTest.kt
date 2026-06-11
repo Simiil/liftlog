@@ -12,11 +12,16 @@ import org.junit.runner.RunWith
 class BuiltInExerciseNameBindingTest {
     @Test fun everyBuiltInResolvesToItsEnglishSeedName() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        val text = context.assets.open("seed/exercises.v1.json").bufferedReader().use { it.readText() }
+        val text =
+            context.assets
+                .open("seed/exercises.v1.json")
+                .bufferedReader()
+                .use { it.readText() }
         val seed = Json { ignoreUnknownKeys = true }.decodeFromString<SeedFile>(text)
         seed.exercises.forEach { e ->
-            val resId = BuiltInExerciseNames.resById[e.id]
-                ?: error("no resource mapped for ${e.name} (${e.id})")
+            val resId =
+                BuiltInExerciseNames.resById[e.id]
+                    ?: error("no resource mapped for ${e.name} (${e.id})")
             assertEquals(e.name, context.getString(resId))
         }
     }
