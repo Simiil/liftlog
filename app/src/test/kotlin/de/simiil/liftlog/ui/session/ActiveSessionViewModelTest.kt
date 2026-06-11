@@ -15,6 +15,10 @@ import de.simiil.liftlog.testing.FakeExerciseRepository
 import de.simiil.liftlog.testing.FakeSessionRepository
 import de.simiil.liftlog.testing.FakeSettingsRepository
 import de.simiil.liftlog.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -23,6 +27,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ActiveSessionViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -379,5 +384,102 @@ class ActiveSessionViewModelTest {
             }
 
             assertEquals(listOf("s1"), sessionRepo.finishSessionCalls)
+        }
+
+    @Test
+    fun `uiState exposes session rpe and note`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
+            sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
+            sessionRepo.setSessionDetails(
+                "s1",
+                SessionWithDetails(
+                    session("s1").copy(rpe = 8.0, note = "felt good"),
+                    listOf(SessionExerciseWithSets(sessionExercise("se1", "ex1"), emptyList())),
+                ),
+            )
+
+            val vm = createVm(sessionRepo, exerciseRepo)
+
+            vm.uiState.test {
+                val state = awaitItem()
+                assertEquals(8.0, state.sessionRpe!!, 1e-9)
+                assertEquals("felt good", state.sessionNote)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `onSessionRpeChange persists immediately`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
+            sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
+            sessionRepo.setSessionDetails(
+                "s1",
+                SessionWithDetails(
+                    session("s1"),
+                    listOf(SessionExerciseWithSets(sessionExercise("se1", "ex1"), emptyList())),
+                ),
+            )
+
+            val vm = createVm(sessionRepo, exerciseRepo)
+
+            vm.onSessionRpeChange(8.5)
+            advanceUntilIdle()
+
+            assertEquals(listOf("s1" to 8.5), sessionRepo.updateSessionRpeCalls)
+        }
+
+    @Test
+    fun `onSessionNoteChange persists after debounce`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
+            sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
+            sessionRepo.setSessionDetails(
+                "s1",
+                SessionWithDetails(
+                    session("s1"),
+                    listOf(SessionExerciseWithSets(sessionExercise("se1", "ex1"), emptyList())),
+                ),
+            )
+
+            val vm = createVm(sessionRepo, exerciseRepo)
+
+            vm.onSessionNoteChange("pump was insane")
+            runCurrent()
+            assertTrue("no call yet before debounce", sessionRepo.updateSessionNoteCalls.isEmpty())
+
+            advanceTimeBy(600)
+            runCurrent()
+            assertEquals(listOf("s1" to "pump was insane"), sessionRepo.updateSessionNoteCalls)
+        }
+
+    @Test
+    fun `onFinish flushes a pending note before finishing`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
+            sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
+            sessionRepo.setSessionDetails(
+                "s1",
+                SessionWithDetails(
+                    session("s1"),
+                    listOf(SessionExerciseWithSets(sessionExercise("se1", "ex1"), emptyList())),
+                ),
+            )
+
+            val vm = createVm(sessionRepo, exerciseRepo)
+
+            vm.onSessionNoteChange("almost lost this")
+            vm.onFinish()
+            advanceUntilIdle()
+
+            assertTrue(
+                "flush must have written the note",
+                sessionRepo.updateSessionNoteCalls.contains("s1" to "almost lost this"),
+            )
         }
 }

@@ -166,6 +166,12 @@
     <string name="cd_increase_rpe">RPE erhöhen</string>
     <string name="cd_rpe_value">RPE %1$s</string>
     <string name="cd_rpe_clear">RPE entfernen</string>
+
+    <!-- Session meta row (workout note + RPE) -->
+    <string name="session_meta_add">Notiz · RPE hinzufügen</string>
+    <string name="workout_note">Notiz</string>
+    <string name="common_done">Fertig</string>
+
     <string name="set_number">Satz %1$d</string>
     <string name="set_delete">Löschen</string>
     <string name="set_save">Speichern</string>

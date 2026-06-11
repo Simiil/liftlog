@@ -164,6 +164,15 @@ fun ActiveSessionScreen(
             }
 
             item { AddExerciseRow(onClick = onAddExercise) }
+
+            item(key = "session_meta") {
+                SessionMetaRow(
+                    rpe = uiState.sessionRpe,
+                    note = uiState.sessionNote,
+                    onRpeChange = viewModel::onSessionRpeChange,
+                    onNoteChange = viewModel::onSessionNoteChange,
+                )
+            }
         }
     }
 
