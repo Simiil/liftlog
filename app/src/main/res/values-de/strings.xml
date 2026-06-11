@@ -223,6 +223,9 @@
     <string name="plan_add_day">Trainingstag hinzufügen</string>
     <string name="plan_remove_day">Tag entfernen</string>
     <string name="plan_untitled_day">Unbenannter Tag</string>
+    <string name="plan_delete">Plan löschen</string>
+    <string name="plan_delete_confirm_title">Plan löschen?</string>
+    <string name="plan_delete_confirm_message">Bereits geloggte Trainings bleiben erhalten.</string>
 
     <!-- Day editor (M3 redesign) -->
     <string name="day_editor_new">Neuer Tag</string>

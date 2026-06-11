@@ -191,6 +191,15 @@ class PlanEditorViewModel
             }
         }
 
+        /** Soft-deletes the plan being edited; no-op for a new, never-saved plan. */
+        fun deletePlan(onDeleted: () -> Unit) {
+            val id = planId ?: return
+            viewModelScope.launch {
+                planRepository.softDeletePlan(id)
+                onDeleted()
+            }
+        }
+
         // ── Internals ────────────────────────────────────────────────────────────
 
         /** Loads an existing plan + its days + their exercises into a draft (ids preserved as keys). */

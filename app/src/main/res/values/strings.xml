@@ -224,6 +224,9 @@
     <string name="plan_add_day">Add training day</string>
     <string name="plan_remove_day">Remove day</string>
     <string name="plan_untitled_day">Untitled day</string>
+    <string name="plan_delete">Delete plan</string>
+    <string name="plan_delete_confirm_title">Delete plan?</string>
+    <string name="plan_delete_confirm_message">Workouts you already logged from this plan are kept.</string>
 
     <!-- Day editor (M3 redesign) -->
     <string name="day_editor_new">New day</string>
