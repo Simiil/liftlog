@@ -16,9 +16,12 @@ class DownsampleTest {
         // 3 points in the same ISO week ⇒ one bucket carrying the MAX value
         // base = 50 days from epoch = 1970-02-20 (Friday); +1=Sat, +2=Sun; all in ISO week 8
         val base = 50L * day
-        val pts = listOf(
-            TrendPoint(base, 5.0), TrendPoint(base + day, 9.0), TrendPoint(base + 2 * day, 7.0),
-        )
+        val pts =
+            listOf(
+                TrendPoint(base, 5.0),
+                TrendPoint(base + day, 9.0),
+                TrendPoint(base + 2 * day, 7.0),
+            )
         val out = downsample(pts, Aggregation.MAX, maxPoints = 2)
         assertEquals(1, out.size)
         assertEquals(9.0, out.first().value, 0.0)

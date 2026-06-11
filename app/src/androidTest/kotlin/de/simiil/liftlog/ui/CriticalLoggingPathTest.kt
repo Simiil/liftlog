@@ -25,12 +25,12 @@ import de.simiil.liftlog.ui.UiTestTags.LOGGED_SET_ROW
 import de.simiil.liftlog.ui.UiTestTags.LOG_SET_BUTTON
 import de.simiil.liftlog.ui.UiTestTags.WEIGHT_INCREMENT
 import de.simiil.liftlog.ui.UiTestTags.WEIGHT_VALUE
-import javax.inject.Inject
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
 /**
  * The headline M2 exit criterion (05-roadmap): a single deep test that walks the whole
@@ -53,7 +53,6 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @HiltAndroidTest
 class CriticalLoggingPathTest {
-
     @get:Rule(order = 0)
     val hiltRule = HiltAndroidRule(this)
 
@@ -69,22 +68,23 @@ class CriticalLoggingPathTest {
     private lateinit var exerciseId: String
 
     @Before
-    fun seedPriorSession() = runBlocking {
-        hiltRule.inject()
-        // 1. A custom exercise, so the picker has something to pick (the built-in seeder
-        //    does NOT run under HiltTestApplication — this is the only visible exercise).
-        val ex = exerciseRepository.createCustom("Test Bench", MuscleGroup.CHEST, Equipment.BARBELL)
-        exerciseId = ex.id
-        // 2. A PRIOR COMPLETED session with this exercise at a known weight/reps. Once it is
-        //    finished (endedAt set), `lastPerformance` can find it and the active card will
-        //    pre-fill the next set from its first set: 30 kg × 10 (hard constraint 2).
-        val session = sessionRepository.startEmptySession()
-        val se = sessionRepository.addExerciseToSession(session.id, exerciseId)
-        sessionRepository.logSet(se.id, 30.0, 10)
-        sessionRepository.logSet(se.id, 30.0, 10)
-        sessionRepository.logSet(se.id, 30.0, 8)
-        sessionRepository.finishSession(session.id)
-    }
+    fun seedPriorSession() =
+        runBlocking {
+            hiltRule.inject()
+            // 1. A custom exercise, so the picker has something to pick (the built-in seeder
+            //    does NOT run under HiltTestApplication — this is the only visible exercise).
+            val ex = exerciseRepository.createCustom("Test Bench", MuscleGroup.CHEST, Equipment.BARBELL)
+            exerciseId = ex.id
+            // 2. A PRIOR COMPLETED session with this exercise at a known weight/reps. Once it is
+            //    finished (endedAt set), `lastPerformance` can find it and the active card will
+            //    pre-fill the next set from its first set: 30 kg × 10 (hard constraint 2).
+            val session = sessionRepository.startEmptySession()
+            val se = sessionRepository.addExerciseToSession(session.id, exerciseId)
+            sessionRepository.logSet(se.id, 30.0, 10)
+            sessionRepository.logSet(se.id, 30.0, 10)
+            sessionRepository.logSet(se.id, 30.0, 8)
+            sessionRepository.finishSession(session.id)
+        }
 
     @Test
     fun startLogAdjustLog_thenSurviveRecreate() {
@@ -133,9 +133,11 @@ class CriticalLoggingPathTest {
 
         // Each set survived with its own weight. Scoping to LOGGED_SET_ROW excludes the
         // ghost "last: 30 kg × 10·10·8" line (which has no row tag) from matching "30 kg".
-        composeRule.onAllNodes(hasTestTag(LOGGED_SET_ROW) and hasText("30 kg", substring = true))
+        composeRule
+            .onAllNodes(hasTestTag(LOGGED_SET_ROW) and hasText("30 kg", substring = true))
             .assertCountEquals(1)
-        composeRule.onAllNodes(hasTestTag(LOGGED_SET_ROW) and hasText("32.5 kg", substring = true))
+        composeRule
+            .onAllNodes(hasTestTag(LOGGED_SET_ROW) and hasText("32.5 kg", substring = true))
             .assertCountEquals(1)
 
         // Exact rendered row text (LoggedSetRow collapsed: "{weight} {unit} × {reps}",
@@ -154,16 +156,26 @@ class CriticalLoggingPathTest {
     private fun matchingNodeCount(matcher: SemanticsMatcher): Int =
         composeRule.onAllNodes(matcher).fetchSemanticsNodes(atLeastOneRootRequired = false).size
 
-    private fun waitUntilExists(matcher: SemanticsMatcher, timeoutMillis: Long = 5_000) {
+    private fun waitUntilExists(
+        matcher: SemanticsMatcher,
+        timeoutMillis: Long = 5_000,
+    ) {
         composeRule.waitUntil(timeoutMillis) { matchingNodeCount(matcher) > 0 }
     }
 
-    private fun waitUntilNodeCount(matcher: SemanticsMatcher, count: Int, timeoutMillis: Long = 5_000) {
+    private fun waitUntilNodeCount(
+        matcher: SemanticsMatcher,
+        count: Int,
+        timeoutMillis: Long = 5_000,
+    ) {
         composeRule.waitUntil(timeoutMillis) { matchingNodeCount(matcher) == count }
     }
 
     /** Non-throwing variant for the defensive resume-card fallback. */
-    private fun waitForExistsOrTimeout(matcher: SemanticsMatcher, timeoutMillis: Long = 3_000): Boolean =
+    private fun waitForExistsOrTimeout(
+        matcher: SemanticsMatcher,
+        timeoutMillis: Long = 3_000,
+    ): Boolean =
         try {
             waitUntilExists(matcher, timeoutMillis)
             true

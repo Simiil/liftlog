@@ -9,6 +9,8 @@ class FakePrefillDao : PrefillDao {
 
     override suspend fun lastCompletedSessionIdFor(exerciseId: String): String? = lastCompletedSessionId
 
-    override suspend fun setsForExerciseInSession(sessionId: String, exerciseId: String): List<LoggedSetEntity> =
-        setsBySessionAndExercise[sessionId to exerciseId] ?: emptyList()
+    override suspend fun setsForExerciseInSession(
+        sessionId: String,
+        exerciseId: String,
+    ): List<LoggedSetEntity> = setsBySessionAndExercise[sessionId to exerciseId] ?: emptyList()
 }

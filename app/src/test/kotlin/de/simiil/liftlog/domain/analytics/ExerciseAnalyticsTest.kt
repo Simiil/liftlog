@@ -11,8 +11,7 @@ class ExerciseAnalyticsTest {
     private val day = 86_400_000L
     private val now = 1_000_000_000_000L
 
-    @Test fun noSets_returnsNull() =
-        assertNull(summarize(Equipment.BARBELL, emptyList(), now))
+    @Test fun noSets_returnsNull() = assertNull(summarize(Equipment.BARBELL, emptyList(), now))
 
     @Test fun singleSessionEver_everyMetricIsPr() {
         val sets = listOf(DatedSet("s1", now - 5 * day, 100.0, 5))
@@ -23,11 +22,12 @@ class ExerciseAnalyticsTest {
     }
 
     @Test fun pr_isStrictlyGreaterThanAllEarlier() {
-        val sets = listOf(
-            DatedSet("s1", now - 20 * day, 100.0, 5),  // e1RM 116.67 — PR (first)
-            DatedSet("s2", now - 13 * day, 100.0, 5),  // equal — NOT a PR (not strictly greater)
-            DatedSet("s3", now - 6 * day, 105.0, 5),   // higher — PR
-        )
+        val sets =
+            listOf(
+                DatedSet("s1", now - 20 * day, 100.0, 5), // e1RM 116.67 — PR (first)
+                DatedSet("s2", now - 13 * day, 100.0, 5), // equal — NOT a PR (not strictly greater)
+                DatedSet("s3", now - 6 * day, 105.0, 5), // higher — PR
+            )
         val s = summarize(Equipment.BARBELL, sets, now)!!
         assertTrue(s.sessions[0].isPr)
         assertFalse(s.sessions[1].isPr)
@@ -35,14 +35,15 @@ class ExerciseAnalyticsTest {
     }
 
     @Test fun bodyweight_swapsToRepMetrics() {
-        val sets = listOf(
-            DatedSet("s1", now - 12 * day, 0.0, 8),
-            DatedSet("s2", now - 5 * day, 0.0, 10),
-        )
+        val sets =
+            listOf(
+                DatedSet("s1", now - 12 * day, 0.0, 8),
+                DatedSet("s2", now - 5 * day, 0.0, 10),
+            )
         val s = summarize(Equipment.BODYWEIGHT, sets, now)!!
         assertTrue(s.bodyweight)
-        assertEquals(10.0, s.currentValue, 0.0)          // last session's maxReps as primary
-        assertTrue(s.sessions[1].isPr)                    // reps PR
+        assertEquals(10.0, s.currentValue, 0.0) // last session's maxReps as primary
+        assertTrue(s.sessions[1].isPr) // reps PR
     }
 
     @Test fun weightedBodyweightEntry_usesWeightMetrics() {
@@ -53,13 +54,19 @@ class ExerciseAnalyticsTest {
     }
 
     @Test fun sessionsGroupedBySessionId() {
-        val sets = listOf(
-            DatedSet("s1", now - 6 * day, 100.0, 5),
-            DatedSet("s1", now - 6 * day, 100.0, 5),
-            DatedSet("s1", now - 6 * day, 95.0, 8),
-        )
+        val sets =
+            listOf(
+                DatedSet("s1", now - 6 * day, 100.0, 5),
+                DatedSet("s1", now - 6 * day, 100.0, 5),
+                DatedSet("s1", now - 6 * day, 95.0, 8),
+            )
         val s = summarize(Equipment.BARBELL, sets, now)!!
         assertEquals(1, s.sessions.size)
-        assertEquals(3, s.sessions.first().sets.size)
+        assertEquals(
+            3,
+            s.sessions
+                .first()
+                .sets.size,
+        )
     }
 }

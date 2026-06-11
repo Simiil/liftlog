@@ -16,10 +16,17 @@ data class BackupFile(
 )
 
 @Serializable
-data class AppInfoDto(val name: String, val versionName: String, val dbSchemaVersion: Int)
+data class AppInfoDto(
+    val name: String,
+    val versionName: String,
+    val dbSchemaVersion: Int,
+)
 
 @Serializable
-data class SettingsDto(val weightUnit: String, val theme: String)
+data class SettingsDto(
+    val weightUnit: String,
+    val theme: String,
+)
 
 @Serializable
 data class BackupData(
@@ -34,47 +41,90 @@ data class BackupData(
 
 @Serializable
 data class ExerciseDto(
-    val id: String, val name: String, val muscleGroup: String, val equipment: String,
-    val isBuiltIn: Boolean, val isHidden: Boolean,
-    val createdAt: String, val updatedAt: String, val deletedAt: String?,
+    val id: String,
+    val name: String,
+    val muscleGroup: String,
+    val equipment: String,
+    val isBuiltIn: Boolean,
+    val isHidden: Boolean,
+    val createdAt: String,
+    val updatedAt: String,
+    val deletedAt: String?,
 )
 
 @Serializable
 data class WorkoutPlanDto(
-    val id: String, val name: String, val position: Int,
-    val createdAt: String, val updatedAt: String, val deletedAt: String?,
+    val id: String,
+    val name: String,
+    val position: Int,
+    val createdAt: String,
+    val updatedAt: String,
+    val deletedAt: String?,
 )
 
 @Serializable
 data class PlanDayTemplateDto(
-    val id: String, val planId: String, val name: String, val position: Int,
-    val createdAt: String, val updatedAt: String, val deletedAt: String?,
+    val id: String,
+    val planId: String,
+    val name: String,
+    val position: Int,
+    val createdAt: String,
+    val updatedAt: String,
+    val deletedAt: String?,
 )
 
 @Serializable
 data class TemplateExerciseDto(
-    val id: String, val templateId: String, val exerciseId: String, val position: Int,
-    val targetSets: Int?, val targetRepsMin: Int?, val targetRepsMax: Int?,
-    val createdAt: String, val updatedAt: String, val deletedAt: String?,
+    val id: String,
+    val templateId: String,
+    val exerciseId: String,
+    val position: Int,
+    val targetSets: Int?,
+    val targetRepsMin: Int?,
+    val targetRepsMax: Int?,
+    val createdAt: String,
+    val updatedAt: String,
+    val deletedAt: String?,
 )
 
 @Serializable
 data class SessionDto(
-    val id: String, val templateId: String?, val templateNameSnapshot: String?,
-    val startedAt: String, val endedAt: String?, val note: String?,
-    val createdAt: String, val updatedAt: String, val deletedAt: String?,
+    val id: String,
+    val templateId: String?,
+    val templateNameSnapshot: String?,
+    val startedAt: String,
+    val endedAt: String?,
+    val note: String?,
+    val createdAt: String,
+    val updatedAt: String,
+    val deletedAt: String?,
 )
 
 @Serializable
 data class SessionExerciseDto(
-    val id: String, val sessionId: String, val exerciseId: String, val position: Int,
-    val targetSets: Int?, val targetRepsMin: Int?, val targetRepsMax: Int?,
-    val createdAt: String, val updatedAt: String, val deletedAt: String?,
+    val id: String,
+    val sessionId: String,
+    val exerciseId: String,
+    val position: Int,
+    val targetSets: Int?,
+    val targetRepsMin: Int?,
+    val targetRepsMax: Int?,
+    val createdAt: String,
+    val updatedAt: String,
+    val deletedAt: String?,
 )
 
 @Serializable
 data class LoggedSetDto(
-    val id: String, val sessionExerciseId: String, val weightKg: Double, val reps: Int,
-    val position: Int, val completedAt: String, val rpe: Double?, val note: String?,
-    val createdAt: String, val updatedAt: String, val deletedAt: String?,
+    val id: String,
+    val sessionExerciseId: String,
+    val weightKg: Double,
+    val reps: Int,
+    val position: Int,
+    val completedAt: String,
+    val rpe: Double?,
+    val note: String?,
+    val createdAt: String,
+    val updatedAt: String,
+    val deletedAt: String?,
 )

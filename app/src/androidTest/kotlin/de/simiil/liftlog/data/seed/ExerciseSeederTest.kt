@@ -9,7 +9,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,41 +24,45 @@ class ExerciseSeederTest {
 
     @Before fun setUp() {
         db = newInMemoryDb()
-        seeder = ExerciseSeeder(
-            context = InstrumentationRegistry.getInstrumentation().targetContext,
-            dao = db.exerciseDao(),
-            clock = Clock.systemUTC(),
-            json = Json { ignoreUnknownKeys = true },
-        )
+        seeder =
+            ExerciseSeeder(
+                context = InstrumentationRegistry.getInstrumentation().targetContext,
+                dao = db.exerciseDao(),
+                clock = Clock.systemUTC(),
+                json = Json { ignoreUnknownKeys = true },
+            )
     }
 
     @After fun tearDown() = db.close()
 
-    @Test fun seed_insertsAllBuiltIns() = runTest {
-        seeder.seed()
-        assertEquals(69, db.exerciseDao().countLive())
-        db.exerciseDao().observeAll().test {
-            val items = awaitItem()
-            assertTrue("all rows should be isBuiltIn", items.all { it.isBuiltIn })
-            cancelAndIgnoreRemainingEvents()
+    @Test fun seed_insertsAllBuiltIns() =
+        runTest {
+            seeder.seed()
+            assertEquals(69, db.exerciseDao().countLive())
+            db.exerciseDao().observeAll().test {
+                val items = awaitItem()
+                assertTrue("all rows should be isBuiltIn", items.all { it.isBuiltIn })
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
-    @Test fun seed_isIdempotent() = runTest {
-        seeder.seed()
-        seeder.seed()
-        assertEquals(69, db.exerciseDao().countLive())
-    }
+    @Test fun seed_isIdempotent() =
+        runTest {
+            seeder.seed()
+            seeder.seed()
+            assertEquals(69, db.exerciseDao().countLive())
+        }
 
-    @Test fun seed_doesNotOverwriteUserHidden() = runTest {
-        seeder.seed()
-        val dao = db.exerciseDao()
-        val firstRow = dao.observeAll().first().first()
-        val hiddenId = firstRow.id
-        dao.update(firstRow.copy(isHidden = true, updatedAt = Clock.systemUTC().millis()))
-        seeder.seed()
-        val after = dao.findById(hiddenId)
-        assertNotNull(after)
-        assertTrue("isHidden should still be true after re-seed", after!!.isHidden)
-    }
+    @Test fun seed_doesNotOverwriteUserHidden() =
+        runTest {
+            seeder.seed()
+            val dao = db.exerciseDao()
+            val firstRow = dao.observeAll().first().first()
+            val hiddenId = firstRow.id
+            dao.update(firstRow.copy(isHidden = true, updatedAt = Clock.systemUTC().millis()))
+            seeder.seed()
+            val after = dao.findById(hiddenId)
+            assertNotNull(after)
+            assertTrue("isHidden should still be true after re-seed", after!!.isHidden)
+        }
 }

@@ -48,9 +48,10 @@ fun HistoryScreen(
     ) { innerPadding ->
         if (uiState.sessions.isEmpty()) {
             Box(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
+                modifier =
+                    Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -61,10 +62,11 @@ fun HistoryScreen(
             }
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+                modifier =
+                    Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 item { /* top spacer */ }
@@ -87,11 +89,12 @@ private fun HistorySessionCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clickable(onClick = onClick)
-            .semantics(mergeDescendants = true) {},
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clickable(onClick = onClick)
+                .semantics(mergeDescendants = true) {},
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -105,11 +108,13 @@ private fun HistorySessionCard(
                     PrBadge()
                 }
             }
-            val relativeDate = DateUtils.getRelativeTimeSpanString(
-                session.startedAt.toEpochMilli(),
-                System.currentTimeMillis(),
-                DateUtils.MINUTE_IN_MILLIS,
-            ).toString()
+            val relativeDate =
+                DateUtils
+                    .getRelativeTimeSpanString(
+                        session.startedAt.toEpochMilli(),
+                        System.currentTimeMillis(),
+                        DateUtils.MINUTE_IN_MILLIS,
+                    ).toString()
             Text(
                 text = "$relativeDate · ${pluralStringResource(R.plurals.set_count, session.setCount, session.setCount)}",
                 style = MaterialTheme.typography.bodyMedium,
@@ -118,4 +123,3 @@ private fun HistorySessionCard(
         }
     }
 }
-

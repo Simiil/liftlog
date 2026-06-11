@@ -10,7 +10,10 @@ import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.testing.newInMemoryDb
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,14 +45,23 @@ class PrefillDaoTest {
     // -- builders --
 
     private fun exercise(id: String) =
-        ExerciseEntity(id, "Exercise $id", MuscleGroup.CHEST, Equipment.BARBELL,
-            isBuiltIn = true, isHidden = false, createdAt = 1L, updatedAt = 1L, deletedAt = null)
+        ExerciseEntity(
+            id,
+            "Exercise $id",
+            MuscleGroup.CHEST,
+            Equipment.BARBELL,
+            isBuiltIn = true,
+            isHidden = false,
+            createdAt = 1L,
+            updatedAt = 1L,
+            deletedAt = null,
+        )
 
     private fun session(
         id: String,
         startedAt: Long,
         endedAt: Long? = startedAt + 3600_000L,
-        deleted: Long? = null
+        deleted: Long? = null,
     ) = SessionEntity(
         id = id,
         templateId = null,
@@ -62,19 +74,22 @@ class PrefillDaoTest {
         deletedAt = deleted,
     )
 
-    private fun sessionExercise(id: String, sessionId: String, exerciseId: String) =
-        SessionExerciseEntity(
-            id = id,
-            sessionId = sessionId,
-            exerciseId = exerciseId,
-            position = 1,
-            targetSets = null,
-            targetRepsMin = null,
-            targetRepsMax = null,
-            createdAt = 1L,
-            updatedAt = 1L,
-            deletedAt = null,
-        )
+    private fun sessionExercise(
+        id: String,
+        sessionId: String,
+        exerciseId: String,
+    ) = SessionExerciseEntity(
+        id = id,
+        sessionId = sessionId,
+        exerciseId = exerciseId,
+        position = 1,
+        targetSets = null,
+        targetRepsMin = null,
+        targetRepsMax = null,
+        createdAt = 1L,
+        updatedAt = 1L,
+        deletedAt = null,
+    )
 
     private fun loggedSet(
         id: String,
@@ -120,9 +135,9 @@ class PrefillDaoTest {
         // Live sets inserted OUT OF position order (3, then 1, then 2) to make ORDER BY load-bearing.
         sessionDao.insertSession(session("sB", startedAt = 2000L, endedAt = 3000L))
         sessionDao.insertSessionExercise(sessionExercise("seB", "sB", "ex1"))
-        sessionDao.insertLoggedSet(loggedSet("lsB3", "seB", position = 3))   // inserted first
-        sessionDao.insertLoggedSet(loggedSet("lsB1", "seB", position = 1))   // inserted second
-        sessionDao.insertLoggedSet(loggedSet("lsB2", "seB", position = 2))   // inserted third
+        sessionDao.insertLoggedSet(loggedSet("lsB3", "seB", position = 3)) // inserted first
+        sessionDao.insertLoggedSet(loggedSet("lsB1", "seB", position = 1)) // inserted second
+        sessionDao.insertLoggedSet(loggedSet("lsB2", "seB", position = 2)) // inserted third
         // Soft-deleted set in session B — must be excluded from setsForExerciseInSession
         sessionDao.insertLoggedSet(loggedSet("lsB_dead", "seB", position = 4, deleted = 99L))
 
@@ -136,70 +151,78 @@ class PrefillDaoTest {
     // lastCompletedSessionIdFor
     // -------------------------------------------------------------------------
 
-    @Test fun lastCompletedSessionIdFor_returnsMostRecentCompletedSession() = runTest {
-        insertFullGraph()
-        val id = prefillDao.lastCompletedSessionIdFor("ex1")
-        assertEquals("sB", id)
-    }
+    @Test fun lastCompletedSessionIdFor_returnsMostRecentCompletedSession() =
+        runTest {
+            insertFullGraph()
+            val id = prefillDao.lastCompletedSessionIdFor("ex1")
+            assertEquals("sB", id)
+        }
 
-    @Test fun lastCompletedSessionIdFor_ignoresInProgressSession() = runTest {
-        insertFullGraph()
-        // Session C (in-progress, most recent) must be ignored; sB is still the answer
-        val id = prefillDao.lastCompletedSessionIdFor("ex1")
-        assertNotEquals("sC", id)
-        assertEquals("sB", id)
-    }
+    @Test fun lastCompletedSessionIdFor_ignoresInProgressSession() =
+        runTest {
+            insertFullGraph()
+            // Session C (in-progress, most recent) must be ignored; sB is still the answer
+            val id = prefillDao.lastCompletedSessionIdFor("ex1")
+            assertNotEquals("sC", id)
+            assertEquals("sB", id)
+        }
 
-    @Test fun lastCompletedSessionIdFor_returnsNullWhenNoCompletedSessions() = runTest {
-        exerciseDao.insert(exercise("ex2"))
-        sessionDao.insertSession(session("sX", startedAt = 1000L, endedAt = null))
-        sessionDao.insertSessionExercise(sessionExercise("seX", "sX", "ex2"))
+    @Test fun lastCompletedSessionIdFor_returnsNullWhenNoCompletedSessions() =
+        runTest {
+            exerciseDao.insert(exercise("ex2"))
+            sessionDao.insertSession(session("sX", startedAt = 1000L, endedAt = null))
+            sessionDao.insertSessionExercise(sessionExercise("seX", "sX", "ex2"))
 
-        val id = prefillDao.lastCompletedSessionIdFor("ex2")
-        assertNull("should return null when no completed session exists for exercise", id)
-    }
+            val id = prefillDao.lastCompletedSessionIdFor("ex2")
+            assertNull("should return null when no completed session exists for exercise", id)
+        }
 
-    @Test fun lastCompletedSessionIdFor_ignoresTombstonedSessions() = runTest {
-        exerciseDao.insert(exercise("ex3"))
-        sessionDao.insertSession(session("sD", startedAt = 1000L, endedAt = 2000L, deleted = 99L))
-        sessionDao.insertSessionExercise(sessionExercise("seD", "sD", "ex3"))
+    @Test fun lastCompletedSessionIdFor_ignoresTombstonedSessions() =
+        runTest {
+            exerciseDao.insert(exercise("ex3"))
+            sessionDao.insertSession(session("sD", startedAt = 1000L, endedAt = 2000L, deleted = 99L))
+            sessionDao.insertSessionExercise(sessionExercise("seD", "sD", "ex3"))
 
-        val id = prefillDao.lastCompletedSessionIdFor("ex3")
-        assertNull("tombstoned session should not be returned", id)
-    }
+            val id = prefillDao.lastCompletedSessionIdFor("ex3")
+            assertNull("tombstoned session should not be returned", id)
+        }
 
     // -------------------------------------------------------------------------
     // setsForExerciseInSession
     // -------------------------------------------------------------------------
 
-    @Test fun setsForExerciseInSession_returnsLiveSetsInPositionOrder() = runTest {
-        insertFullGraph()
-        val sets = prefillDao.setsForExerciseInSession("sB", "ex1")
-        // 3 live sets; the soft-deleted one (lsB_dead) is excluded.
-        // Sets were inserted out of order (pos 3, 1, 2) so this assertion is genuinely testing ORDER BY.
-        assertEquals(3, sets.size)
-        // Ordered by position ASC: 1, 2, 3
-        assertEquals(listOf(1, 2, 3), sets.map { it.position })
-        assertEquals(listOf("lsB1", "lsB2", "lsB3"), sets.map { it.id })
-    }
+    @Test fun setsForExerciseInSession_returnsLiveSetsInPositionOrder() =
+        runTest {
+            insertFullGraph()
+            val sets = prefillDao.setsForExerciseInSession("sB", "ex1")
+            // 3 live sets; the soft-deleted one (lsB_dead) is excluded.
+            // Sets were inserted out of order (pos 3, 1, 2) so this assertion is genuinely testing ORDER BY.
+            assertEquals(3, sets.size)
+            // Ordered by position ASC: 1, 2, 3
+            assertEquals(listOf(1, 2, 3), sets.map { it.position })
+            assertEquals(listOf("lsB1", "lsB2", "lsB3"), sets.map { it.id })
+        }
 
-    @Test fun setsForExerciseInSession_excludesSoftDeletedSets() = runTest {
-        insertFullGraph()
-        val sets = prefillDao.setsForExerciseInSession("sB", "ex1")
-        assertTrue("deleted set should not appear", sets.none { it.id == "lsB_dead" })
-    }
+    @Test fun setsForExerciseInSession_excludesSoftDeletedSets() =
+        runTest {
+            insertFullGraph()
+            val sets = prefillDao.setsForExerciseInSession("sB", "ex1")
+            assertTrue("deleted set should not appear", sets.none { it.id == "lsB_dead" })
+        }
 
-    @Test fun setsForExerciseInSession_returnsCorrectCountForSessionA() = runTest {
-        insertFullGraph()
-        val sets = prefillDao.setsForExerciseInSession("sA", "ex1")
-        assertEquals(2, sets.size)
-        assertEquals(listOf(1, 2), sets.map { it.position })
-    }
+    @Test fun setsForExerciseInSession_returnsCorrectCountForSessionA() =
+        runTest {
+            insertFullGraph()
+            val sets = prefillDao.setsForExerciseInSession("sA", "ex1")
+            assertEquals(2, sets.size)
+            assertEquals(listOf(1, 2), sets.map { it.position })
+        }
 
-    @Test fun setsForExerciseInSession_returnsEmptyForUnrelatedExercise() = runTest {
-        insertFullGraph()
-        exerciseDao.insert(exercise("ex_other"))
-        val sets = prefillDao.setsForExerciseInSession("sB", "ex_other")
-        assertTrue(sets.isEmpty())
-    }
+    @Test fun setsForExerciseInSession_returnsEmptyForUnrelatedExercise() =
+        runTest {
+            insertFullGraph()
+            exerciseDao.insert(exercise("ex_other"))
+            val sets = prefillDao.setsForExerciseInSession("sB", "ex_other")
+            assertTrue(sets.isEmpty())
+        }
 }

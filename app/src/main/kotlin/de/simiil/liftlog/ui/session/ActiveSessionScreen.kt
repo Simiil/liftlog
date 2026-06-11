@@ -52,15 +52,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
-import de.simiil.liftlog.ui.UiTestTags
-import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
+import de.simiil.liftlog.ui.UiTestTags
+import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.theme.LiftLogTheme
-import java.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -86,11 +86,12 @@ fun ActiveSessionScreen(
         }
     }
 
-    val finishMessage = stringResource(
-        R.string.session_finish_summary,
-        uiState.name ?: stringResource(R.string.session_untitled),
-        uiState.lastFinishedSetCount,
-    )
+    val finishMessage =
+        stringResource(
+            R.string.session_finish_summary,
+            uiState.name ?: stringResource(R.string.session_untitled),
+            uiState.lastFinishedSetCount,
+        )
     LaunchedEffect(uiState.finished) {
         if (uiState.finished) {
             launch { snackbarHostState.showSnackbar(finishMessage, duration = SnackbarDuration.Short) }
@@ -103,11 +104,12 @@ fun ActiveSessionScreen(
         if (uiState.discarded) onDiscarded()
     }
 
-    val elapsedSeconds = remember(uiState.startedAt) {
-        androidx.compose.runtime.mutableLongStateOf(
-            uiState.startedAt?.let { Instant.now().epochSecond - it.epochSecond } ?: 0L,
-        )
-    }
+    val elapsedSeconds =
+        remember(uiState.startedAt) {
+            androidx.compose.runtime.mutableLongStateOf(
+                uiState.startedAt?.let { Instant.now().epochSecond - it.epochSecond } ?: 0L,
+            )
+        }
     LaunchedEffect(uiState.startedAt) {
         while (true) {
             delay(1_000)
@@ -129,9 +131,10 @@ fun ActiveSessionScreen(
         },
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -235,13 +238,15 @@ private fun SessionTopBar(
             Spacer(Modifier.width(8.dp))
             FilledIconButton(
                 onClick = onFinishClick,
-                modifier = Modifier
-                    .size(48.dp)
-                    .semantics { contentDescription = finishCd },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
+                modifier =
+                    Modifier
+                        .size(48.dp)
+                        .semantics { contentDescription = finishCd },
+                colors =
+                    IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
             ) {
                 Icon(imageVector = Icons.Filled.Check, contentDescription = null)
             }
@@ -259,13 +264,14 @@ private fun AddExerciseRow(
 ) {
     val shape = RoundedCornerShape(20.dp)
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .clip(shape)
-            .dashedBorder(color = MaterialTheme.colorScheme.outline, width = 1.5.dp, cornerRadius = 20.dp)
-            .clickable(onClick = onClick)
-            .testTag(UiTestTags.ADD_EXERCISE),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clip(shape)
+                .dashedBorder(color = MaterialTheme.colorScheme.outline, width = 1.5.dp, cornerRadius = 20.dp)
+                .clickable(onClick = onClick)
+                .testTag(UiTestTags.ADD_EXERCISE),
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -298,7 +304,11 @@ internal fun formatElapsed(seconds: Long): String {
 
 private val fakeInstant = Instant.ofEpochSecond(0)
 
-private fun fakeSet(id: String, weightKg: Double, reps: Int) = LoggedSet(
+private fun fakeSet(
+    id: String,
+    weightKg: Double,
+    reps: Int,
+) = LoggedSet(
     id = id,
     sessionExerciseId = "se1",
     weightKg = weightKg,
@@ -312,39 +322,40 @@ private fun fakeSet(id: String, weightKg: Double, reps: Int) = LoggedSet(
     deletedAt = null,
 )
 
-private val previewCards = listOf(
-    ExerciseCardUi(
-        sessionExerciseId = "se0",
-        exerciseId = "ex0",
-        name = "Squat",
-        equipment = Equipment.BARBELL,
-        targetSets = null,
-        state = CardState.COMPLETED,
-        sets = listOf(fakeSet("s0", 100.0, 5), fakeSet("s1", 100.0, 5)),
-        ghostSets = emptyList(),
-    ),
-    ExerciseCardUi(
-        sessionExerciseId = "se1",
-        exerciseId = "ex1",
-        name = "Bench Press",
-        equipment = Equipment.BARBELL,
-        targetSets = null,
-        state = CardState.ACTIVE,
-        sets = listOf(fakeSet("s2", 85.0, 8)),
-        ghostSets = listOf(fakeSet("g1", 82.5, 8), fakeSet("g2", 82.5, 8)),
-        editingSetId = null,
-    ),
-    ExerciseCardUi(
-        sessionExerciseId = "se2",
-        exerciseId = "ex2",
-        name = "Row",
-        equipment = Equipment.CABLE,
-        targetSets = null,
-        state = CardState.UPCOMING,
-        sets = emptyList(),
-        ghostSets = emptyList(),
-    ),
-)
+private val previewCards =
+    listOf(
+        ExerciseCardUi(
+            sessionExerciseId = "se0",
+            exerciseId = "ex0",
+            name = "Squat",
+            equipment = Equipment.BARBELL,
+            targetSets = null,
+            state = CardState.COMPLETED,
+            sets = listOf(fakeSet("s0", 100.0, 5), fakeSet("s1", 100.0, 5)),
+            ghostSets = emptyList(),
+        ),
+        ExerciseCardUi(
+            sessionExerciseId = "se1",
+            exerciseId = "ex1",
+            name = "Bench Press",
+            equipment = Equipment.BARBELL,
+            targetSets = null,
+            state = CardState.ACTIVE,
+            sets = listOf(fakeSet("s2", 85.0, 8)),
+            ghostSets = listOf(fakeSet("g1", 82.5, 8), fakeSet("g2", 82.5, 8)),
+            editingSetId = null,
+        ),
+        ExerciseCardUi(
+            sessionExerciseId = "se2",
+            exerciseId = "ex2",
+            name = "Row",
+            equipment = Equipment.CABLE,
+            targetSets = null,
+            state = CardState.UPCOMING,
+            sets = emptyList(),
+            ghostSets = emptyList(),
+        ),
+    )
 
 private val previewEntry = EntryUi(sessionExerciseId = "se1", weightKg = 87.5, reps = 8)
 
@@ -364,9 +375,10 @@ private fun PreviewActiveSession() {
             },
         ) { innerPadding ->
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
                 contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 28.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {

@@ -27,11 +27,14 @@ interface ExerciseDao {
     suspend fun insertIgnore(exercises: List<ExerciseEntity>)
 
     @Insert suspend fun insert(exercise: ExerciseEntity)
+
     @Update suspend fun update(exercise: ExerciseEntity)
 
-    @Query("SELECT COUNT(*) FROM exercises WHERE deletedAt IS NULL") suspend fun countLive(): Int
+    @Query("SELECT COUNT(*) FROM exercises WHERE deletedAt IS NULL")
+    suspend fun countLive(): Int
 
-    @Query("""
+    @Query(
+        """
         SELECT se.exerciseId AS exerciseId, MAX(ls.completedAt) AS lastUsed
         FROM session_exercises se
         JOIN logged_sets ls ON ls.sessionExerciseId = se.id AND ls.deletedAt IS NULL
@@ -39,6 +42,7 @@ interface ExerciseDao {
         WHERE se.deletedAt IS NULL
         GROUP BY se.exerciseId
         ORDER BY lastUsed DESC
-    """)
+    """,
+    )
     fun observeRecentlyUsedExerciseIds(): Flow<List<RecentExercise>>
 }

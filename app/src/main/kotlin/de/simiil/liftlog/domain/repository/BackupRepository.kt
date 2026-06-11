@@ -19,10 +19,20 @@ enum class InvalidReason { MALFORMED, MISSING_FIELDS, BAD_TIMESTAMP, FK_ORPHAN, 
 
 /** Outcome of parsing+validating a candidate file. No writes have happened. */
 sealed interface ParseResult {
-    data class Ready(val parsed: ParsedBackup, val summary: ImportSummary) : ParseResult
+    data class Ready(
+        val parsed: ParsedBackup,
+        val summary: ImportSummary,
+    ) : ParseResult
+
     data object BlockedByLiveSession : ParseResult
-    data class Newer(val fileVersion: Int) : ParseResult
-    data class Invalid(val reason: InvalidReason) : ParseResult
+
+    data class Newer(
+        val fileVersion: Int,
+    ) : ParseResult
+
+    data class Invalid(
+        val reason: InvalidReason,
+    ) : ParseResult
 }
 
 /** Versioned JSON backup (02-data-spec §6). */

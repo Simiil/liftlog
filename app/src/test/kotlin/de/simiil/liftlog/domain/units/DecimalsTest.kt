@@ -1,9 +1,9 @@
 package de.simiil.liftlog.domain.units
 
-import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.util.Locale
 
 class DecimalsTest {
     @Test fun separator_isLocaleSpecific() {

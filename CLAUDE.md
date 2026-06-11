@@ -25,7 +25,8 @@ a reviewable PR series with a review gate at its exit criteria.
 - `./gradlew assembleDebug` — build the debug APK
 - `./gradlew testDebugUnitTest` — JVM unit tests
 - `./gradlew lint` — Android lint
-- `./gradlew lint testDebugUnitTest assembleDebug` — exactly what CI runs
+- `./gradlew ktlintFormat` — auto-format Kotlin (ktlint, style in `.editorconfig`); run before committing
+- `./gradlew ktlintCheck lint testDebugUnitTest assembleDebug` — exactly what CI runs
 - `./gradlew connectedDebugAndroidTest` — instrumented Room/DAO + seeder tests. **These run
   locally now**: KVM works on this machine and an emulator is usually up (`emulator-5554`, a
   Pixel 9 Pro XL AVD); a physical Pixel 9 is sometimes attached over adb too. Note this task

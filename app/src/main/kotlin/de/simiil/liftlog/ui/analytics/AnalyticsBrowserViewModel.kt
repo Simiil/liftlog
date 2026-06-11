@@ -7,16 +7,16 @@ import de.simiil.liftlog.domain.analytics.ExerciseSummary
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
-import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import de.simiil.liftlog.domain.repository.TrainedExercise
 import de.simiil.liftlog.domain.repository.WeekSummary
-import javax.inject.Inject
+import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 data class AnalyticsBrowserUiState(
     val week: WeekSummary? = null,
@@ -26,35 +26,42 @@ data class AnalyticsBrowserUiState(
 )
 
 @HiltViewModel
-class AnalyticsBrowserViewModel @Inject constructor(
-    private val analyticsRepository: AnalyticsRepository,
-    private val settingsRepository: SettingsRepository,
-    private val names: ExerciseNameResolver,
-) : ViewModel() {
+class AnalyticsBrowserViewModel
+    @Inject
+    constructor(
+        private val analyticsRepository: AnalyticsRepository,
+        private val settingsRepository: SettingsRepository,
+        private val names: ExerciseNameResolver,
+    ) : ViewModel() {
+        private val query = MutableStateFlow("")
 
-    private val query = MutableStateFlow("")
+        val uiState: StateFlow<AnalyticsBrowserUiState> =
+            combine(
+                analyticsRepository.observeWeekSummary(),
+                analyticsRepository.observeTrainedExercises(),
+                query,
+                settingsRepository.weightUnit,
+            ) { week, exercises, q, unit ->
+                AnalyticsBrowserUiState(
+                    week = week,
+                    query = q,
+                    exercises =
+                        if (q.isBlank()) {
+                            exercises
+                        } else {
+                            exercises.filter {
+                                names.displayName(it.id, it.name).contains(q, ignoreCase = true) ||
+                                    it.name.contains(q, ignoreCase = true)
+                            }
+                        },
+                    unit = unit,
+                )
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AnalyticsBrowserUiState())
 
-    val uiState: StateFlow<AnalyticsBrowserUiState> = combine(
-        analyticsRepository.observeWeekSummary(),
-        analyticsRepository.observeTrainedExercises(),
-        query,
-        settingsRepository.weightUnit,
-    ) { week, exercises, q, unit ->
-        AnalyticsBrowserUiState(
-            week = week,
-            query = q,
-            exercises = if (q.isBlank()) exercises
-                else exercises.filter {
-                    names.displayName(it.id, it.name).contains(q, ignoreCase = true) ||
-                        it.name.contains(q, ignoreCase = true)
-                },
-            unit = unit,
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AnalyticsBrowserUiState())
+        fun onQueryChange(value: String) {
+            query.value = value
+        }
 
-    fun onQueryChange(value: String) { query.value = value }
-
-    /** Per-row summary flow — collected lazily by each visible browser row (04-analytics-spec §7). */
-    fun summary(exerciseId: String): Flow<ExerciseSummary?> =
-        analyticsRepository.observeExerciseSummary(exerciseId)
-}
+        /** Per-row summary flow — collected lazily by each visible browser row (04-analytics-spec §7). */
+        fun summary(exerciseId: String): Flow<ExerciseSummary?> = analyticsRepository.observeExerciseSummary(exerciseId)
+    }

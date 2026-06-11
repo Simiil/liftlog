@@ -13,10 +13,10 @@ class FakeExerciseDao : ExerciseDao {
     val recentlyUsed = MutableStateFlow<List<RecentExercise>>(emptyList())
 
     override fun observeAll(): Flow<List<ExerciseEntity>> = TODO("not used in repository write tests")
+
     override fun observeVisible(): Flow<List<ExerciseEntity>> = TODO("not used in repository write tests")
 
-    override suspend fun findById(id: String): ExerciseEntity? =
-        rows[id]?.takeIf { it.deletedAt == null }
+    override suspend fun findById(id: String): ExerciseEntity? = rows[id]?.takeIf { it.deletedAt == null }
 
     override suspend fun findLiveByName(name: String): ExerciseEntity? =
         rows.values.firstOrNull { it.deletedAt == null && it.name.equals(name, ignoreCase = true) }

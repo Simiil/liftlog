@@ -21,32 +21,39 @@ import java.time.Instant
 import java.time.ZoneOffset
 
 class SettingsViewModelTest {
-
     @get:Rule val mainDispatcherRule = MainDispatcherRule()
 
     private val clock = Clock.fixed(Instant.parse("2026-06-09T12:00:00Z"), ZoneOffset.UTC)
+
     private fun noOpSeeder() = SyntheticHistorySeeder(FakeSessionDao(), Clock.systemUTC())
 
-    private fun vm(backup: FakeBackupRepository = FakeBackupRepository()) = SettingsViewModel(
-        settingsRepository = FakeSettingsRepository(),
-        syntheticHistorySeeder = noOpSeeder(),
-        backupRepository = backup,
-        documentIo = object : DocumentIo {
-            override suspend fun readText(uri: android.net.Uri) = error("unused")
-            override suspend fun writeText(uri: android.net.Uri, text: String) = error("unused")
-        },
-        clock = clock,
-    )
+    private fun vm(backup: FakeBackupRepository = FakeBackupRepository()) =
+        SettingsViewModel(
+            settingsRepository = FakeSettingsRepository(),
+            syntheticHistorySeeder = noOpSeeder(),
+            backupRepository = backup,
+            documentIo =
+                object : DocumentIo {
+                    override suspend fun readText(uri: android.net.Uri) = error("unused")
+
+                    override suspend fun writeText(
+                        uri: android.net.Uri,
+                        text: String,
+                    ) = error("unused")
+                },
+            clock = clock,
+        )
 
     @Test
-    fun `selecting a theme persists it and updates ui state`() = runTest {
-        val viewModel = vm()
-        viewModel.uiState.test {
-            assertEquals(ThemePreference.SYSTEM, awaitItem().theme)
-            viewModel.onThemeSelected(ThemePreference.DARK)
-            assertEquals(ThemePreference.DARK, awaitItem().theme)
+    fun `selecting a theme persists it and updates ui state`() =
+        runTest {
+            val viewModel = vm()
+            viewModel.uiState.test {
+                assertEquals(ThemePreference.SYSTEM, awaitItem().theme)
+                viewModel.onThemeSelected(ThemePreference.DARK)
+                assertEquals(ThemePreference.DARK, awaitItem().theme)
+            }
         }
-    }
 
     @Test
     fun `default export file name uses the clock date`() {
@@ -80,23 +87,28 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `confirming an import applies it and emits the imported message`() = runTest {
-        val backup = FakeBackupRepository()
-        val viewModel = vm(backup)
-        val summary = ImportSummary(Instant.parse("2026-06-01T00:00:00Z"), 1, 1, 1)
-        viewModel.handleParseResult(ParseResult.Ready(backup.dummyParsed, summary))
-        viewModel.confirmImport()
-        assertEquals(backup.dummyParsed, backup.appliedWith)
-        assertEquals(SettingsMessage.IMPORTED, viewModel.uiState.value.message)
-        assertNull(viewModel.uiState.value.pendingImport)
-    }
+    fun `confirming an import applies it and emits the imported message`() =
+        runTest {
+            val backup = FakeBackupRepository()
+            val viewModel = vm(backup)
+            val summary = ImportSummary(Instant.parse("2026-06-01T00:00:00Z"), 1, 1, 1)
+            viewModel.handleParseResult(ParseResult.Ready(backup.dummyParsed, summary))
+            viewModel.confirmImport()
+            assertEquals(backup.dummyParsed, backup.appliedWith)
+            assertEquals(SettingsMessage.IMPORTED, viewModel.uiState.value.message)
+            assertNull(viewModel.uiState.value.pendingImport)
+        }
 
     @Test
     fun `dismissing the confirm cancels without applying`() {
         val backup = FakeBackupRepository()
         val viewModel = vm(backup)
-        viewModel.handleParseResult(ParseResult.Ready(backup.dummyParsed,
-            ImportSummary(Instant.parse("2026-06-01T00:00:00Z"), 1, 1, 1)))
+        viewModel.handleParseResult(
+            ParseResult.Ready(
+                backup.dummyParsed,
+                ImportSummary(Instant.parse("2026-06-01T00:00:00Z"), 1, 1, 1),
+            ),
+        )
         viewModel.dismissImport()
         assertNull(viewModel.uiState.value.pendingImport)
         viewModel.confirmImport()

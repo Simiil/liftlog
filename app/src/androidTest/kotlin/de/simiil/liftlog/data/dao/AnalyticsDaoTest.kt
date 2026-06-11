@@ -11,7 +11,8 @@ import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.testing.newInMemoryDb
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,14 +48,23 @@ class AnalyticsDaoTest {
     // -- builders --
 
     private fun exercise(id: String) =
-        ExerciseEntity(id, "Exercise $id", MuscleGroup.CHEST, Equipment.BARBELL,
-            isBuiltIn = true, isHidden = false, createdAt = 1L, updatedAt = 1L, deletedAt = null)
+        ExerciseEntity(
+            id,
+            "Exercise $id",
+            MuscleGroup.CHEST,
+            Equipment.BARBELL,
+            isBuiltIn = true,
+            isHidden = false,
+            createdAt = 1L,
+            updatedAt = 1L,
+            deletedAt = null,
+        )
 
     private fun session(
         id: String,
         startedAt: Long,
         endedAt: Long? = startedAt + 3600_000L,
-        deleted: Long? = null
+        deleted: Long? = null,
     ) = SessionEntity(
         id = id,
         templateId = null,
@@ -67,19 +77,22 @@ class AnalyticsDaoTest {
         deletedAt = deleted,
     )
 
-    private fun sessionExercise(id: String, sessionId: String, exerciseId: String) =
-        SessionExerciseEntity(
-            id = id,
-            sessionId = sessionId,
-            exerciseId = exerciseId,
-            position = 1,
-            targetSets = null,
-            targetRepsMin = null,
-            targetRepsMax = null,
-            createdAt = 1L,
-            updatedAt = 1L,
-            deletedAt = null,
-        )
+    private fun sessionExercise(
+        id: String,
+        sessionId: String,
+        exerciseId: String,
+    ) = SessionExerciseEntity(
+        id = id,
+        sessionId = sessionId,
+        exerciseId = exerciseId,
+        position = 1,
+        targetSets = null,
+        targetRepsMin = null,
+        targetRepsMax = null,
+        createdAt = 1L,
+        updatedAt = 1L,
+        deletedAt = null,
+    )
 
     private fun loggedSet(
         id: String,
@@ -140,127 +153,136 @@ class AnalyticsDaoTest {
         return Triple("seA", "seB", "seC")
     }
 
-    @Test fun observeSetsForExercise_excludesInProgressAndDeleted_orderedByStartedAt() = runTest {
-        insertFullGraph()
+    @Test fun observeSetsForExercise_excludesInProgressAndDeleted_orderedByStartedAt() =
+        runTest {
+            insertFullGraph()
 
-        analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
-            val rows = awaitItem()
-            // Only 2 rows: sA's live set and sB's live set
-            assertEquals(2, rows.size)
-            // Ordered by startedAt ASC: sA (1000) before sB (2000).
-            // Sessions were inserted B-then-A, so this assertion would fail without ORDER BY.
-            assertEquals("sA", rows[0].sessionId)
-            assertEquals("sB", rows[1].sessionId)
-            cancelAndIgnoreRemainingEvents()
+            analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
+                val rows = awaitItem()
+                // Only 2 rows: sA's live set and sB's live set
+                assertEquals(2, rows.size)
+                // Ordered by startedAt ASC: sA (1000) before sB (2000).
+                // Sessions were inserted B-then-A, so this assertion would fail without ORDER BY.
+                assertEquals("sA", rows[0].sessionId)
+                assertEquals("sB", rows[1].sessionId)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
-    @Test fun observeSetsForExercise_fromMillis_filtersEarlySession() = runTest {
-        insertFullGraph()
+    @Test fun observeSetsForExercise_fromMillis_filtersEarlySession() =
+        runTest {
+            insertFullGraph()
 
-        // fromMillis=1500 excludes sA (startedAt=1000 < 1500)
-        analyticsDao.observeSetsForExercise("ex1", fromMillis = 1500L).test {
-            val rows = awaitItem()
-            assertEquals(1, rows.size)
-            assertEquals("sB", rows[0].sessionId)
-            cancelAndIgnoreRemainingEvents()
+            // fromMillis=1500 excludes sA (startedAt=1000 < 1500)
+            analyticsDao.observeSetsForExercise("ex1", fromMillis = 1500L).test {
+                val rows = awaitItem()
+                assertEquals(1, rows.size)
+                assertEquals("sB", rows[0].sessionId)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
-    @Test fun observeSetsForExercise_softDeletedSet_isExcluded() = runTest {
-        insertFullGraph()
+    @Test fun observeSetsForExercise_softDeletedSet_isExcluded() =
+        runTest {
+            insertFullGraph()
 
-        // The soft-deleted set in sA (lsA_dead) must not appear
-        analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
-            val rows = awaitItem()
-            // Neither row should be the dead set
-            assertTrue(rows.none { it.weightKg == 70.0 && it.reps == 5 })
-            cancelAndIgnoreRemainingEvents()
+            // The soft-deleted set in sA (lsA_dead) must not appear
+            analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
+                val rows = awaitItem()
+                // Neither row should be the dead set
+                assertTrue(rows.none { it.weightKg == 70.0 && it.reps == 5 })
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
-    @Test fun observeSetsForExercise_returnsCorrectWeightAndReps() = runTest {
-        insertFullGraph()
+    @Test fun observeSetsForExercise_returnsCorrectWeightAndReps() =
+        runTest {
+            insertFullGraph()
 
-        analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
-            val rows = awaitItem()
-            // sA live set (comes first due to ORDER BY startedAt ASC)
-            assertEquals(60.0, rows[0].weightKg, 0.001)
-            assertEquals(10, rows[0].reps)
-            // sB live set
-            assertEquals(80.0, rows[1].weightKg, 0.001)
-            assertEquals(8, rows[1].reps)
-            // exerciseId is projected through the session_exercises join
-            assertEquals("ex1", rows[0].exerciseId)
-            assertEquals("ex1", rows[1].exerciseId)
-            cancelAndIgnoreRemainingEvents()
+            analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
+                val rows = awaitItem()
+                // sA live set (comes first due to ORDER BY startedAt ASC)
+                assertEquals(60.0, rows[0].weightKg, 0.001)
+                assertEquals(10, rows[0].reps)
+                // sB live set
+                assertEquals(80.0, rows[1].weightKg, 0.001)
+                assertEquals(8, rows[1].reps)
+                // exerciseId is projected through the session_exercises join
+                assertEquals("ex1", rows[0].exerciseId)
+                assertEquals("ex1", rows[1].exerciseId)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
-    @Test fun observeSetsForExercise_noSetsForExercise_returnsEmpty() = runTest {
-        exerciseDao.insert(exercise("ex2"))
-        sessionDao.insertSession(session("sX", startedAt = 1000L, endedAt = 2000L))
-        sessionDao.insertSessionExercise(sessionExercise("seX", "sX", "ex2"))
-        sessionDao.insertLoggedSet(loggedSet("lsX", "seX"))
+    @Test fun observeSetsForExercise_noSetsForExercise_returnsEmpty() =
+        runTest {
+            exerciseDao.insert(exercise("ex2"))
+            sessionDao.insertSession(session("sX", startedAt = 1000L, endedAt = 2000L))
+            sessionDao.insertSessionExercise(sessionExercise("seX", "sX", "ex2"))
+            sessionDao.insertLoggedSet(loggedSet("lsX", "seX"))
 
-        // Query for a different exercise that has no rows
-        exerciseDao.insert(exercise("exEmpty"))
-        analyticsDao.observeSetsForExercise("exEmpty", fromMillis = 0L).test {
-            val rows = awaitItem()
-            assertTrue(rows.isEmpty())
-            cancelAndIgnoreRemainingEvents()
+            // Query for a different exercise that has no rows
+            exerciseDao.insert(exercise("exEmpty"))
+            analyticsDao.observeSetsForExercise("exEmpty", fromMillis = 0L).test {
+                val rows = awaitItem()
+                assertTrue(rows.isEmpty())
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
-    @Test fun observeAllSetsSince_completedOnly_excludesInProgressAndDeleted() = runTest {
-        insertFullGraph()
-        analyticsDao.observeAllSetsSince(fromMillis = 0L).test {
-            val rows = awaitItem()
-            // sA live + sB live only (sC in-progress excluded; sA dead set excluded)
-            assertEquals(2, rows.size)
-            assertTrue(rows.none { it.weightKg == 70.0 && it.reps == 5 })  // dead
-            assertTrue(rows.none { it.weightKg == 90.0 })                  // sC in-progress
-            cancelAndIgnoreRemainingEvents()
+    @Test fun observeAllSetsSince_completedOnly_excludesInProgressAndDeleted() =
+        runTest {
+            insertFullGraph()
+            analyticsDao.observeAllSetsSince(fromMillis = 0L).test {
+                val rows = awaitItem()
+                // sA live + sB live only (sC in-progress excluded; sA dead set excluded)
+                assertEquals(2, rows.size)
+                assertTrue(rows.none { it.weightKg == 70.0 && it.reps == 5 }) // dead
+                assertTrue(rows.none { it.weightKg == 90.0 }) // sC in-progress
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
-    @Test fun observeAllSetsSince_fromMillis_filtersEarlySession() = runTest {
-        insertFullGraph()
-        analyticsDao.observeAllSetsSince(fromMillis = 1500L).test {
-            val rows = awaitItem()
-            assertEquals(1, rows.size)
-            assertEquals("sB", rows[0].sessionId)
-            cancelAndIgnoreRemainingEvents()
+    @Test fun observeAllSetsSince_fromMillis_filtersEarlySession() =
+        runTest {
+            insertFullGraph()
+            analyticsDao.observeAllSetsSince(fromMillis = 1500L).test {
+                val rows = awaitItem()
+                assertEquals(1, rows.size)
+                assertEquals("sB", rows[0].sessionId)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
-    @Test fun observeAllSetsSince_attributesSetsToTheirExercises() = runTest {
-        exerciseDao.insert(exercise("ex1"))
-        exerciseDao.insert(exercise("ex2"))
-        sessionDao.insertSession(session("s1", startedAt = 1000L, endedAt = 2000L))
-        sessionDao.insertSessionExercise(sessionExercise("se1", "s1", "ex1"))
-        sessionDao.insertSessionExercise(sessionExercise("se2", "s1", "ex2"))
-        sessionDao.insertLoggedSet(loggedSet("ls1", "se1", weightKg = 60.0, reps = 10))
-        sessionDao.insertLoggedSet(loggedSet("ls2", "se2", weightKg = 80.0, reps = 8))
+    @Test fun observeAllSetsSince_attributesSetsToTheirExercises() =
+        runTest {
+            exerciseDao.insert(exercise("ex1"))
+            exerciseDao.insert(exercise("ex2"))
+            sessionDao.insertSession(session("s1", startedAt = 1000L, endedAt = 2000L))
+            sessionDao.insertSessionExercise(sessionExercise("se1", "s1", "ex1"))
+            sessionDao.insertSessionExercise(sessionExercise("se2", "s1", "ex2"))
+            sessionDao.insertLoggedSet(loggedSet("ls1", "se1", weightKg = 60.0, reps = 10))
+            sessionDao.insertLoggedSet(loggedSet("ls2", "se2", weightKg = 80.0, reps = 8))
 
-        analyticsDao.observeAllSetsSince(fromMillis = 0L).test {
-            val rows = awaitItem()
-            assertEquals(2, rows.size)
-            assertEquals("ex1", rows.first { it.weightKg == 60.0 }.exerciseId)
-            assertEquals("ex2", rows.first { it.weightKg == 80.0 }.exerciseId)
-            cancelAndIgnoreRemainingEvents()
+            analyticsDao.observeAllSetsSince(fromMillis = 0L).test {
+                val rows = awaitItem()
+                assertEquals(2, rows.size)
+                assertEquals("ex1", rows.first { it.weightKg == 60.0 }.exerciseId)
+                assertEquals("ex2", rows.first { it.weightKg == 80.0 }.exerciseId)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 
-    @Test fun observeTrainedExercises_groupsAndTakesMaxStartedAt() = runTest {
-        insertFullGraph()
-        analyticsDao.observeTrainedExercises().test {
-            val rows = awaitItem()
-            assertEquals(1, rows.size)
-            assertEquals("ex1", rows[0].exerciseId)
-            // MAX over completed sessions with live sets: sB (2000) > sA (1000); sC excluded
-            assertEquals(2000L, rows[0].lastTrainedAt)
-            cancelAndIgnoreRemainingEvents()
+    @Test fun observeTrainedExercises_groupsAndTakesMaxStartedAt() =
+        runTest {
+            insertFullGraph()
+            analyticsDao.observeTrainedExercises().test {
+                val rows = awaitItem()
+                assertEquals(1, rows.size)
+                assertEquals("ex1", rows[0].exerciseId)
+                // MAX over completed sessions with live sets: sB (2000) > sA (1000); sC excluded
+                assertEquals(2000L, rows[0].lastTrainedAt)
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 }

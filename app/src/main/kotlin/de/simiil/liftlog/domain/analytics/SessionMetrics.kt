@@ -1,7 +1,10 @@
 package de.simiil.liftlog.domain.analytics
 
 /** One logged set reduced to the fields analytics needs (weight canonical kg). */
-data class SetEntry(val weightKg: Double, val reps: Int)
+data class SetEntry(
+    val weightKg: Double,
+    val reps: Int,
+)
 
 /** Per-exercise, per-session metrics (04-analytics-spec §1). */
 data class SessionMetrics(
@@ -20,7 +23,10 @@ data class SessionMetrics(
 fun volumeKg(sets: List<SetEntry>): Double = sets.sumOf { it.weightKg * it.reps }
 
 fun sessionMetrics(sets: List<SetEntry>): SessionMetrics {
-    var top = 0.0; var bestE1rm = 0.0; var maxReps = 0; var totalReps = 0
+    var top = 0.0
+    var bestE1rm = 0.0
+    var maxReps = 0
+    var totalReps = 0
     for (s in sets) {
         top = maxOf(top, s.weightKg)
         totalReps += s.reps

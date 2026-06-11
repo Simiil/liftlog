@@ -7,6 +7,8 @@ interface Transactor {
     suspend fun <R> immediate(block: suspend () -> R): R
 }
 
-class RoomTransactor(private val db: AppDatabase) : Transactor {
+class RoomTransactor(
+    private val db: AppDatabase,
+) : Transactor {
     override suspend fun <R> immediate(block: suspend () -> R): R = db.withTransaction { block() }
 }

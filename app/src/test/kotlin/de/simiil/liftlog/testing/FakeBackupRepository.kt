@@ -14,7 +14,9 @@ class FakeBackupRepository : BackupRepository {
     val dummyParsed = object : ParsedBackup {}
 
     override suspend fun exportToJson(): String = exportJson
+
     override suspend fun parseImport(json: String): ParseResult = parseResult
+
     override suspend fun applyImport(parsed: ParsedBackup): ImportSummary {
         appliedWith = parsed
         return ImportSummary(Instant.parse("2026-06-09T12:00:00Z"), sessions = 1, exercises = 1, sets = 1)

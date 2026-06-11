@@ -13,25 +13,39 @@ import javax.inject.Singleton
 
 /** Seeds built-in exercises on every startup. Idempotent: insert-if-id-absent (02-data-spec §7). */
 @Singleton
-class ExerciseSeeder @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val dao: ExerciseDao,
-    private val clock: Clock,
-    private val json: Json,
-) {
-    suspend fun seed() {
-        val text = context.assets.open(ASSET).bufferedReader().use { it.readText() }
-        val now = clock.millis()
-        val entities = json.decodeFromString<SeedFile>(text).exercises.map { e ->
-            ExerciseEntity(
-                id = e.id, name = e.name,
-                muscleGroup = MuscleGroup.fromStorageValue(e.muscleGroup),
-                equipment = Equipment.fromStorageValue(e.equipment),
-                isBuiltIn = true, isHidden = false,
-                createdAt = now, updatedAt = now, deletedAt = null,
-            )
+class ExerciseSeeder
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+        private val dao: ExerciseDao,
+        private val clock: Clock,
+        private val json: Json,
+    ) {
+        suspend fun seed() {
+            val text =
+                context.assets
+                    .open(ASSET)
+                    .bufferedReader()
+                    .use { it.readText() }
+            val now = clock.millis()
+            val entities =
+                json.decodeFromString<SeedFile>(text).exercises.map { e ->
+                    ExerciseEntity(
+                        id = e.id,
+                        name = e.name,
+                        muscleGroup = MuscleGroup.fromStorageValue(e.muscleGroup),
+                        equipment = Equipment.fromStorageValue(e.equipment),
+                        isBuiltIn = true,
+                        isHidden = false,
+                        createdAt = now,
+                        updatedAt = now,
+                        deletedAt = null,
+                    )
+                }
+            dao.insertIgnore(entities)
         }
-        dao.insertIgnore(entities)
+
+        private companion object {
+            const val ASSET = "seed/exercises.v1.json"
+        }
     }
-    private companion object { const val ASSET = "seed/exercises.v1.json" }
-}

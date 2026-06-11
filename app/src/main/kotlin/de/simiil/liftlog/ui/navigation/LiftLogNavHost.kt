@@ -20,7 +20,10 @@ import de.simiil.liftlog.ui.session.SessionDetailScreen
 import de.simiil.liftlog.ui.settings.SettingsScreen
 
 @Composable
-fun LiftLogNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+fun LiftLogNavHost(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+) {
     NavHost(navController = navController, startDestination = HomeRoute, modifier = modifier) {
         composable<HomeRoute> {
             HomeScreen(

@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ThemePreferenceTest {
-
     @Test
     fun `absent storage value falls back to SYSTEM`() {
         assertEquals(ThemePreference.SYSTEM, ThemePreference.fromStorageValue(null))

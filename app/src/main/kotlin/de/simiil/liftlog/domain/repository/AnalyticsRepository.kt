@@ -7,14 +7,22 @@ import kotlinx.coroutines.flow.Flow
 
 interface AnalyticsRepository {
     fun observeWeekSummary(): Flow<WeekSummary>
+
     fun observeTrainedExercises(): Flow<List<TrainedExercise>>
+
     fun observeExerciseSummary(exerciseId: String): Flow<ExerciseSummary?>
+
     /** Ids of sessions containing at least one headline PR, across all exercises. */
     fun observePrSessionIds(): Flow<Set<String>>
 }
 
 /** Analytics browser header card (04-analytics-spec §6, chart 3). */
-data class WeekSummary(val sessions: Int, val sets: Int, val volumeKg: Double, val prevVolumeKg: Double)
+data class WeekSummary(
+    val sessions: Int,
+    val sets: Int,
+    val volumeKg: Double,
+    val prevVolumeKg: Double,
+)
 
 /** A browser list entry: an exercise with ≥1 logged set + identity for display/search. */
 data class TrainedExercise(

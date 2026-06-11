@@ -39,12 +39,13 @@ private data class TopLevelDestination(
 )
 
 // 03-ux-spec §2: Home · Plans · Analytics · History
-private val topLevelDestinations = listOf(
-    TopLevelDestination(HomeRoute, Icons.Outlined.Home, R.string.tab_home),
-    TopLevelDestination(PlansRoute, Icons.Outlined.FitnessCenter, R.string.tab_plans),
-    TopLevelDestination(AnalyticsRoute, Icons.Outlined.Insights, R.string.tab_analytics),
-    TopLevelDestination(HistoryRoute, Icons.Outlined.History, R.string.tab_history),
-)
+private val topLevelDestinations =
+    listOf(
+        TopLevelDestination(HomeRoute, Icons.Outlined.Home, R.string.tab_home),
+        TopLevelDestination(PlansRoute, Icons.Outlined.FitnessCenter, R.string.tab_plans),
+        TopLevelDestination(AnalyticsRoute, Icons.Outlined.Insights, R.string.tab_analytics),
+        TopLevelDestination(HistoryRoute, Icons.Outlined.History, R.string.tab_history),
+    )
 
 @Composable
 fun LiftLogApp() {
@@ -53,9 +54,10 @@ fun LiftLogApp() {
     val currentDestination = backStackEntry?.destination
     // Bottom bar only on top-level tabs; Settings (and later the active
     // session, 03-ux-spec §2) sits above it.
-    val onTopLevelTab = topLevelDestinations.any { destination ->
-        currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
-    }
+    val onTopLevelTab =
+        topLevelDestinations.any { destination ->
+            currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
+        }
 
     Scaffold(
         // Inner screens own their insets (their own Scaffold/top bars);
@@ -65,8 +67,10 @@ fun LiftLogApp() {
             if (onTopLevelTab) {
                 NavigationBar {
                     topLevelDestinations.forEach { destination ->
-                        val selected = currentDestination?.hierarchy
-                            ?.any { it.hasRoute(destination.route::class) } == true
+                        val selected =
+                            currentDestination
+                                ?.hierarchy
+                                ?.any { it.hasRoute(destination.route::class) } == true
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
