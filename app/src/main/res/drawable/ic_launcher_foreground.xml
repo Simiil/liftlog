@@ -1,9 +1,32 @@
+<!-- Weight-stack mark: guide rod, four plates, selector pin on the third plate.
+     Glyph spans ~45x52dp of the 108dp canvas, inside the 66dp adaptive-icon safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:fillColor="#FFFFFFFF" android:pathData="M34,50h40v8h-40z" />
-    <path android:fillColor="#FFFFFFFF" android:pathData="M26,38h8v32h-8z" />
-    <path android:fillColor="#FFFFFFFF" android:pathData="M74,38h8v32h-8z" />
+    <!-- guide rod -->
+    <path
+        android:fillColor="#B9B2A4"
+        android:pathData="M51.75,30.375 a2.25,2.25 0 0 1 4.5,0 v47.25 a2.25,2.25 0 0 1 -4.5,0 z" />
+    <!-- plates -->
+    <path
+        android:fillColor="#2A2A2E"
+        android:pathData="M34.125,34.5 h39.75 a2.625,2.625 0 0 1 2.625,2.625 v3 a2.625,2.625 0 0 1 -2.625,2.625 h-39.75 a2.625,2.625 0 0 1 -2.625,-2.625 v-3 a2.625,2.625 0 0 1 2.625,-2.625 z" />
+    <path
+        android:fillColor="#2A2A2E"
+        android:pathData="M34.125,45 h39.75 a2.625,2.625 0 0 1 2.625,2.625 v3 a2.625,2.625 0 0 1 -2.625,2.625 h-39.75 a2.625,2.625 0 0 1 -2.625,-2.625 v-3 a2.625,2.625 0 0 1 2.625,-2.625 z" />
+    <path
+        android:fillColor="#2A2A2E"
+        android:pathData="M34.125,55.5 h39.75 a2.625,2.625 0 0 1 2.625,2.625 v3 a2.625,2.625 0 0 1 -2.625,2.625 h-39.75 a2.625,2.625 0 0 1 -2.625,-2.625 v-3 a2.625,2.625 0 0 1 2.625,-2.625 z" />
+    <path
+        android:fillColor="#2A2A2E"
+        android:pathData="M34.125,66 h39.75 a2.625,2.625 0 0 1 2.625,2.625 v3 a2.625,2.625 0 0 1 -2.625,2.625 h-39.75 a2.625,2.625 0 0 1 -2.625,-2.625 v-3 a2.625,2.625 0 0 1 2.625,-2.625 z" />
+    <!-- selector pin -->
+    <path
+        android:fillColor="#FF5A36"
+        android:pathData="M50.8125,59.625 a3.1875,3.1875 0 1 0 6.375,0 a3.1875,3.1875 0 1 0 -6.375,0 z" />
+    <path
+        android:fillColor="#F6F1E7"
+        android:pathData="M52.875,59.625 a1.125,1.125 0 1 0 2.25,0 a1.125,1.125 0 1 0 -2.25,0 z" />
 </vector>

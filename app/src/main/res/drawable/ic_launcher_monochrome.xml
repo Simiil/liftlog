@@ -1,0 +1,26 @@
+<!-- Single-silhouette variant for Android 13+ themed icons. The system flattens this layer
+     to one tint, so the rod is drawn only where it is visible (stubs and gaps) and the
+     selector pin is a punched hole (even-odd) in the third plate. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- rod stubs and gap segments + plates 1, 2, 4 -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M51.75,30.375 a2.25,2.25 0 0 1 4.5,0 V34.5 h-4.5 z
+            M51.75,42.75 h4.5 v2.25 h-4.5 z
+            M51.75,53.25 h4.5 v2.25 h-4.5 z
+            M51.75,63.75 h4.5 v2.25 h-4.5 z
+            M51.75,74.25 h4.5 v3.375 a2.25,2.25 0 0 1 -4.5,0 z
+            M34.125,34.5 h39.75 a2.625,2.625 0 0 1 2.625,2.625 v3 a2.625,2.625 0 0 1 -2.625,2.625 h-39.75 a2.625,2.625 0 0 1 -2.625,-2.625 v-3 a2.625,2.625 0 0 1 2.625,-2.625 z
+            M34.125,45 h39.75 a2.625,2.625 0 0 1 2.625,2.625 v3 a2.625,2.625 0 0 1 -2.625,2.625 h-39.75 a2.625,2.625 0 0 1 -2.625,-2.625 v-3 a2.625,2.625 0 0 1 2.625,-2.625 z
+            M34.125,66 h39.75 a2.625,2.625 0 0 1 2.625,2.625 v3 a2.625,2.625 0 0 1 -2.625,2.625 h-39.75 a2.625,2.625 0 0 1 -2.625,-2.625 v-3 a2.625,2.625 0 0 1 2.625,-2.625 z" />
+    <!-- plate 3 with the pin punched out -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M34.125,55.5 h39.75 a2.625,2.625 0 0 1 2.625,2.625 v3 a2.625,2.625 0 0 1 -2.625,2.625 h-39.75 a2.625,2.625 0 0 1 -2.625,-2.625 v-3 a2.625,2.625 0 0 1 2.625,-2.625 z
+            M50.8125,59.625 a3.1875,3.1875 0 1 0 6.375,0 a3.1875,3.1875 0 1 0 -6.375,0 z" />
+</vector>
