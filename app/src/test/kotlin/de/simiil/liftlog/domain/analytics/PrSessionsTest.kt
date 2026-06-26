@@ -37,16 +37,16 @@ class PrSessionsTest {
         assertEquals(setOf("s1"), result)
     }
 
-    @Test fun highRepOnlyFirstSession_isNotAnE1rmPr() {
-        // Sets >12 reps are Epley-excluded → session e1RM stays 0.0, not > the 0.0 baseline,
-        // so even a first-ever session isn't flagged when it has no e1RM-eligible set.
+    @Test fun highRepFirstSession_isAVolumePr() {
+        // Sets >12 reps are Epley-excluded from e1RM, but volume counts every rep — so a
+        // first-ever high-rep session IS a PR under the volume headline (40×15 = 600 kg).
         val result =
             prSessionIds(
                 setsByExercise = mapOf("e1" to listOf(DatedSet("s1", now - 5 * day, 40.0, 15))),
                 equipmentById = mapOf("e1" to Equipment.BARBELL),
                 nowMillis = now,
             )
-        assertEquals(emptySet<String>(), result)
+        assertEquals(setOf("s1"), result)
     }
 
     @Test fun unionsAcrossExercises() {
@@ -62,7 +62,7 @@ class PrSessionsTest {
                         "row" to
                             listOf(
                                 DatedSet("s2", now - 10 * day, 60.0, 5), // PR (first for row) — flags s2
-                                DatedSet("s3", now - 5 * day, 65.0, 5), // PR (heavier)
+                                DatedSet("s3", now - 5 * day, 65.0, 5), // PR (more volume)
                             ),
                     ),
                 equipmentById = mapOf("bench" to Equipment.BARBELL, "row" to Equipment.BARBELL),
@@ -71,16 +71,19 @@ class PrSessionsTest {
         assertEquals(setOf("s1", "s2", "s3"), result)
     }
 
-    @Test fun bodyweightExercise_flagsRepsPr() {
+    @Test fun bodyweightExercise_flagsTotalRepsPr() {
+        // Bodyweight headline is total reps (volume is always 0). s2's two-set session beats
+        // s1 on total work (10 > 8) even though its best single set (5) is lower; s3 trails.
         val result =
             prSessionIds(
                 setsByExercise =
                     mapOf(
                         "pullup" to
                             listOf(
-                                DatedSet("s1", now - 15 * day, 0.0, 8), // PR (first ever)
-                                DatedSet("s2", now - 10 * day, 0.0, 10), // PR (more reps)
-                                DatedSet("s3", now - 5 * day, 0.0, 9), // below best — no flag
+                                DatedSet("s1", now - 15 * day, 0.0, 8), // totalReps 8 — PR (first ever)
+                                DatedSet("s2", now - 10 * day, 0.0, 5), // session s2, two sets:
+                                DatedSet("s2", now - 10 * day, 0.0, 5), // totalReps 10 — PR (more total work)
+                                DatedSet("s3", now - 5 * day, 0.0, 9), // totalReps 9 — below best, no flag
                             ),
                     ),
                 equipmentById = mapOf("pullup" to Equipment.BODYWEIGHT),

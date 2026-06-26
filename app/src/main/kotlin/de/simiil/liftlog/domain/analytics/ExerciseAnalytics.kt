@@ -20,6 +20,8 @@ data class SessionPoint(
     val isPrE1rm: Boolean,
     val isPrTopSet: Boolean,
     val isPrReps: Boolean,
+    val isPrVolume: Boolean,
+    val isPrTotalReps: Boolean,
     val isPr: Boolean,
 )
 
@@ -53,6 +55,8 @@ fun summarize(
     var bestE1rm = 0.0
     var bestTop = 0.0
     var bestReps = 0
+    var bestVolume = 0.0
+    var bestTotalReps = 0
     val sessions =
         grouped.map { (id, rows) ->
             val entries = rows.map { SetEntry(it.weightKg, it.reps) }
@@ -63,16 +67,24 @@ fun summarize(
             if (prTop) bestTop = m.topSetKg
             val prReps = m.maxReps > bestReps
             if (prReps) bestReps = m.maxReps
+            val prVolume = m.volumeKg > bestVolume
+            if (prVolume) bestVolume = m.volumeKg
+            val prTotalReps = m.totalReps > bestTotalReps
+            if (prTotalReps) bestTotalReps = m.totalReps
             SessionPoint(
                 sessionId = id,
                 timeMillis = rows.first().startedAt,
                 sets = entries,
                 metrics = m,
-                primary = if (bodyweight) m.maxReps.toDouble() else m.e1rmKg,
+                // Headline metric: total work — volume for weighted, total reps for bodyweight
+                // (where volume is always 0). e1RM/top-set/max-reps stay available as chart toggles.
+                primary = if (bodyweight) m.totalReps.toDouble() else m.volumeKg,
                 isPrE1rm = prE1rm,
                 isPrTopSet = prTop,
                 isPrReps = prReps,
-                isPr = if (bodyweight) prReps else prE1rm,
+                isPrVolume = prVolume,
+                isPrTotalReps = prTotalReps,
+                isPr = if (bodyweight) prTotalReps else prVolume,
             )
         }
 

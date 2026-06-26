@@ -264,7 +264,7 @@
     <string name="analytics_week_delta">%1$s%% Volumen vs. letzte Woche</string>
     <string name="analytics_search_hint">Übungen suchen</string>
     <string name="analytics_empty">Logge eine Einheit, um Fortschritte zu sehen</string>
-    <string name="analytics_e1rm_value">e1RM %1$s %2$s</string>
+    <string name="analytics_volume_value">%1$s %2$s</string>
     <string name="analytics_reps_value">%1$d Wdh.</string>
     <string name="cd_progress_chart">%1$s Fortschrittsdiagramm, %2$d Einheiten</string>
 
