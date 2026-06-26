@@ -1,3 +1,8 @@
+# Claude Code — ignore worktrees and personal settings; shared config (settings.json,
+# commands/, agents/, hooks/) can still be committed.
+.claude/worktrees/
+.claude/settings.local.json
+
 # Brainstorming companion sessions
 .superpowers/
 
