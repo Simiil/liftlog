@@ -201,9 +201,12 @@ private fun ExerciseRow(
                 if (s != null && s.trend !is TrendResult.Stale) {
                     val metric =
                         if (s.bodyweight) {
+                            // Bodyweight headline is now total reps (matches volume = total work).
                             stringResource(R.string.analytics_reps_value, s.currentValue.toInt())
                         } else {
-                            stringResource(R.string.analytics_e1rm_value, Weights.format(s.currentValue, unit), Weights.label(unit))
+                            // currentValue is volume in canonical kg; shown with the unit label, no
+                            // conversion — consistent with ExerciseDetailViewModel.label()'s VOLUME case.
+                            stringResource(R.string.analytics_volume_value, s.currentValue.toLong().toString(), Weights.label(unit))
                         }
                     Text(metric, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }

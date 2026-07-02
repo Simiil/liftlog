@@ -46,11 +46,13 @@ class ExerciseDetailViewModelTest {
                     now - (n - it).toLong() * day,
                     listOf(SetEntry(100.0 + it, 5)),
                     m,
-                    if (bodyweight) m.maxReps.toDouble() else m.e1rmKg,
-                    it == n - 1,
-                    it == n - 1,
-                    it == n - 1,
-                    it == n - 1,
+                    if (bodyweight) m.totalReps.toDouble() else m.volumeKg,
+                    it == n - 1, // isPrE1rm
+                    it == n - 1, // isPrTopSet
+                    it == n - 1, // isPrReps
+                    it == n - 1, // isPrVolume
+                    it == n - 1, // isPrTotalReps
+                    it == n - 1, // isPr
                 )
             }
         return ExerciseSummary(bodyweight, sessions, TrendResult.Insufficient, sessions.last().primary, sessions.last().timeMillis)
@@ -87,22 +89,25 @@ class ExerciseDetailViewModelTest {
         override suspend fun setWeightUnit(unit: WeightUnit) {}
     }
 
-    @Test fun weightedExercise_offersWeightMetrics() =
+    @Test fun weightedExercise_offersWeightMetrics_volumeFirst() =
         runTest {
             vm(summaryWith(5)).uiState.test {
                 var s = awaitItem()
                 while (s.summary == null) s = awaitItem()
-                assertEquals(listOf(Metric.E1RM, Metric.TOP_SET, Metric.VOLUME), s.metrics)
+                // Volume is the new default headline; e1RM is kept but demoted to last.
+                assertEquals(listOf(Metric.VOLUME, Metric.TOP_SET, Metric.E1RM), s.metrics)
+                assertEquals(Metric.VOLUME, s.selectedMetric)
                 cancelAndIgnoreRemainingEvents()
             }
         }
 
-    @Test fun bodyweightExercise_offersRepMetrics() =
+    @Test fun bodyweightExercise_offersRepMetrics_totalRepsFirst() =
         runTest {
             vm(summaryWith(5, bodyweight = true)).uiState.test {
                 var s = awaitItem()
                 while (s.summary == null) s = awaitItem()
-                assertEquals(listOf(Metric.MAX_REPS, Metric.TOTAL_REPS), s.metrics)
+                assertEquals(listOf(Metric.TOTAL_REPS, Metric.MAX_REPS), s.metrics)
+                assertEquals(Metric.TOTAL_REPS, s.selectedMetric)
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -167,7 +172,7 @@ class ExerciseDetailViewModelTest {
         val sessions =
             times.mapIndexed { i, t ->
                 val m = sessionMetrics(listOf(SetEntry(100.0 + i, 5)))
-                SessionPoint("s$i", t, listOf(SetEntry(100.0 + i, 5)), m, m.e1rmKg, false, false, false, false)
+                SessionPoint("s$i", t, listOf(SetEntry(100.0 + i, 5)), m, m.volumeKg, false, false, false, false, false, false)
             }
         return ExerciseSummary(false, sessions, TrendResult.Insufficient, sessions.last().primary, sessions.last().timeMillis)
     }

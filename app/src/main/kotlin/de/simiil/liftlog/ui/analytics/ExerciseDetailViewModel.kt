@@ -46,7 +46,7 @@ data class ExerciseDetailUiState(
     val name: String = "",
     val summary: ExerciseSummary? = null,
     val metrics: List<Metric> = emptyList(),
-    val selectedMetric: Metric = Metric.E1RM,
+    val selectedMetric: Metric = Metric.VOLUME,
     val selectedRange: Range = Range.D90,
     val chartPoints: List<ChartPoint> = emptyList(),
     /** True for cumulative metrics (volume / total reps) → zero-based Y; else Y zooms to data. */
@@ -86,11 +86,13 @@ class ExerciseDetailViewModel
                 if (summary == null) {
                     return@combine ExerciseDetailUiState(name = name, notEnoughData = true, unit = unit)
                 }
+                // First entry is the default (the headline metric): total reps for bodyweight,
+                // volume for weighted. e1RM/max-reps are kept as toggles but no longer default.
                 val metrics =
                     if (summary.bodyweight) {
-                        listOf(Metric.MAX_REPS, Metric.TOTAL_REPS)
+                        listOf(Metric.TOTAL_REPS, Metric.MAX_REPS)
                     } else {
-                        listOf(Metric.E1RM, Metric.TOP_SET, Metric.VOLUME)
+                        listOf(Metric.VOLUME, Metric.TOP_SET, Metric.E1RM)
                     }
                 val metric = metricOrNull?.takeIf { it in metrics } ?: metrics.first()
 
@@ -190,7 +192,8 @@ class ExerciseDetailViewModel
                 Metric.TOP_SET -> s.isPrTopSet
                 Metric.E1RM -> s.isPrE1rm
                 Metric.MAX_REPS -> s.isPrReps
-                else -> false
+                Metric.VOLUME -> s.isPrVolume
+                Metric.TOTAL_REPS -> s.isPrTotalReps
             }
 
         private fun label(
