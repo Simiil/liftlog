@@ -10,6 +10,7 @@ import de.simiil.liftlog.domain.analytics.SessionPoint
 import de.simiil.liftlog.domain.analytics.TrendPoint
 import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.domain.analytics.downsample
+import de.simiil.liftlog.domain.analytics.formatSetSummary
 import de.simiil.liftlog.domain.analytics.trend
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.AnalyticsRepository
@@ -147,7 +148,7 @@ class ExerciseDetailViewModel
                             RecentSessionRow(
                                 sessionId = sp.sessionId,
                                 dateMillis = sp.timeMillis,
-                                summary = recentSummary(sp, summary.bodyweight, unit),
+                                summary = formatSetSummary(sp.sets, unit),
                                 isPr = sp.isPr,
                             )
                         },
@@ -206,18 +207,4 @@ class ExerciseDetailViewModel
                 Metric.MAX_REPS, Metric.TOTAL_REPS -> "${v.toInt()} reps"
                 else -> "${de.simiil.liftlog.domain.units.Weights.format(v, unit)} ${de.simiil.liftlog.domain.units.Weights.label(unit)}"
             }
-
-        private fun recentSummary(
-            s: SessionPoint,
-            bodyweight: Boolean,
-            unit: WeightUnit,
-        ): String {
-            if (bodyweight) return "${s.metrics.maxReps} reps best"
-            val topW = s.sets.maxOfOrNull { it.weightKg } ?: 0.0
-            val reps = s.sets.take(3).joinToString("·") { it.reps.toString() }
-            return "${de.simiil.liftlog.domain.units.Weights.format(
-                topW,
-                unit,
-            )} ${de.simiil.liftlog.domain.units.Weights.label(unit)} × $reps"
-        }
     }
