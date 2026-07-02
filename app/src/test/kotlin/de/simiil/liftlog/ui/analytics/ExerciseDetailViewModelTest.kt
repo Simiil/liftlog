@@ -134,6 +134,56 @@ class ExerciseDetailViewModelTest {
             }
         }
 
+    private fun summaryOfSets(
+        setsPerSession: List<List<SetEntry>>,
+        bodyweight: Boolean = false,
+    ): ExerciseSummary {
+        val n = setsPerSession.size
+        val sessions =
+            setsPerSession.mapIndexed { i, sets ->
+                val m = sessionMetrics(sets)
+                SessionPoint(
+                    "s$i",
+                    now - (n - i).toLong() * day,
+                    sets,
+                    m,
+                    if (bodyweight) m.totalReps.toDouble() else m.volumeKg,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                )
+            }
+        return ExerciseSummary(bodyweight, sessions, TrendResult.Insufficient, sessions.last().primary, sessions.last().timeMillis)
+    }
+
+    @Test fun recentRows_pairEachWeightWithItsReps() =
+        runTest {
+            // Issue #28 repro: 55×10, 60×9, 60×5, 55×10 must not collapse to "60 kg × 10·9·5"
+            // (max weight paired with the wrong reps, 4th set dropped).
+            val sets = listOf(SetEntry(55.0, 10), SetEntry(60.0, 9), SetEntry(60.0, 5), SetEntry(55.0, 10))
+            vm(summaryOfSets(listOf(listOf(SetEntry(50.0, 8)), sets))).uiState.test {
+                var s = awaitItem()
+                while (s.summary == null) s = awaitItem()
+                // recent is newest-first; the mixed-weight session is the newest.
+                assertEquals("55 kg × 10, 60 kg × 9·5, 55 kg × 10", s.recent.first().summary)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test fun recentRows_bodyweight_bareRepsList() =
+        runTest {
+            val sets = listOf(SetEntry(0.0, 12), SetEntry(0.0, 10))
+            vm(summaryOfSets(listOf(listOf(SetEntry(0.0, 8)), sets), bodyweight = true)).uiState.test {
+                var s = awaitItem()
+                while (s.summary == null) s = awaitItem()
+                assertEquals("12·10", s.recent.first().summary)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
     @Test fun recentRows_carrySessionId() =
         runTest {
             vm(summaryWith(3)).uiState.test {

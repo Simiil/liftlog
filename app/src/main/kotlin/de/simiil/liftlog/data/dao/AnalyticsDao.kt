@@ -13,7 +13,7 @@ interface AnalyticsDao {
            JOIN sessions s          ON s.id = se.sessionId          AND s.deletedAt IS NULL
            WHERE se.exerciseId = :exerciseId AND ls.deletedAt IS NULL
              AND s.startedAt >= :fromMillis AND s.endedAt IS NOT NULL
-           ORDER BY s.startedAt""",
+           ORDER BY s.startedAt, ls.position""",
     )
     fun observeSetsForExercise(
         exerciseId: String,
@@ -27,7 +27,7 @@ interface AnalyticsDao {
            JOIN sessions s          ON s.id = se.sessionId          AND s.deletedAt IS NULL
            WHERE ls.deletedAt IS NULL
              AND s.startedAt >= :fromMillis AND s.endedAt IS NOT NULL
-           ORDER BY s.startedAt""",
+           ORDER BY s.startedAt, ls.position""",
     )
     fun observeAllSetsSince(fromMillis: Long): Flow<List<SetRow>>
 

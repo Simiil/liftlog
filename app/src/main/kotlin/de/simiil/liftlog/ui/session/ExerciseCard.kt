@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -38,10 +39,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.analytics.SetEntry
+import de.simiil.liftlog.domain.analytics.formatSetSummary
 import de.simiil.liftlog.domain.logging.Targets
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.LoggedSet
@@ -119,7 +123,7 @@ private fun CompletedCard(
     onActivateCard: (seId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val summary = formatSetsSummary(card.sets, unit)
+    val summary = summaryOf(card.sets, unit)
     Card(
         modifier =
             modifier
@@ -159,10 +163,15 @@ private fun CompletedCard(
                 modifier = Modifier.weight(1f),
             )
             if (summary.isNotEmpty()) {
+                // Capped + ellipsized: the summary is measured before the weight(1f) name, so an
+                // uncapped mixed-weight summary would squeeze the exercise name to nothing.
                 Text(
                     text = summary,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 180.dp),
                 )
             }
         }
@@ -300,7 +309,7 @@ private fun ActiveCard(
             // ── Ghost row (last performance) ─────────────────────────────
             if (card.ghostSets.isNotEmpty()) {
                 Text(
-                    text = stringResource(R.string.ghost_last, formatSetsSummary(card.ghostSets, unit)),
+                    text = stringResource(R.string.ghost_last, summaryOf(card.ghostSets, unit)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 10.dp, bottom = 2.dp),
@@ -452,16 +461,11 @@ private fun LogSetButton(
 
 // ─── Formatting helper ────────────────────────────────────────────────────────
 
-/** Compact set summary, e.g. "82.5 kg × 8·8·6" (first set's weight + all reps). */
-internal fun formatSetsSummary(
+/** Shared set summary (issue #28), e.g. "82.5 kg × 8·8·6" or "55 kg × 10, 60 kg × 9·5". */
+private fun summaryOf(
     sets: List<LoggedSet>,
     unit: WeightUnit,
-): String {
-    if (sets.isEmpty()) return ""
-    val weightDisplay = "${Weights.format(sets.first().weightKg, unit)} ${Weights.label(unit)}"
-    val repsStr = sets.joinToString("·") { it.reps.toString() }
-    return "$weightDisplay × $repsStr"
-}
+): String = formatSetSummary(sets.map { SetEntry(it.weightKg, it.reps) }, unit)
 
 // ─── Previews ─────────────────────────────────────────────────────────────────
 
@@ -541,6 +545,13 @@ private fun PreviewActiveCardNumpad() {
 @Composable
 private fun PreviewCompletedCard() {
     LiftLogTheme { noopCard(fakeActiveCard.copy(state = CardState.COMPLETED, ghostSets = emptyList()), null) }
+}
+
+@Preview(name = "ExerciseCard – COMPLETED mixed weights (grouped summary, ellipsis)", showBackground = true)
+@Composable
+private fun PreviewCompletedCardMixedWeights() {
+    val mixed = listOf(fakeSet("m1", 55.0, 10), fakeSet("m2", 60.0, 9), fakeSet("m3", 60.0, 5), fakeSet("m4", 55.0, 10))
+    LiftLogTheme { noopCard(fakeActiveCard.copy(state = CardState.COMPLETED, sets = mixed, ghostSets = emptyList()), null) }
 }
 
 @Preview(name = "ExerciseCard – UPCOMING", showBackground = true)

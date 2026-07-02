@@ -33,7 +33,10 @@ import org.junit.runner.RunWith
  *
  * Note: sessions B (startedAt=2000) and A (startedAt=1000) are inserted in THAT order
  * (later first) so that the ORDER BY s.startedAt clause is exercised; without it the
- * natural insertion order would accidentally produce a passing test.
+ * natural insertion order would accidentally produce a passing test. The same trick is
+ * used for within-session set order: the ordering tests insert sets with scrambled
+ * positions so that the secondary ORDER BY ls.position is load-bearing too (the set
+ * summary in analytics relies on it, issue #28).
  *
  * Expected: observeSetsForExercise(ex1, fromMillis=0) returns exactly 2 rows
  *           (A's live set, B's live set) in startedAt ASC order.
@@ -100,13 +103,14 @@ class AnalyticsDaoTest {
         sessionExerciseId: String,
         weightKg: Double = 80.0,
         reps: Int = 8,
+        position: Int = 1,
         deleted: Long? = null,
     ) = LoggedSetEntity(
         id = id,
         sessionExerciseId = sessionExerciseId,
         weightKg = weightKg,
         reps = reps,
-        position = 1,
+        position = position,
         completedAt = 1000L,
         createdAt = 1L,
         updatedAt = 1L,
@@ -268,6 +272,41 @@ class AnalyticsDaoTest {
                 assertEquals(2, rows.size)
                 assertEquals("ex1", rows.first { it.weightKg == 60.0 }.exerciseId)
                 assertEquals("ex2", rows.first { it.weightKg == 80.0 }.exerciseId)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    /**
+     * One completed session with 3 sets whose positions (1, 2, 3) are inserted in
+     * scrambled order (2, 3, 1) — reps identify each set. Shared by the two
+     * within-session ordering tests; separate from [insertFullGraph] because the
+     * existing tests assert its exact row counts.
+     */
+    private suspend fun insertScrambledPositionGraph() {
+        exerciseDao.insert(exercise("ex1"))
+        sessionDao.insertSession(session("s1", startedAt = 1000L, endedAt = 2000L))
+        sessionDao.insertSessionExercise(sessionExercise("se1", "s1", "ex1"))
+        sessionDao.insertLoggedSet(loggedSet("ls2", "se1", weightKg = 60.0, reps = 9, position = 2))
+        sessionDao.insertLoggedSet(loggedSet("ls3", "se1", weightKg = 60.0, reps = 5, position = 3))
+        sessionDao.insertLoggedSet(loggedSet("ls1", "se1", weightKg = 55.0, reps = 10, position = 1))
+    }
+
+    @Test fun observeSetsForExercise_ordersWithinSessionByPosition() =
+        runTest {
+            insertScrambledPositionGraph()
+            analyticsDao.observeSetsForExercise("ex1", fromMillis = 0L).test {
+                val rows = awaitItem()
+                assertEquals(listOf(10, 9, 5), rows.map { it.reps })
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test fun observeAllSetsSince_ordersWithinSessionByPosition() =
+        runTest {
+            insertScrambledPositionGraph()
+            analyticsDao.observeAllSetsSince(fromMillis = 0L).test {
+                val rows = awaitItem()
+                assertEquals(listOf(10, 9, 5), rows.map { it.reps })
                 cancelAndIgnoreRemainingEvents()
             }
         }
