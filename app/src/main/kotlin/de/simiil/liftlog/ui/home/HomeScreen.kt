@@ -75,9 +75,11 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    // First-launch only when there's nothing to act on: no live/finished sessions AND no plans.
-    // Once a plan exists, show the normal Home so its template chips are reachable.
-    val firstLaunch = uiState.resume == null && uiState.recent.isEmpty() && !uiState.hasPlans
+    // First-launch only when there's nothing to act on: no live/finished sessions AND no plan
+    // content. Uses hasPlanContent (not "any plan exists"): issue #30 permanently seeds a default
+    // plan on every install, so "any plan exists" would always be true and a fresh install would
+    // never see this welcome. Once a day with an exercise exists, show the normal Home instead.
+    val firstLaunch = uiState.resume == null && uiState.recent.isEmpty() && !uiState.hasPlanContent
 
     Scaffold(
         modifier = modifier,

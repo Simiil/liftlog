@@ -395,25 +395,36 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `hasPlans is false when no plans exist`() =
+    fun `hasPlanContent is false when plans have only empty days`() =
         runTest {
-            val vm = makeVm(planRepo = FakePlanRepository())
+            val planRepo = FakePlanRepository()
+            val plan = planRepo.createPlan("PPL")
+            planRepo.createDayTemplate(plan.id, "Push") // no exercises
+            val vm = makeVm(planRepo = planRepo)
 
             vm.uiState.test {
-                assertTrue("hasPlans should be false with no plans", !awaitItem().hasPlans)
+                assertTrue(
+                    "hasPlanContent should be false when no day has an exercise",
+                    !awaitItem().hasPlanContent,
+                )
                 cancelAndIgnoreRemainingEvents()
             }
         }
 
     @Test
-    fun `hasPlans is true once a plan is defined (even with no days)`() =
+    fun `hasPlanContent is true once any day has an exercise`() =
         runTest {
             val planRepo = FakePlanRepository()
-            planRepo.createPlan("PPL")
+            val plan = planRepo.createPlan("PPL")
+            val day = planRepo.createDayTemplate(plan.id, "Push")
+            planRepo.addExerciseToTemplate(day.id, "ex-1")
             val vm = makeVm(planRepo = planRepo)
 
             vm.uiState.test {
-                assertTrue("hasPlans should be true when a plan exists", awaitItem().hasPlans)
+                assertTrue(
+                    "hasPlanContent should be true once a day has an exercise",
+                    awaitItem().hasPlanContent,
+                )
                 cancelAndIgnoreRemainingEvents()
             }
         }

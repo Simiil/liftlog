@@ -35,8 +35,12 @@ data class HomeUiState(
     val resume: ResumeCardUi? = null,
     val recent: List<RecentSessionUi> = emptyList(),
     val templates: List<TemplateChipUi> = emptyList(),
-    /** True when at least one plan is defined. Drives the first-launch state with [recent]. */
-    val hasPlans: Boolean = false,
+    /**
+     * True when at least one plan has a day with at least one exercise. Drives the first-launch
+     * state with [recent]. Deliberately not "any plan exists": issue #30 permanently seeds a
+     * default plan, which would make that always true and hide the FirstLaunch welcome.
+     */
+    val hasPlanContent: Boolean = false,
 )
 
 data class ResumeCardUi(
@@ -121,8 +125,8 @@ class HomeViewModel
                 sessionRepository.observeHistory(),
                 sessionRepository.observeSetCountsBySession(),
                 templates,
-                planRepository.observePlans(),
-            ) { resumeCard, history, counts, chips, plans ->
+                planRepository.observePlansWithDays(),
+            ) { resumeCard, history, counts, chips, plansWithDays ->
                 HomeUiState(
                     resume = resumeCard,
                     recent =
@@ -138,7 +142,7 @@ class HomeViewModel
                                 )
                             },
                     templates = chips,
-                    hasPlans = plans.isNotEmpty(),
+                    hasPlanContent = plansWithDays.any { plan -> plan.days.any { it.exerciseCount > 0 } },
                 )
             }.combine(analyticsRepository.observePrSessionIds()) { state, prIds ->
                 state.copy(recent = state.recent.map { it.copy(isPr = it.sessionId in prIds) })
