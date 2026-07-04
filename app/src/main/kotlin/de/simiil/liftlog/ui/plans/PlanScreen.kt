@@ -112,6 +112,13 @@ private fun PlanContent(
     val plan = state.plan
     var overflowExpanded by remember { mutableStateOf(false) }
     var switcherExpanded by remember { mutableStateOf(false) }
+    // The switcher only renders with 2+ choices, but its remembered expanded state survives a
+    // 2→1→2 plan-count transition (e.g. delete down to one plan, then create a second): without
+    // this reset, a dropdown left open before dropping to 1 plan would silently reopen the
+    // moment a 2nd plan reappears.
+    LaunchedEffect(state.planChoices.size >= 2) {
+        if (state.planChoices.size < 2) switcherExpanded = false
+    }
     var showRenameDialog by rememberSaveable { mutableStateOf(false) }
     var showCreateDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirm by rememberSaveable { mutableStateOf(false) }
