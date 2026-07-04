@@ -10,6 +10,7 @@ import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class DayEditorUiState(
@@ -138,12 +140,17 @@ class DayEditorViewModel(
             }
     }
 
-    /** Cancels any pending debounce timer and writes a pending rename immediately. */
+    /**
+     * Cancels any pending debounce timer and writes a pending rename immediately. Called from
+     * ON_STOP (the primary trigger — see the screen's DisposableEffect) as well as on dispose;
+     * on the dispose path viewModelScope is cancelled moments later, so the write itself runs
+     * under [NonCancellable] as belt-and-braces — once started, it always completes.
+     */
     fun flushPendingEdits() {
         renameJob?.cancel()
         renameJob = null
         val pending = nameOverlay.value ?: return
-        viewModelScope.launch { persistRename(pending) }
+        viewModelScope.launch { withContext(NonCancellable) { persistRename(pending) } }
     }
 
     private suspend fun persistRename(name: String) {

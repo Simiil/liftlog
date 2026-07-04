@@ -129,7 +129,18 @@ private fun PlanContent(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(plan?.name.orEmpty().ifBlank { stringResource(R.string.plan_untitled) }) },
+                title = {
+                    // While loading/plan == null this is a transient gap, not a real plan with
+                    // a blank name — render nothing rather than flashing the "Untitled plan"
+                    // fallback, which is reserved for an actually-loaded, actually-blank name.
+                    val titleText =
+                        if (state.loading || plan == null) {
+                            ""
+                        } else {
+                            plan.name.ifBlank { stringResource(R.string.plan_untitled) }
+                        }
+                    Text(titleText)
+                },
                 actions = {
                     Box {
                         IconButton(

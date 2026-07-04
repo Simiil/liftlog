@@ -38,7 +38,7 @@ private data class TopLevelDestination(
     @param:StringRes val labelRes: Int,
 )
 
-// 03-ux-spec §2: Home · Plans · Analytics · History
+// 03-ux-spec §2: Home · Plan · Analytics · History
 private val topLevelDestinations =
     listOf(
         TopLevelDestination(HomeRoute, Icons.Outlined.Home, R.string.tab_home),
