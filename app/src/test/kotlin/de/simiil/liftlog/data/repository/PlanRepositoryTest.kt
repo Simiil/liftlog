@@ -312,6 +312,120 @@ class PlanRepositoryTest {
             assertEquals(clockMillis, storedC.updatedAt)
         }
 
+    // ── reorderDayTemplates (Task 30/PR2) ──────────────────────────────────
+
+    @Test
+    fun `reorderDayTemplates reassigns positions 0,1,2 with bumped updatedAt`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+
+            val dayA = repo.createDayTemplate(plan.id, "Day A")
+            val dayB = repo.createDayTemplate(plan.id, "Day B")
+            val dayC = repo.createDayTemplate(plan.id, "Day C")
+
+            // Original order: A=0, B=1, C=2
+            // Reorder to: C, A, B
+            repo.reorderDayTemplates(listOf(dayC.id, dayA.id, dayB.id))
+
+            val storedA = dao.dayTemplates[dayA.id]!!
+            val storedB = dao.dayTemplates[dayB.id]!!
+            val storedC = dao.dayTemplates[dayC.id]!!
+
+            assertEquals(0, storedC.position)
+            assertEquals(1, storedA.position)
+            assertEquals(2, storedB.position)
+
+            assertEquals(clockMillis, storedA.updatedAt)
+            assertEquals(clockMillis, storedB.updatedAt)
+            assertEquals(clockMillis, storedC.updatedAt)
+        }
+
+    // ── addExercisesToTemplate (Task 30/PR2) ───────────────────────────────
+
+    @Test
+    fun `addExercisesToTemplate appends after current max position preserving input order`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val day = repo.createDayTemplate(plan.id, "Day")
+            val existing = repo.addExerciseToTemplate(day.id, "ex-existing") // position 0
+
+            repo.addExercisesToTemplate(day.id, listOf("ex-b", "ex-a", "ex-c"))
+
+            val live = dao.templateExercises.values.filter { it.templateId == day.id && it.deletedAt == null }
+            assertEquals(existing.position, dao.templateExercises[existing.id]!!.position)
+
+            val added = live.filter { it.id != existing.id }.sortedBy { it.position }
+            assertEquals(listOf("ex-b", "ex-a", "ex-c"), added.map { it.exerciseId })
+            assertEquals(listOf(1, 2, 3), added.map { it.position })
+        }
+
+    @Test
+    fun `addExercisesToTemplate dedupes ids already live in the template`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val day = repo.createDayTemplate(plan.id, "Day")
+            repo.addExerciseToTemplate(day.id, "ex-a") // already live
+
+            repo.addExercisesToTemplate(day.id, listOf("ex-a", "ex-b"))
+
+            val live = dao.templateExercises.values.filter { it.templateId == day.id && it.deletedAt == null }
+            // Only one row for ex-a (the pre-existing one) plus the new ex-b — no duplicate ex-a row.
+            assertEquals(2, live.size)
+            assertEquals(1, live.count { it.exerciseId == "ex-a" })
+            assertEquals(1, live.count { it.exerciseId == "ex-b" })
+        }
+
+    @Test
+    fun `addExercisesToTemplate dedupes duplicates within the input list`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val day = repo.createDayTemplate(plan.id, "Day")
+
+            repo.addExercisesToTemplate(day.id, listOf("ex-a", "ex-b", "ex-a"))
+
+            val live = dao.templateExercises.values.filter { it.templateId == day.id && it.deletedAt == null }
+            assertEquals(2, live.size)
+            assertEquals(1, live.count { it.exerciseId == "ex-a" })
+            assertEquals(1, live.count { it.exerciseId == "ex-b" })
+        }
+
+    @Test
+    fun `addExercisesToTemplate re-adds an exercise whose earlier row was soft-deleted`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val day = repo.createDayTemplate(plan.id, "Day")
+            val firstRow = repo.addExerciseToTemplate(day.id, "ex-a")
+            repo.removeTemplateExercise(firstRow.id) // soft-delete: no longer "live"
+
+            repo.addExercisesToTemplate(day.id, listOf("ex-a"))
+
+            val live = dao.templateExercises.values.filter { it.templateId == day.id && it.deletedAt == null }
+            assertEquals(1, live.size)
+            assertEquals("ex-a", live.first().exerciseId)
+            assertNotEquals(firstRow.id, live.first().id) // a fresh row, not the tombstoned one
+        }
+
+    // ── observeDayTemplate (Task 30/PR2) ───────────────────────────────────
+
+    @Test
+    fun `observeDayTemplate emits the row then null after soft-delete`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val day = repo.createDayTemplate(plan.id, "Day")
+
+            repo.observeDayTemplate(day.id).test {
+                val first = awaitItem()
+                assertNotNull(first)
+                assertEquals(day.id, first!!.id)
+
+                repo.softDeleteDayTemplate(day.id)
+                val afterDelete = awaitItem()
+                assertNull("observeDayTemplate should emit null after soft-delete", afterDelete)
+
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
     // ── ensureDefaultPlan (Task 30/PR1) ────────────────────────────────────
 
     @Test
