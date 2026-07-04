@@ -28,6 +28,7 @@ object UiTestTags {
     const val PLAN_EDITOR_DELETE = "plan_editor_delete"
     const val PLAN_DELETE_CONFIRM = "plan_delete_confirm"
     const val DAY_EDITOR_DONE = "day_editor_done"
+    const val DAY_NAME_FIELD = "day_name_field"
     const val TEMPLATE_ADD_EXERCISE = "template_add_exercise"
     const val TEMPLATE_EXERCISE_ROW = "template_exercise_row"
     const val HOME_TEMPLATE_CHIP = "home_template_chip"
