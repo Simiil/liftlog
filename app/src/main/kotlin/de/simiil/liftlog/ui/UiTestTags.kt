@@ -29,6 +29,13 @@ object UiTestTags {
     const val PLAN_DAY_START = "plan_day_start" // the play button that starts a day's session
     const val PLAN_DAY_REMOVE = "plan_day_remove" // the X on a day row
     const val PLAN_DAY_REMOVE_CONFIRM = "plan_day_remove_confirm"
+
+    // Multi-plan chrome: title-bar switcher + "New plan" (issue #30 PR4)
+    const val PLAN_SWITCHER = "plan_switcher" // clickable title (name + dropdown arrow), shown only with 2+ plans
+    const val PLAN_SWITCHER_ITEM = "plan_switcher_item" // applied to EACH item in the switcher dropdown
+    const val PLAN_MENU_NEW = "plan_menu_new" // overflow "New plan" menu item
+    const val PLAN_NEW_FIELD = "plan_new_field" // PlanNameDialog's text field when creating
+    const val PLAN_NEW_CONFIRM = "plan_new_confirm"
     const val DAY_EDITOR_DONE = "day_editor_done"
     const val DAY_NAME_FIELD = "day_name_field"
     const val TEMPLATE_ADD_EXERCISE = "template_add_exercise"
