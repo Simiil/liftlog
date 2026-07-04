@@ -1,7 +1,6 @@
 package de.simiil.liftlog.domain.repository
 
 import de.simiil.liftlog.domain.model.PlanDayTemplate
-import de.simiil.liftlog.domain.model.PlanDraft
 import de.simiil.liftlog.domain.model.TemplateExercise
 import de.simiil.liftlog.domain.model.WorkoutPlan
 import kotlinx.coroutines.flow.Flow
@@ -34,12 +33,6 @@ interface PlanRepository {
 
     /** Plans with their nested training days for the Plans list. Live, ordered by position. */
     fun observePlansWithDays(): Flow<List<PlanWithDays>>
-
-    /**
-     * Atomically reconciles [draft] against the database, preserving entity IDs for unchanged
-     * rows, inserting new ones, and soft-deleting rows removed from the draft. Returns the plan id.
-     */
-    suspend fun savePlanDraft(draft: PlanDraft): String
 
     suspend fun createPlan(name: String): WorkoutPlan
 

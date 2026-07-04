@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object HomeRoute
 
-@Serializable data object PlansRoute
+@Serializable data object PlanRoute
 
 @Serializable data object AnalyticsRoute
 
@@ -26,9 +26,11 @@ import kotlinx.serialization.Serializable
     val multiSelect: Boolean = false,
 )
 
-/** Draft plan editor. [planId] null = new plan; else edit the existing plan. */
-@Serializable data class PlanEditorRoute(
-    val planId: String? = null,
+/** DB-backed, single-day autosave editor (issue #30 PR3b). [templateId] is a real, already-created
+ *  day; [isNew] only drives the "New day"/"Edit day" title. */
+@Serializable data class DayEditorRoute(
+    val templateId: String,
+    val isNew: Boolean = false,
 )
 
 /** Analytics exercise detail. Reached from the Analytics browser; not a top-level tab. */
@@ -41,5 +43,5 @@ import kotlinx.serialization.Serializable
 const val PICKED_EXERCISE_ID = "picked_exercise_id"
 
 /** savedStateHandle key the Exercise Picker writes its multi-selected exercise ids to,
- *  read by the PlanEditor (day mode) after popBackStack. */
+ *  read by the Day Editor after popBackStack. */
 const val PICKED_EXERCISE_IDS = "picked_exercise_ids"

@@ -58,8 +58,11 @@ class BackupRepositoryImpl
                 backupDao.replaceAll(snapshot)
                 settingsRepository.setWeightUnit(snapshot.weightUnit)
                 settingsRepository.setThemePreference(snapshot.theme)
-                // replaceAll is one atomic transaction, so a zero-plan backup is never observed
-                // mid-import; this reseeds the invisible default plan invariant after the fact.
+                // replaceAll itself is one atomic transaction, but ensure() below runs as a
+                // separate follow-up transaction, so a brief zero-plan emission between the two
+                // is possible for a zero-plan backup. The UI is designed to tolerate that gap
+                // (bare scaffold / day-editor auto-close) — this call reseeds the invisible
+                // default-plan invariant immediately after.
                 defaultPlanEnsurer.ensure()
                 // exportedAt here is apply-time; the UI shows the parseImport summary, so this field is informational only.
                 ImportSummary(

@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">LiftLog</string>
     <string name="tab_home">Home</string>
-    <string name="tab_plans">Plans</string>
+    <string name="tab_plans">Plan</string>
     <string name="tab_analytics">Analytics</string>
     <string name="tab_history">History</string>
     <string name="settings_title">Settings</string>
@@ -44,7 +44,7 @@
     <string name="home_first_title">Ready when you are</string>
     <string name="home_first_sub">No account, no setup. Start an empty session and log your first set — everything saves on your phone.</string>
     <string name="home_first_start">Start first workout</string>
-    <string name="home_first_hint">Build a reusable day template anytime from Plans.</string>
+    <string name="home_first_hint">Build a reusable day template anytime from the Plan tab.</string>
 
     <!-- WeightStepper / RepsStepper content descriptions -->
     <string name="cd_decrease_weight">Decrease weight, %1$s %2$s</string>
@@ -117,6 +117,9 @@
     <string name="session_delete_confirm_message">This deletes the workout and all its logged sets.</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_delete">Delete</string>
+    <string name="common_save">Save</string>
+    <string name="common_remove">Remove</string>
+    <string name="common_create">Create</string>
     <string name="session_remove_exercise">Remove exercise</string>
     <string name="session_replace_exercise">Replace exercise</string>
     <string name="session_finish_summary">%1$s — %2$d sets</string>
@@ -201,25 +204,18 @@
         <item quantity="other">%1$d exercises</item>
     </plurals>
 
-    <plurals name="plan_days_count">
-        <item quantity="one">%1$d day</item>
-        <item quantity="other">%1$d days</item>
-    </plurals>
-
-    <!-- Plans list (M3 redesign) -->
-    <string name="plans_empty_title">No plans yet</string>
-    <string name="plans_empty_sub">Create a plan to build reusable day templates and start sessions in one tap.</string>
-    <string name="plans_create">New plan</string>
-    <string name="plan_group_sub">%1$s · tap to edit</string>
+    <!-- Plan tab (issue #30 PR3b: single-plan UI) -->
+    <string name="plan_untitled">Untitled plan</string>
+    <string name="plan_overflow_cd">Plan options</string>
+    <string name="plan_menu_rename">Rename plan</string>
     <string name="plan_start_day_cd">Start %1$s</string>
-    <string name="plan_edit_cd">Edit %1$s</string>
 
-    <!-- Plan editor (M3 redesign) -->
-    <string name="plan_editor_new">New plan</string>
-    <string name="plan_editor_edit">Edit plan</string>
+    <!-- Multi-plan chrome: title-bar switcher + "New plan" (issue #30 PR4) -->
+    <string name="plans_create">New plan</string>
+    <string name="plan_switcher_cd">Switch plan</string>
+
     <string name="plan_name_field_label">Plan name</string>
     <string name="plan_name_field_hint">e.g. Upper / Lower, PPL, 5×5</string>
-    <string name="plan_training_days">Training days</string>
     <string name="plan_days_empty">No days yet. Add a training day to build your split.</string>
     <string name="plan_add_day">Add training day</string>
     <string name="plan_remove_day">Remove day</string>
@@ -227,6 +223,8 @@
     <string name="plan_delete">Delete plan</string>
     <string name="plan_delete_confirm_title">Delete plan?</string>
     <string name="plan_delete_confirm_message">Workouts you already logged from this plan are kept.</string>
+    <string name="plan_day_remove_confirm_title">Remove this day?</string>
+    <string name="plan_day_remove_confirm_message">The day and its exercise targets will be removed. Logged workouts are kept.</string>
 
     <!-- Default plan seeding (issue #30 PR1): name used when a default plan is auto-created. -->
     <string name="default_plan_name">Default</string>
@@ -239,7 +237,6 @@
     <string name="day_exercises">Exercises</string>
     <string name="day_exercises_empty">No exercises yet. Add a few and set targets — these pre-fill your session.</string>
 
-    <string name="editor_save">Save</string>
     <string name="editor_done">Done</string>
 
     <!-- Exercise rows / steppers (shared with the day editor) -->
