@@ -4,13 +4,18 @@ import app.cash.turbine.test
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.MuscleGroup
+import de.simiil.liftlog.domain.model.PlanDayTemplate
 import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.plan.DefaultPlanEnsurer
 import de.simiil.liftlog.domain.plan.DefaultPlanNameProvider
+import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.testing.FakeExerciseRepository
 import de.simiil.liftlog.testing.FakePlanRepository
 import de.simiil.liftlog.testing.FakeSessionRepository
 import de.simiil.liftlog.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -20,6 +25,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PlanViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -201,6 +207,32 @@ class PlanViewModelTest {
         }
 
     @Test
+    fun `rapid addDay taps create only one day`() =
+        runTest {
+            val planRepo = FakePlanRepository()
+            planRepo.createPlan("PPL")
+            // createDayTemplate takes 100ms (virtual time) to land, so two taps fired before
+            // either completes race ahead of any DB round trip; only a synchronous in-flight
+            // guard (not a wait for the write to land) can keep this at one day.
+            val slowRepo = SlowCreateDayPlanRepository(planRepo, delayMs = 100)
+            val vm =
+                PlanViewModel(
+                    planRepository = slowRepo,
+                    exerciseRepository = FakeExerciseRepository(),
+                    sessionRepository = FakeSessionRepository(),
+                    defaultPlanEnsurer = DefaultPlanEnsurer(planRepo, DefaultPlanNameProvider { "Default" }),
+                )
+
+            var createdCount = 0
+            vm.addDay { createdCount++ }
+            vm.addDay { createdCount++ }
+            advanceUntilIdle()
+
+            assertEquals("two rapid taps must create only one day", 1, planRepo.dayTemplates.size)
+            assertEquals("onCreated must fire exactly once", 1, createdCount)
+        }
+
+    @Test
     fun `removeDay soft-deletes the day`() =
         runTest {
             val planRepo = FakePlanRepository()
@@ -255,4 +287,23 @@ class PlanViewModelTest {
             assertNotEquals(plan.id, live.first().id)
             assertEquals("Default", live.first().name)
         }
+}
+
+/**
+ * Delegates every [PlanRepository] call to [delegate] unchanged, but delays
+ * [createDayTemplate] by [delayMs] (virtual time) to simulate a non-instant round trip — long
+ * enough that two rapid taps both reach the repository before either write lands, unless the
+ * caller guards against re-entrant calls.
+ */
+private class SlowCreateDayPlanRepository(
+    private val delegate: PlanRepository,
+    private val delayMs: Long,
+) : PlanRepository by delegate {
+    override suspend fun createDayTemplate(
+        planId: String,
+        name: String,
+    ): PlanDayTemplate {
+        delay(delayMs)
+        return delegate.createDayTemplate(planId, name)
+    }
 }

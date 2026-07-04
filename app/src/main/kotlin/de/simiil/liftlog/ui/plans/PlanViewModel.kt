@@ -96,12 +96,22 @@ class PlanViewModel
             }
         }
 
+        /** Guards [addDay] against re-entrant taps; set/checked synchronously, so two taps in the
+         * same UI frame can never both slip through before the first's coroutine even starts. */
+        private var addDayInFlight = false
+
         /** Creates a blank day on the current plan and hands its id to [onCreated] (caller navigates). */
         fun addDay(onCreated: (String) -> Unit) {
+            if (addDayInFlight) return
+            addDayInFlight = true
             viewModelScope.launch {
-                val planId = currentPlanId() ?: return@launch
-                val day = planRepository.createDayTemplate(planId, "")
-                onCreated(day.id)
+                try {
+                    val planId = currentPlanId() ?: return@launch
+                    val day = planRepository.createDayTemplate(planId, "")
+                    onCreated(day.id)
+                } finally {
+                    addDayInFlight = false
+                }
             }
         }
 
