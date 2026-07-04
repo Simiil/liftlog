@@ -58,7 +58,7 @@ class DayEditorViewModel(
     private val planRepository: PlanRepository,
     private val exerciseRepository: ExerciseRepository,
     private val names: ExerciseNameResolver,
-    private val debounceMs: Long = 400L,
+    private val debounceMs: Long = DEFAULT_DEBOUNCE_MS,
 ) : ViewModel() {
     // Dagger can't fall back to a Kotlin default for an unqualified Long, so production DI
     // goes through this narrower @Inject constructor (Hilt never sees debounceMs) while tests
@@ -69,7 +69,7 @@ class DayEditorViewModel(
         planRepository: PlanRepository,
         exerciseRepository: ExerciseRepository,
         names: ExerciseNameResolver,
-    ) : this(savedStateHandle, planRepository, exerciseRepository, names, debounceMs = 400L)
+    ) : this(savedStateHandle, planRepository, exerciseRepository, names, debounceMs = DEFAULT_DEBOUNCE_MS)
 
     // Type-safe route fields land in the handle under their field name; every day is a real,
     // already-created row by the time this screen opens (mirrors ActiveSessionViewModel's
@@ -80,6 +80,9 @@ class DayEditorViewModel(
     private val targetsOverlay = MutableStateFlow<Map<String, TargetsOverlay>>(emptyMap())
 
     private var renameJob: Job? = null
+
+    /** One in-flight write per template-exercise row; a newer tap cancels and replaces it. */
+    private val targetWriteJobs = mutableMapOf<String, Job>()
 
     /** True once the day template has emitted non-null at least once (loading vs. gone). */
     private var hasLoadedDay = false
@@ -157,12 +160,19 @@ class DayEditorViewModel(
         repsMin: Int?,
         repsMax: Int?,
     ) {
-        val overlay = TargetsOverlay(sets, repsMin, repsMax)
-        targetsOverlay.update { it + (id to overlay) }
-        viewModelScope.launch {
-            planRepository.updateTemplateExerciseTargets(id, sets, repsMin, repsMax)
-            targetsOverlay.update { current -> if (current[id] == overlay) current - id else current }
-        }
+        targetsOverlay.update { it + (id to TargetsOverlay(sets, repsMin, repsMax)) }
+        // Serialize writes per row (the rename pattern with zero debounce): independent
+        // fire-and-forget writes could complete out of call order, persisting a stale value
+        // after its overlay entry was already cleared. Cancelling the previous write and
+        // always writing the CURRENT overlay value guarantees the last tap's value lands last
+        // while a write still starts immediately on every tap.
+        targetWriteJobs[id]?.cancel()
+        targetWriteJobs[id] =
+            viewModelScope.launch {
+                val pending = targetsOverlay.value[id] ?: return@launch
+                planRepository.updateTemplateExerciseTargets(id, pending.sets, pending.repsMin, pending.repsMax)
+                targetsOverlay.update { current -> if (current[id] == pending) current - id else current }
+            }
     }
 
     // ── Exercises ────────────────────────────────────────────────────────────
@@ -181,5 +191,6 @@ class DayEditorViewModel(
 
     private companion object {
         const val KEY_TEMPLATE_ID = "templateId"
+        const val DEFAULT_DEBOUNCE_MS = 400L
     }
 }

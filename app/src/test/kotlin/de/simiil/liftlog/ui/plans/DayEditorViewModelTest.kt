@@ -84,11 +84,17 @@ class DayEditorViewModelTest {
     fun `dayGone stays false while the template has not yet loaded`() =
         runTest {
             val planRepo = FakePlanRepository()
-            // Never created: observeDayTemplate emits null from the very first frame.
+            // Never created: observeDayTemplate emits null from the very first frame. A naive
+            // `dayGone = (day == null)` would emit a dayGone=true state here; the correct
+            // pre-load guard must keep the (only) observed state at loading, not gone.
             val vm = makeVm("missing-template-id", planRepo)
-            val state = vm.uiState.value
-            assertTrue("should read as still loading, not gone", state.loading)
-            assertFalse(state.dayGone)
+            vm.uiState.test {
+                val state = awaitItem()
+                assertTrue("should read as still loading, not gone", state.loading)
+                assertFalse(state.dayGone)
+                runCurrent() // flush the combine upstream; a dayGone state would surface here
+                expectNoEvents()
+            }
         }
 
     // ── Name overlay + debounce ──────────────────────────────────────────────
@@ -141,7 +147,8 @@ class DayEditorViewModelTest {
             val planRepo = FakePlanRepository()
             val plan = planRepo.createPlan("PPL")
             val day = planRepo.createDayTemplate(plan.id, "Old Name")
-            val vm = makeVm(day.id, planRepo)
+            val counting = InstrumentedPlanRepository(planRepo)
+            val vm = makeVm(day.id, counting)
             vm.uiState.test {
                 awaitItemUntil { !it.loading }
                 vm.setDayName("N")
@@ -152,6 +159,7 @@ class DayEditorViewModelTest {
                 advanceTimeBy(500)
                 runCurrent()
                 assertEquals("New", planRepo.dayTemplates[day.id]!!.name)
+                assertEquals("intermediate values must never be written", 1, counting.renameCount)
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -162,13 +170,18 @@ class DayEditorViewModelTest {
             val planRepo = FakePlanRepository()
             val plan = planRepo.createPlan("PPL")
             val day = planRepo.createDayTemplate(plan.id, "Old Name")
-            val vm = makeVm(day.id, planRepo)
+            val counting = InstrumentedPlanRepository(planRepo)
+            val vm = makeVm(day.id, counting)
             vm.uiState.test {
                 awaitItemUntil { !it.loading }
                 vm.setDayName("New Name")
                 vm.flushPendingEdits()
                 runCurrent() // NO time advance — flush must write without waiting for the debounce
                 assertEquals("New Name", planRepo.dayTemplates[day.id]!!.name)
+                // The debounce timer was cancelled, not left running: no second write later.
+                advanceTimeBy(500)
+                runCurrent()
+                assertEquals("flush must also cancel the timer", 1, counting.renameCount)
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -179,11 +192,13 @@ class DayEditorViewModelTest {
             val planRepo = FakePlanRepository()
             val plan = planRepo.createPlan("PPL")
             val day = planRepo.createDayTemplate(plan.id, "Old Name")
-            val vm = makeVm(day.id, planRepo)
+            val counting = InstrumentedPlanRepository(planRepo)
+            val vm = makeVm(day.id, counting)
             vm.uiState.test {
                 awaitItemUntil { !it.loading }
                 vm.flushPendingEdits()
                 runCurrent()
+                assertEquals("no repository write may happen", 0, counting.renameCount)
                 assertEquals("Old Name", planRepo.dayTemplates[day.id]!!.name)
                 cancelAndIgnoreRemainingEvents()
             }
@@ -200,9 +215,9 @@ class DayEditorViewModelTest {
             val plan = fake.createPlan("PPL")
             val day = fake.createDayTemplate(plan.id, "Day")
             val te = fake.addExerciseToTemplate(day.id, "ex1")
-            // A write that takes 50ms to land, so the taps below race ahead of any round trip;
+            // Writes that take 50ms to land, so the taps below race ahead of any round trip;
             // only a synchronous overlay (not a wait for the DB echo) can keep the UI at 3.
-            val slowRepo = DelayedTargetsRepository(fake, delayMs = 50)
+            val slowRepo = InstrumentedPlanRepository(fake, ArrayDeque(listOf(50L, 50L, 50L)))
             val vm = makeVm(day.id, slowRepo, exerciseRepo)
             vm.uiState.test {
                 awaitItemUntil { it.exercises.isNotEmpty() }
@@ -221,6 +236,43 @@ class DayEditorViewModelTest {
                 advanceTimeBy(200)
                 runCurrent()
                 assertEquals(3, fake.templateExercises[te.id]!!.targetSets)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `rapid setTargets taps serialize to one write with the final value`() =
+        runTest {
+            val exerciseRepo = FakeExerciseRepository()
+            exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
+            val fake = FakePlanRepository()
+            val plan = fake.createPlan("PPL")
+            val day = fake.createDayTemplate(plan.id, "Day")
+            val te = fake.addExerciseToTemplate(day.id, "ex1")
+            // DECREASING delays: fire-and-forget writes would complete in reverse call order
+            // (tap 3 lands first and clears the overlay, then taps 2 and 1 overwrite the row
+            // backwards with nothing left to correct it). Serialized writes must instead cancel
+            // the in-flight older write on each tap, so exactly one write — the final value —
+            // ever reaches the repository.
+            val slowRepo = InstrumentedPlanRepository(fake, ArrayDeque(listOf(300L, 200L, 100L)))
+            val vm = makeVm(day.id, slowRepo, exerciseRepo)
+            vm.uiState.test {
+                awaitItemUntil { it.exercises.isNotEmpty() }
+                vm.setTargets(te.id, sets = 1, repsMin = null, repsMax = null)
+                vm.setTargets(te.id, sets = 2, repsMin = null, repsMax = null)
+                vm.setTargets(te.id, sets = 3, repsMin = null, repsMax = null)
+
+                advanceTimeBy(400)
+                runCurrent()
+                assertEquals("the last tap's value must land last", 3, fake.templateExercises[te.id]!!.targetSets)
+                assertEquals("older in-flight writes must be cancelled, not raced", 1, slowRepo.targetWriteCount)
+                // Overlay cleared by the confirmed write: the UI now reads straight from the DB.
+                assertEquals(
+                    3,
+                    vm.uiState.value.exercises
+                        .single()
+                        .targetSets,
+                )
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -329,22 +381,41 @@ class DayEditorViewModelTest {
 }
 
 /**
- * Delegates every [PlanRepository] call to [delegate] unchanged, except
- * [updateTemplateExerciseTargets], which is delayed by [delayMs] of virtual time to simulate a
- * real (non-instant) round trip — used to prove the pending-edit overlay is synchronous rather
- * than relying on the write completing before the UI reads the next value.
+ * Delegates every [PlanRepository] call to [delegate] unchanged, but counts the rename/target
+ * writes that actually reach it and delays each target write by the next entry in
+ * [targetWriteDelaysMs] (virtual time) to simulate real, non-instant round trips — with
+ * decreasing delays they complete out of call order. Used to prove the pending-edit overlay is
+ * synchronous and target writes are serialized per row, rather than relying on the fake's
+ * always-instant, always-in-order writes to mask a missing overlay or a write-ordering race.
  */
-private class DelayedTargetsRepository(
+private class InstrumentedPlanRepository(
     private val delegate: PlanRepository,
-    private val delayMs: Long,
+    private val targetWriteDelaysMs: ArrayDeque<Long> = ArrayDeque(),
 ) : PlanRepository by delegate {
+    /** Target writes that reached [delegate]; a write cancelled mid-delay never counts. */
+    var targetWriteCount = 0
+        private set
+
+    /** Rename writes that reached [delegate]. */
+    var renameCount = 0
+        private set
+
+    override suspend fun renameDayTemplate(
+        id: String,
+        name: String,
+    ) {
+        renameCount++
+        delegate.renameDayTemplate(id, name)
+    }
+
     override suspend fun updateTemplateExerciseTargets(
         id: String,
         targetSets: Int?,
         targetRepsMin: Int?,
         targetRepsMax: Int?,
     ) {
-        delay(delayMs)
+        targetWriteDelaysMs.removeFirstOrNull()?.let { delay(it) }
+        targetWriteCount++
         delegate.updateTemplateExerciseTargets(id, targetSets, targetRepsMin, targetRepsMax)
     }
 }
