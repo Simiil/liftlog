@@ -470,6 +470,57 @@ class FakePlanRepository : PlanRepository {
         notifyTemplateExercises()
     }
 
+    override suspend fun reorderDayTemplates(orderedTemplateIds: List<String>) {
+        val now = nowInstant()
+        orderedTemplateIds.forEachIndexed { index, id ->
+            _dayTemplates[id]?.let {
+                _dayTemplates[id] = it.copy(position = index, updatedAt = now)
+            }
+        }
+        notifyDayTemplates()
+    }
+
+    override suspend fun addExercisesToTemplate(
+        templateId: String,
+        exerciseIds: List<String>,
+    ) {
+        val now = nowInstant()
+        val liveExerciseIds =
+            _templateExercises.values
+                .filter { it.templateId == templateId && it.deletedAt == null }
+                .map { it.exerciseId }
+                .toSet()
+        var nextPosition =
+            (
+                _templateExercises.values
+                    .filter { it.templateId == templateId && it.deletedAt == null }
+                    .maxOfOrNull { it.position } ?: -1
+            ) + 1
+        val seen = mutableSetOf<String>()
+        exerciseIds.forEach { exerciseId ->
+            if (exerciseId in liveExerciseIds || !seen.add(exerciseId)) return@forEach
+            val te =
+                TemplateExercise(
+                    id = UUID.randomUUID().toString(),
+                    templateId = templateId,
+                    exerciseId = exerciseId,
+                    position = nextPosition,
+                    targetSets = null,
+                    targetRepsMin = null,
+                    targetRepsMax = null,
+                    createdAt = now,
+                    updatedAt = now,
+                    deletedAt = null,
+                )
+            _templateExercises[te.id] = te
+            nextPosition++
+        }
+        notifyTemplateExercises()
+    }
+
+    override fun observeDayTemplate(id: String): Flow<PlanDayTemplate?> =
+        dayTemplatesFlow.map { map -> map[id]?.takeIf { it.deletedAt == null } }
+
     // ── plan-tab selection (Task 30/PR1) ────────────────────────────────────
 
     private val selectedPlanIdFlow = MutableStateFlow<String?>(null)

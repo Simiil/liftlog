@@ -63,6 +63,9 @@ interface PlanDao {
     @Query("SELECT * FROM plan_day_templates WHERE planId = :planId AND deletedAt IS NULL ORDER BY position")
     fun observeDayTemplatesForPlan(planId: String): Flow<List<PlanDayTemplateEntity>>
 
+    @Query("SELECT * FROM plan_day_templates WHERE id = :id AND deletedAt IS NULL")
+    fun observeDayTemplate(id: String): Flow<PlanDayTemplateEntity?>
+
     @Query("SELECT * FROM template_exercises WHERE templateId = :templateId AND deletedAt IS NULL ORDER BY position")
     fun observeTemplateExercisesFor(templateId: String): Flow<List<TemplateExerciseEntity>>
 
@@ -92,6 +95,13 @@ interface PlanDao {
 
     // ── updates ────────────────────────────────────────────────────────
     @Update suspend fun updateDayTemplate(template: PlanDayTemplateEntity)
+
+    @Query("UPDATE plan_day_templates SET position = :position, updatedAt = :now WHERE id = :id")
+    suspend fun updateDayTemplatePosition(
+        id: String,
+        position: Int,
+        now: Long,
+    )
 
     @Update suspend fun updateTemplateExercise(templateExercise: TemplateExerciseEntity)
 

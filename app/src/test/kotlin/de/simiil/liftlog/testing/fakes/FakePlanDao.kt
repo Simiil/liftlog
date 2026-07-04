@@ -121,6 +121,9 @@ class FakePlanDao : PlanDao {
             map.values.filter { it.planId == planId && it.deletedAt == null }.sortedBy { it.position }
         }
 
+    override fun observeDayTemplate(id: String): Flow<PlanDayTemplateEntity?> =
+        dayTemplatesFlow.map { map -> map[id]?.takeIf { it.deletedAt == null } }
+
     override fun observeTemplateExercisesFor(templateId: String): Flow<List<TemplateExerciseEntity>> =
         templateExercisesFlow.map { map ->
             map.values.filter { it.templateId == templateId && it.deletedAt == null }.sortedBy { it.position }
@@ -154,6 +157,17 @@ class FakePlanDao : PlanDao {
 
     override suspend fun updateDayTemplate(template: PlanDayTemplateEntity) {
         dayTemplates[template.id] = template
+        notifyDayTemplates()
+    }
+
+    override suspend fun updateDayTemplatePosition(
+        id: String,
+        position: Int,
+        now: Long,
+    ) {
+        dayTemplates[id]?.let {
+            dayTemplates[id] = it.copy(position = position, updatedAt = now)
+        }
         notifyDayTemplates()
     }
 

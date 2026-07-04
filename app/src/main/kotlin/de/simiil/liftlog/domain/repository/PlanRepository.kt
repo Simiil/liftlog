@@ -110,4 +110,22 @@ interface PlanRepository {
 
     /** Persists a new order: position = index of each id in [orderedTemplateExerciseIds]. Atomic. */
     suspend fun reorderTemplateExercises(orderedTemplateExerciseIds: List<String>)
+
+    /** Persists a new order: position = index of each id in [orderedTemplateIds]. Atomic. */
+    suspend fun reorderDayTemplates(orderedTemplateIds: List<String>)
+
+    /**
+     * Adds each exercise in [exerciseIds] to [templateId]'s day, appended after the current max
+     * position in input order. One transaction: dedupes against the day's live (non-deleted)
+     * template-exercise rows and against duplicates within [exerciseIds] itself, so the check and
+     * the insert are race-free. New rows get null targets, a fresh UUID, and the current clock
+     * time.
+     */
+    suspend fun addExercisesToTemplate(
+        templateId: String,
+        exerciseIds: List<String>,
+    )
+
+    /** Emits [id]'s day template, or null once it's tombstoned (or never existed). */
+    fun observeDayTemplate(id: String): Flow<PlanDayTemplate?>
 }

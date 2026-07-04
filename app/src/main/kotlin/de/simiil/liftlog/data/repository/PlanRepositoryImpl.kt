@@ -342,6 +342,47 @@ class PlanRepositoryImpl
             }
         }
 
+        override suspend fun reorderDayTemplates(orderedTemplateIds: List<String>) {
+            val now = clock.millis()
+            transactor.immediate {
+                orderedTemplateIds.forEachIndexed { index, id ->
+                    dao.updateDayTemplatePosition(id, index, now)
+                }
+            }
+        }
+
+        override suspend fun addExercisesToTemplate(
+            templateId: String,
+            exerciseIds: List<String>,
+        ) {
+            transactor.immediate {
+                val now = clock.millis()
+                val liveExerciseIds = dao.templateExercisesFor(templateId).map { it.exerciseId }.toSet()
+                var nextPosition = (dao.maxTemplateExercisePosition(templateId) ?: -1) + 1
+                val seen = mutableSetOf<String>()
+                exerciseIds.forEach { exerciseId ->
+                    if (exerciseId in liveExerciseIds || !seen.add(exerciseId)) return@forEach
+                    dao.insertTemplateExercise(
+                        TemplateExerciseEntity(
+                            id = UUID.randomUUID().toString(),
+                            templateId = templateId,
+                            exerciseId = exerciseId,
+                            position = nextPosition,
+                            targetSets = null,
+                            targetRepsMin = null,
+                            targetRepsMax = null,
+                            createdAt = now,
+                            updatedAt = now,
+                            deletedAt = null,
+                        ),
+                    )
+                    nextPosition++
+                }
+            }
+        }
+
+        override fun observeDayTemplate(id: String): Flow<PlanDayTemplate?> = dao.observeDayTemplate(id).map { it?.toDomain() }
+
         override suspend fun selectPlan(id: String) {
             dataStore.edit { it[KEY_SELECTED_PLAN_ID] = id }
         }
