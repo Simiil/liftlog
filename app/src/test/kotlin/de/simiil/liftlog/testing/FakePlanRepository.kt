@@ -483,7 +483,11 @@ class FakePlanRepository : PlanRepository {
 
     override fun observeSelectedOrFallbackPlanId(): Flow<String?> =
         combine(selectedPlanIdFlow, plansFlow, observeMostUsedOrFirstPlanId()) { selected, planMap, fallbackId ->
-            val liveIds = planMap.values.filter { it.deletedAt == null }.map { it.id }.toSet()
+            val liveIds =
+                planMap.values
+                    .filter { it.deletedAt == null }
+                    .map { it.id }
+                    .toSet()
             if (selected != null && selected in liveIds) selected else fallbackId
         }.distinctUntilChanged()
 }

@@ -337,8 +337,18 @@ class PlanRepositoryTest {
             repo.ensureDefaultPlan("Default")
 
             assertEquals(1, dao.plans.size)
-            assertEquals(existing.id, dao.plans.values.first().id)
-            assertEquals("Existing", dao.plans.values.first().name)
+            assertEquals(
+                existing.id,
+                dao.plans.values
+                    .first()
+                    .id,
+            )
+            assertEquals(
+                "Existing",
+                dao.plans.values
+                    .first()
+                    .name,
+            )
         }
 
     @Test

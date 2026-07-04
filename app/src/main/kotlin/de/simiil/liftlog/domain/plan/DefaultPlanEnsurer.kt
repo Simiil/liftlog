@@ -19,6 +19,5 @@ class DefaultPlanEnsurer
     ) {
         suspend fun ensure() = planRepository.ensureDefaultPlan(nameProvider.defaultPlanName())
 
-        suspend fun deletePlan(planId: String) =
-            planRepository.softDeletePlanAndEnsureDefault(planId, nameProvider.defaultPlanName())
+        suspend fun deletePlan(planId: String) = planRepository.softDeletePlanAndEnsureDefault(planId, nameProvider.defaultPlanName())
     }

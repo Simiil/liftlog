@@ -16,7 +16,12 @@ class DefaultPlanEnsurerTest {
             ensurer.ensure()
 
             assertEquals(1, repo.plans.size)
-            assertEquals("Default", repo.plans.values.first().name)
+            assertEquals(
+                "Default",
+                repo.plans.values
+                    .first()
+                    .name,
+            )
         }
 
     @Test

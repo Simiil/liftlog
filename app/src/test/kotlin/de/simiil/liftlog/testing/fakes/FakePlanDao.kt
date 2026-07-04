@@ -212,6 +212,10 @@ class FakePlanDao : PlanDao {
 
     override fun observeFirstPlanId(): Flow<List<String>> =
         plansFlow.map { map ->
-            map.values.filter { it.deletedAt == null }.minByOrNull { it.position }?.id?.let { listOf(it) } ?: emptyList()
+            map.values
+                .filter { it.deletedAt == null }
+                .minByOrNull { it.position }
+                ?.id
+                ?.let { listOf(it) } ?: emptyList()
         }
 }
