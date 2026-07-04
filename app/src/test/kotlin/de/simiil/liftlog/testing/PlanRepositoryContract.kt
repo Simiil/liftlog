@@ -330,4 +330,78 @@ abstract class PlanRepositoryContract {
             repo.softDeletePlan(planA.id)
             assertEquals(planB.id, repo.observeSelectedOrFallbackPlanId().first())
         }
+
+    // ── day reorder / multi-add / single-day observe (issue #30 PR2) ────────
+
+    @Test
+    fun `reorderDayTemplates reorders observeDayTemplates to match the given id order`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val dayA = repo.createDayTemplate(plan.id, "Day A")
+            val dayB = repo.createDayTemplate(plan.id, "Day B")
+            val dayC = repo.createDayTemplate(plan.id, "Day C")
+
+            repo.reorderDayTemplates(listOf(dayC.id, dayA.id, dayB.id))
+
+            val observed = repo.observeDayTemplates(plan.id).first()
+            assertEquals(listOf(dayC.id, dayA.id, dayB.id), observed.map { it.id })
+        }
+
+    @Test
+    fun `addExercisesToTemplate appends in input order after existing rows`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val day = repo.createDayTemplate(plan.id, "Day")
+            val existing = repo.addExerciseToTemplate(day.id, "ex-existing")
+
+            repo.addExercisesToTemplate(day.id, listOf("ex-b", "ex-a", "ex-c"))
+
+            val observed = repo.observeTemplateExercises(day.id).first()
+            assertEquals(existing.id, observed.first().id)
+            assertEquals(listOf("ex-existing", "ex-b", "ex-a", "ex-c"), observed.map { it.exerciseId })
+        }
+
+    @Test
+    fun `addExercisesToTemplate dedupes against live rows and within the input`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val day = repo.createDayTemplate(plan.id, "Day")
+            repo.addExerciseToTemplate(day.id, "ex-a") // already live
+
+            repo.addExercisesToTemplate(day.id, listOf("ex-a", "ex-b", "ex-b"))
+
+            val observed = repo.observeTemplateExercises(day.id).first()
+            assertEquals(2, observed.size)
+            assertEquals(1, observed.count { it.exerciseId == "ex-a" })
+            assertEquals(1, observed.count { it.exerciseId == "ex-b" })
+        }
+
+    @Test
+    fun `addExercisesToTemplate re-adds an exercise whose earlier row was soft-deleted, as a fresh row`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val day = repo.createDayTemplate(plan.id, "Day")
+            val firstRow = repo.addExerciseToTemplate(day.id, "ex-a")
+            repo.removeTemplateExercise(firstRow.id)
+
+            repo.addExercisesToTemplate(day.id, listOf("ex-a"))
+
+            val observed = repo.observeTemplateExercises(day.id).first()
+            assertEquals(1, observed.size)
+            assertEquals("ex-a", observed.first().exerciseId)
+            assertNotEquals(firstRow.id, observed.first().id)
+        }
+
+    @Test
+    fun `observeDayTemplate emits the day, then null after softDeleteDayTemplate`() =
+        runTest {
+            val plan = repo.createPlan("Plan")
+            val day = repo.createDayTemplate(plan.id, "Day")
+
+            assertEquals(day.id, repo.observeDayTemplate(day.id).first()?.id)
+
+            repo.softDeleteDayTemplate(day.id)
+
+            assertNull(repo.observeDayTemplate(day.id).first())
+        }
 }

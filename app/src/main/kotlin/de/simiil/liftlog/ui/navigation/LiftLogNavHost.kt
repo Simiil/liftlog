@@ -13,8 +13,8 @@ import de.simiil.liftlog.ui.analytics.ExerciseDetailScreen
 import de.simiil.liftlog.ui.exercises.ExercisePickerScreen
 import de.simiil.liftlog.ui.history.HistoryScreen
 import de.simiil.liftlog.ui.home.HomeScreen
-import de.simiil.liftlog.ui.plans.PlanEditorScreen
-import de.simiil.liftlog.ui.plans.PlansScreen
+import de.simiil.liftlog.ui.plans.DayEditorScreen
+import de.simiil.liftlog.ui.plans.PlanScreen
 import de.simiil.liftlog.ui.session.ActiveSessionScreen
 import de.simiil.liftlog.ui.session.SessionDetailScreen
 import de.simiil.liftlog.ui.settings.SettingsScreen
@@ -34,10 +34,9 @@ fun LiftLogNavHost(
                 onOpenSessionDetail = { id -> navController.navigate(SessionDetailRoute(id)) },
             )
         }
-        composable<PlansRoute> {
-            PlansScreen(
-                onEditPlan = { id -> navController.navigate(PlanEditorRoute(id)) },
-                onNewPlan = { navController.navigate(PlanEditorRoute(null)) },
+        composable<PlanRoute> {
+            PlanScreen(
+                onOpenDay = { id, isNew -> navController.navigate(DayEditorRoute(id, isNew)) },
                 onOpenSession = { id -> navController.navigate(ActiveSessionRoute(id)) },
             )
         }
@@ -66,14 +65,15 @@ fun LiftLogNavHost(
                 onPickedExerciseConsumed = { entry.savedStateHandle[PICKED_EXERCISE_ID] = null },
             )
         }
-        composable<PlanEditorRoute> { entry ->
+        composable<DayEditorRoute> { entry ->
+            val route = entry.toRoute<DayEditorRoute>()
             val pickedIds by entry.savedStateHandle
                 .getStateFlow<List<String>?>(PICKED_EXERCISE_IDS, null)
                 .collectAsStateWithLifecycle()
-            PlanEditorScreen(
+            DayEditorScreen(
+                isNew = route.isNew,
                 onClose = { navController.popBackStack() },
-                onSaved = { navController.popBackStack() },
-                onAddExercises = { navController.navigate(ExercisePickerRoute(multiSelect = true)) },
+                onAddExercise = { navController.navigate(ExercisePickerRoute(multiSelect = true)) },
                 pickedExerciseIds = pickedIds,
                 onPickedConsumed = { entry.savedStateHandle[PICKED_EXERCISE_IDS] = null },
             )

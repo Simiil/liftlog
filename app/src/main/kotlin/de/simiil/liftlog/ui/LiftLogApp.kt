@@ -30,7 +30,7 @@ import de.simiil.liftlog.ui.navigation.AnalyticsRoute
 import de.simiil.liftlog.ui.navigation.HistoryRoute
 import de.simiil.liftlog.ui.navigation.HomeRoute
 import de.simiil.liftlog.ui.navigation.LiftLogNavHost
-import de.simiil.liftlog.ui.navigation.PlansRoute
+import de.simiil.liftlog.ui.navigation.PlanRoute
 
 private data class TopLevelDestination(
     val route: Any,
@@ -38,11 +38,11 @@ private data class TopLevelDestination(
     @param:StringRes val labelRes: Int,
 )
 
-// 03-ux-spec §2: Home · Plans · Analytics · History
+// 03-ux-spec §2: Home · Plan · Analytics · History
 private val topLevelDestinations =
     listOf(
         TopLevelDestination(HomeRoute, Icons.Outlined.Home, R.string.tab_home),
-        TopLevelDestination(PlansRoute, Icons.Outlined.FitnessCenter, R.string.tab_plans),
+        TopLevelDestination(PlanRoute, Icons.Outlined.FitnessCenter, R.string.tab_plans),
         TopLevelDestination(AnalyticsRoute, Icons.Outlined.Insights, R.string.tab_analytics),
         TopLevelDestination(HistoryRoute, Icons.Outlined.History, R.string.tab_history),
     )

@@ -7,7 +7,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -17,13 +16,14 @@ import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
-import de.simiil.liftlog.ui.UiTestTags.PLANS_CREATE
 import de.simiil.liftlog.ui.UiTestTags.PLAN_DELETE_CONFIRM
-import de.simiil.liftlog.ui.UiTestTags.PLAN_EDITOR_DELETE
-import de.simiil.liftlog.ui.UiTestTags.PLAN_ROW
+import de.simiil.liftlog.ui.UiTestTags.PLAN_MENU_DELETE
+import de.simiil.liftlog.ui.UiTestTags.PLAN_OVERFLOW
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -31,21 +31,22 @@ import org.junit.runner.RunWith
 import javax.inject.Inject
 
 /**
- * Instrumented path test for the plan delete flow (plan editor, PLAN mode).
+ * Instrumented path test for the plan delete flow (single-plan Plan tab, issue #30 PR3b).
  *
  * Flow:
- * 1. Switch to the Plans tab via the bottom nav.
- * 2. Tap the seeded plan row → plan editor (existing plan → delete button present).
- * 3. Scroll to the red "Delete plan" button (last LazyColumn item) → tap.
- * 4. Confirm the AlertDialog → soft-deletes the plan and pops back to the Plans list.
- * 5. Assert: Plans list shows again (PLANS_CREATE), no PLAN_ROW remains, and
- *    Room-level observePlans() is empty (soft-delete tombstone).
+ * 1. Switch to the Plan tab via the bottom nav.
+ * 2. Open the top-bar overflow ("⋮") → "Delete plan".
+ * 3. Confirm the AlertDialog → atomically tombstones the plan and reseeds a fresh default
+ *    (the tab never observes zero plans, see [de.simiil.liftlog.domain.plan.DefaultPlanEnsurer]).
+ * 4. Assert: the tab's title becomes the localized default-plan name, and the repository holds
+ *    exactly one live plan whose id differs from the deleted one.
  *
  * ### Harness
  * Same as [TemplateStartPathTest]: [createAndroidComposeRule] launches MainActivity sharing
  * the test's Hilt singleton DB; seeding happens via the injected repos (the built-in seeder
  * does NOT run under HiltTestApplication, so the exercise is made via
- * [ExerciseRepository.createCustom]).
+ * [ExerciseRepository.createCustom]). Only one plan is seeded — it's the fallback selection
+ * the Plan tab shows automatically (no explicit `selectPlan` needed).
  */
 @RunWith(AndroidJUnit4::class)
 @HiltAndroidTest
@@ -76,31 +77,28 @@ class PlanDeletePathTest {
         }
 
     @Test
-    fun planDelete_editorToConfirm_tombstonesAndPopsToPlansList() {
-        // 1. Switch to the Plans tab (bottom-nav item addressed by its localized label).
-        val plansLabel = composeRule.activity.getString(R.string.tab_plans)
-        await(hasText(plansLabel), atLeast = 1, timeoutMillis = 10_000)
-        composeRule.onNodeWithText(plansLabel).performClick()
+    fun planDelete_overflowToConfirm_reseedsDefaultAndTombstonesOld() {
+        // 1. Switch to the Plan tab (bottom-nav item addressed by its localized label).
+        val planLabel = composeRule.activity.getString(R.string.tab_plans)
+        await(hasText(planLabel), atLeast = 1, timeoutMillis = 10_000)
+        composeRule.onNodeWithText(planLabel).performClick()
 
-        // 2. The seeded plan's row appears once the plans Flow emits → open the editor.
-        awaitTag(PLAN_ROW, timeoutMillis = 10_000)
-        composeRule.onNodeWithTag(PLAN_ROW).performClick()
+        // 2. Top-bar overflow → "Delete plan".
+        awaitTag(PLAN_OVERFLOW, timeoutMillis = 10_000)
+        composeRule.onNodeWithTag(PLAN_OVERFLOW).performClick()
+        awaitTag(PLAN_MENU_DELETE)
+        composeRule.onNodeWithTag(PLAN_MENU_DELETE).performClick()
 
-        // 3. "Delete plan" is the LAST LazyColumn item — scroll it into view, then tap.
-        // Assumes the delete row is composed because the single-day seed fits the viewport; performScrollTo guards partial visibility.
-        awaitTag(PLAN_EDITOR_DELETE, timeoutMillis = 10_000)
-        composeRule.onNodeWithTag(PLAN_EDITOR_DELETE).performScrollTo().performClick()
-
-        // 4. Confirm dialog → Delete.
+        // 3. Confirm dialog → Delete.
         awaitTag(PLAN_DELETE_CONFIRM)
         composeRule.onNodeWithTag(PLAN_DELETE_CONFIRM).performClick()
 
-        // 5a. Back on the Plans list: create action visible, the deleted plan's row gone.
-        awaitTag(PLANS_CREATE, timeoutMillis = 10_000)
-        awaitGone(PLAN_ROW)
+        // 4a. The tab's title becomes the localized default-plan name.
+        val defaultPlanName = composeRule.activity.getString(R.string.default_plan_name)
+        await(hasText(defaultPlanName), atLeast = 1, timeoutMillis = 10_000)
 
-        // 5b. Room-level tombstone: no live plans remain.
-        awaitNoPlans()
+        // 4b. Room-level: exactly one live plan, with a different id than the deleted one.
+        awaitSingleLivePlanDifferentFrom(planId)
     }
 
     // ── Wait helpers ─────────────────────────────────────────────────────────────
@@ -135,41 +133,30 @@ class PlanDeletePathTest {
         )
     }
 
-    /** Same loop as [await], but waits until ZERO nodes match [tag]. */
-    private fun awaitGone(
-        tag: String,
-        timeoutMillis: Long = 5_000,
-    ) {
-        val matcher = hasTestTag(tag)
-        val deadline = System.currentTimeMillis() + timeoutMillis
-        while (System.currentTimeMillis() < deadline) {
-            composeRule.waitForIdle()
-            if (nodeCount(matcher) == 0) return
-            Thread.sleep(50)
-        }
-        throw AssertionError(
-            "Timed out after ${timeoutMillis}ms waiting for 0 nodes matching " +
-                "${matcher.description}; found ${nodeCount(matcher)}",
-        )
-    }
-
     /**
-     * Polls [PlanRepository.observePlans] every 100 ms until it emits an empty list
-     * (soft-delete tombstone), or throws [AssertionError] after [timeoutMillis] ms.
+     * Polls [PlanRepository.observePlans] every 100 ms until it emits exactly one live plan whose
+     * id differs from [oldPlanId] (the atomic delete+reseed landed), or throws after [timeoutMillis].
      *
      * Uses [delay] (not Thread.sleep) because it runs inside [runBlocking].
      */
-    private fun awaitNoPlans(timeoutMillis: Long = 10_000) =
-        runBlocking {
-            val deadline = System.currentTimeMillis() + timeoutMillis
-            while (System.currentTimeMillis() < deadline) {
-                if (planRepository.observePlans().first().isEmpty()) return@runBlocking
-                delay(100)
+    private fun awaitSingleLivePlanDifferentFrom(
+        oldPlanId: String,
+        timeoutMillis: Long = 10_000,
+    ) = runBlocking {
+        val deadline = System.currentTimeMillis() + timeoutMillis
+        while (System.currentTimeMillis() < deadline) {
+            val live = planRepository.observePlans().first()
+            if (live.size == 1 && live.first().id != oldPlanId) {
+                assertEquals(1, live.size)
+                assertNotEquals(oldPlanId, live.first().id)
+                return@runBlocking
             }
-            val last = planRepository.observePlans().first()
-            throw AssertionError(
-                "Timed out after ${timeoutMillis}ms waiting for observePlans() to be empty; " +
-                    "last seen ${last.size} plan(s)",
-            )
+            delay(100)
         }
+        val last = planRepository.observePlans().first()
+        throw AssertionError(
+            "Timed out after ${timeoutMillis}ms waiting for exactly one live plan different from " +
+                "$oldPlanId; last seen ${last.map { it.id }}",
+        )
+    }
 }

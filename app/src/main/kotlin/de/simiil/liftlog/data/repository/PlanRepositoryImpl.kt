@@ -11,7 +11,6 @@ import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
 import de.simiil.liftlog.data.mapper.toDomain
 import de.simiil.liftlog.domain.model.PlanDayTemplate
-import de.simiil.liftlog.domain.model.PlanDraft
 import de.simiil.liftlog.domain.model.TemplateExercise
 import de.simiil.liftlog.domain.model.WorkoutPlan
 import de.simiil.liftlog.domain.repository.DaySummary
@@ -74,112 +73,6 @@ class PlanRepositoryImpl
                             },
                     )
                 }
-            }
-
-        override suspend fun savePlanDraft(draft: PlanDraft): String =
-            transactor.immediate {
-                val now = clock.millis()
-
-                // 1. Plan: insert new, or rename existing if the name changed.
-                val planId =
-                    if (draft.planId == null) {
-                        val plan =
-                            WorkoutPlanEntity(
-                                id = UUID.randomUUID().toString(),
-                                name = draft.name.trim(),
-                                position = (dao.maxPlanPosition() ?: -1) + 1,
-                                createdAt = now,
-                                updatedAt = now,
-                                deletedAt = null,
-                            )
-                        dao.insertPlan(plan)
-                        plan.id
-                    } else {
-                        val existing = dao.findPlan(draft.planId)
-                        if (existing != null && existing.name != draft.name.trim()) {
-                            dao.updatePlan(existing.copy(name = draft.name.trim(), updatedAt = now))
-                        }
-                        draft.planId
-                    }
-
-                // 2. Days: reconcile against the live day templates of this plan.
-                val existingDays = dao.dayTemplatesForPlan(planId).associateBy { it.id }
-                val keptDayIds = mutableSetOf<String>()
-                draft.days.forEachIndexed { index, dayDraft ->
-                    val templateId =
-                        if (dayDraft.templateId == null) {
-                            val day =
-                                PlanDayTemplateEntity(
-                                    id = UUID.randomUUID().toString(),
-                                    planId = planId,
-                                    name = dayDraft.name.trim(),
-                                    position = index,
-                                    createdAt = now,
-                                    updatedAt = now,
-                                    deletedAt = null,
-                                )
-                            dao.insertDayTemplate(day)
-                            day.id
-                        } else {
-                            existingDays[dayDraft.templateId]?.let { existing ->
-                                dao.updateDayTemplate(
-                                    existing.copy(name = dayDraft.name.trim(), position = index, updatedAt = now),
-                                )
-                            }
-                            dayDraft.templateId
-                        }
-                    keptDayIds += templateId
-
-                    // Exercises for that day: insert new, update existing (position + targets).
-                    val existingTe = dao.templateExercisesFor(templateId).associateBy { it.id }
-                    val keptTeIds = mutableSetOf<String>()
-                    dayDraft.items.forEachIndexed { pos, item ->
-                        if (item.templateExerciseId == null) {
-                            val te =
-                                TemplateExerciseEntity(
-                                    id = UUID.randomUUID().toString(),
-                                    templateId = templateId,
-                                    exerciseId = item.exerciseId,
-                                    position = pos,
-                                    targetSets = item.targetSets,
-                                    targetRepsMin = item.targetRepsMin,
-                                    targetRepsMax = item.targetRepsMax,
-                                    createdAt = now,
-                                    updatedAt = now,
-                                    deletedAt = null,
-                                )
-                            dao.insertTemplateExercise(te)
-                            keptTeIds += te.id
-                        } else {
-                            existingTe[item.templateExerciseId]?.let { existing ->
-                                dao.updateTemplateExercise(
-                                    existing.copy(
-                                        position = pos,
-                                        targetSets = item.targetSets,
-                                        targetRepsMin = item.targetRepsMin,
-                                        targetRepsMax = item.targetRepsMax,
-                                        updatedAt = now,
-                                    ),
-                                )
-                            }
-                            keptTeIds += item.templateExerciseId
-                        }
-                    }
-                    // Soft-delete template-exercises removed from this day.
-                    existingTe.keys.forEach { id ->
-                        if (id !in keptTeIds) dao.softDeleteTemplateExercise(id, now)
-                    }
-                }
-
-                // 3. Removed days: soft-delete (cascading to their template-exercises first).
-                existingDays.keys.forEach { id ->
-                    if (id !in keptDayIds) {
-                        dao.softDeleteTemplateExercisesForTemplate(id, now)
-                        dao.softDeleteDayTemplate(id, now)
-                    }
-                }
-
-                planId
             }
 
         override suspend fun createPlan(name: String): WorkoutPlan {
@@ -341,6 +234,47 @@ class PlanRepositoryImpl
                 }
             }
         }
+
+        override suspend fun reorderDayTemplates(orderedTemplateIds: List<String>) {
+            val now = clock.millis()
+            transactor.immediate {
+                orderedTemplateIds.forEachIndexed { index, id ->
+                    dao.updateDayTemplatePosition(id, index, now)
+                }
+            }
+        }
+
+        override suspend fun addExercisesToTemplate(
+            templateId: String,
+            exerciseIds: List<String>,
+        ) {
+            transactor.immediate {
+                val now = clock.millis()
+                val liveExerciseIds = dao.templateExercisesFor(templateId).map { it.exerciseId }.toSet()
+                var nextPosition = (dao.maxTemplateExercisePosition(templateId) ?: -1) + 1
+                val seen = mutableSetOf<String>()
+                exerciseIds.forEach { exerciseId ->
+                    if (exerciseId in liveExerciseIds || !seen.add(exerciseId)) return@forEach
+                    dao.insertTemplateExercise(
+                        TemplateExerciseEntity(
+                            id = UUID.randomUUID().toString(),
+                            templateId = templateId,
+                            exerciseId = exerciseId,
+                            position = nextPosition,
+                            targetSets = null,
+                            targetRepsMin = null,
+                            targetRepsMax = null,
+                            createdAt = now,
+                            updatedAt = now,
+                            deletedAt = null,
+                        ),
+                    )
+                    nextPosition++
+                }
+            }
+        }
+
+        override fun observeDayTemplate(id: String): Flow<PlanDayTemplate?> = dao.observeDayTemplate(id).map { it?.toDomain() }
 
         override suspend fun selectPlan(id: String) {
             dataStore.edit { it[KEY_SELECTED_PLAN_ID] = id }

@@ -441,6 +441,50 @@ class PlanDaoTest {
         }
 
     // -------------------------------------------------------------------------
+    // updateDayTemplatePosition (Task 30/PR2)
+    // -------------------------------------------------------------------------
+
+    @Test fun updateDayTemplatePosition_writesPositionAndUpdatedAt_leavesOtherColumnsIntact() =
+        runTest {
+            dao.insertPlan(plan("p1", "Plan 1", position = 1))
+            dao.insertDayTemplate(dayTemplate("d1", "p1", "Day 1", position = 0))
+
+            dao.updateDayTemplatePosition("d1", 5, NOW)
+
+            val updated = dao.findDayTemplate("d1")
+            assertNotNull(updated)
+            assertEquals(5, updated!!.position)
+            assertEquals(NOW, updated.updatedAt)
+            // Other columns must be intact
+            assertEquals("Day 1", updated.name)
+            assertEquals("p1", updated.planId)
+            assertEquals(1L, updated.createdAt)
+            assertNull(updated.deletedAt)
+        }
+
+    // -------------------------------------------------------------------------
+    // observeDayTemplate (Task 30/PR2)
+    // -------------------------------------------------------------------------
+
+    @Test fun observeDayTemplate_emitsLiveTemplate_thenNullAfterSoftDelete() =
+        runTest {
+            dao.insertPlan(plan("p1", "Plan 1", position = 0))
+            dao.insertDayTemplate(dayTemplate("d1", "p1", "Day 1", position = 0))
+
+            dao.observeDayTemplate("d1").test {
+                val first = awaitItem()
+                assertNotNull(first)
+                assertEquals("d1", first!!.id)
+
+                dao.softDeleteDayTemplate("d1", NOW)
+                val afterDelete = awaitItem()
+                assertNull("observeDayTemplate should emit null after soft-delete", afterDelete)
+
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    // -------------------------------------------------------------------------
     // softDeleteDayTemplate + softDeleteTemplateExercisesForTemplate (cascade)
     // -------------------------------------------------------------------------
 
