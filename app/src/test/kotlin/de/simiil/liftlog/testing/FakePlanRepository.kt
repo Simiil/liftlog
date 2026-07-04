@@ -10,6 +10,7 @@ import de.simiil.liftlog.domain.repository.PlanWithDays
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.time.Instant
 import java.util.UUID
@@ -323,6 +324,37 @@ class FakePlanRepository : PlanRepository {
         notifyPlans()
     }
 
+    override suspend fun ensureDefaultPlan(name: String) {
+        if (_plans.values.any { it.deletedAt == null }) return
+        insertDefaultPlan(name)
+    }
+
+    override suspend fun softDeletePlanAndEnsureDefault(
+        id: String,
+        defaultName: String,
+    ) {
+        softDeletePlan(id)
+        if (_plans.values.none { it.deletedAt == null }) {
+            insertDefaultPlan(defaultName)
+        }
+    }
+
+    private fun insertDefaultPlan(name: String) {
+        val now = nowInstant()
+        val maxPos = _plans.values.filter { it.deletedAt == null }.maxOfOrNull { it.position } ?: -1
+        val plan =
+            WorkoutPlan(
+                id = UUID.randomUUID().toString(),
+                name = name.trim(),
+                position = maxPos + 1,
+                createdAt = now,
+                updatedAt = now,
+                deletedAt = null,
+            )
+        _plans[plan.id] = plan
+        notifyPlans()
+    }
+
     // ── day template writes ───────────────────────────────────────────────
 
     override suspend fun getDayTemplate(id: String): PlanDayTemplate? = _dayTemplates[id]?.takeIf { it.deletedAt == null }
@@ -437,4 +469,25 @@ class FakePlanRepository : PlanRepository {
         }
         notifyTemplateExercises()
     }
+
+    // ── plan-tab selection (Task 30/PR1) ────────────────────────────────────
+
+    private val selectedPlanIdFlow = MutableStateFlow<String?>(null)
+
+    /** Read-only snapshot of the persisted selection, for post-write inspection in tests. */
+    val selectedPlanId: String? get() = selectedPlanIdFlow.value
+
+    override suspend fun selectPlan(id: String) {
+        selectedPlanIdFlow.value = id
+    }
+
+    override fun observeSelectedOrFallbackPlanId(): Flow<String?> =
+        combine(selectedPlanIdFlow, plansFlow, observeMostUsedOrFirstPlanId()) { selected, planMap, fallbackId ->
+            val liveIds =
+                planMap.values
+                    .filter { it.deletedAt == null }
+                    .map { it.id }
+                    .toSet()
+            if (selected != null && selected in liveIds) selected else fallbackId
+        }.distinctUntilChanged()
 }

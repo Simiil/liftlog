@@ -14,6 +14,9 @@ interface PlanDao {
     @Query("SELECT * FROM workout_plans WHERE deletedAt IS NULL ORDER BY position")
     fun observePlans(): Flow<List<WorkoutPlanEntity>>
 
+    @Query("SELECT COUNT(*) FROM workout_plans WHERE deletedAt IS NULL")
+    suspend fun countLivePlans(): Int
+
     @Query("SELECT * FROM workout_plans WHERE id = :id AND deletedAt IS NULL")
     suspend fun findPlan(id: String): WorkoutPlanEntity?
 
