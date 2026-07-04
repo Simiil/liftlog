@@ -44,7 +44,7 @@
     <string name="home_first_title">Bereit, wenn du es bist</string>
     <string name="home_first_sub">Kein Konto, keine Einrichtung. Starte eine leere Einheit und logge deinen ersten Satz – alles wird auf deinem Handy gespeichert.</string>
     <string name="home_first_start">Erstes Training starten</string>
-    <string name="home_first_hint">Erstelle jederzeit unter Pläne eine wiederverwendbare Tagesvorlage.</string>
+    <string name="home_first_hint">Erstelle jederzeit im Tab „Plan“ eine wiederverwendbare Tagesvorlage.</string>
 
     <!-- WeightStepper / RepsStepper content descriptions -->
     <string name="cd_decrease_weight">Gewicht verringern, %1$s %2$s</string>

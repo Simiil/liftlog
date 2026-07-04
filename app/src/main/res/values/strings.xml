@@ -44,7 +44,7 @@
     <string name="home_first_title">Ready when you are</string>
     <string name="home_first_sub">No account, no setup. Start an empty session and log your first set — everything saves on your phone.</string>
     <string name="home_first_start">Start first workout</string>
-    <string name="home_first_hint">Build a reusable day template anytime from Plans.</string>
+    <string name="home_first_hint">Build a reusable day template anytime from the Plan tab.</string>
 
     <!-- WeightStepper / RepsStepper content descriptions -->
     <string name="cd_decrease_weight">Decrease weight, %1$s %2$s</string>
