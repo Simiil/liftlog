@@ -87,7 +87,9 @@ class HomeViewModel
                 }
 
         // Chips show the days of the most-used (else first) plan, each with its exercise
-        // count + up to 3 distinct muscle groups — mirrors PlansViewModel's day rows.
+        // count + up to 3 distinct muscle groups — mirrors the Plan tab's day rows. Days with
+        // zero exercises are hidden from Home (they're not worth a quick-start chip) but still
+        // show on the Plan tab itself, where they're being built out.
         @OptIn(ExperimentalCoroutinesApi::class)
         private val templates: Flow<List<TemplateChipUi>> =
             planRepository.observeMostUsedOrFirstPlanId().flatMapLatest { planId ->
@@ -102,6 +104,7 @@ class HomeViewModel
                         plans
                             .firstOrNull { it.id == planId }
                             ?.days
+                            ?.filter { it.exerciseCount > 0 }
                             ?.map { day ->
                                 TemplateChipUi(
                                     templateId = day.templateId,

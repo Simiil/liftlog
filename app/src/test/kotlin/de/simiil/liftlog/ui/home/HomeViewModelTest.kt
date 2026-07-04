@@ -348,17 +348,46 @@ class HomeViewModelTest {
     fun `templates has chips for each day template of the most-used plan`() =
         runTest {
             val planRepo = FakePlanRepository()
+            val exerciseRepo = FakeExerciseRepository()
             val plan = planRepo.createPlan("PPL")
-            planRepo.createDayTemplate(plan.id, "Push")
-            planRepo.createDayTemplate(plan.id, "Pull")
+            val push = planRepo.createDayTemplate(plan.id, "Push")
+            val pull = planRepo.createDayTemplate(plan.id, "Pull")
+            planRepo.addExerciseToTemplate(push.id, "ex-push")
+            planRepo.addExerciseToTemplate(pull.id, "ex-pull")
+            exerciseRepo.all.value =
+                listOf(
+                    exercise("ex-push", MuscleGroup.CHEST),
+                    exercise("ex-pull", MuscleGroup.BACK),
+                )
 
-            val vm = makeVm(planRepo = planRepo)
+            val vm = makeVm(planRepo = planRepo, exerciseRepo = exerciseRepo)
 
             vm.uiState.test {
                 val state = awaitItem()
                 assertEquals("should have 2 chips", 2, state.templates.size)
                 assertEquals("Push", state.templates[0].name)
                 assertEquals("Pull", state.templates[1].name)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `templates excludes days with zero exercises`() =
+        runTest {
+            val planRepo = FakePlanRepository()
+            val exerciseRepo = FakeExerciseRepository()
+            val plan = planRepo.createPlan("PPL")
+            val push = planRepo.createDayTemplate(plan.id, "Push")
+            planRepo.addExerciseToTemplate(push.id, "ex-push")
+            exerciseRepo.all.value = listOf(exercise("ex-push", MuscleGroup.CHEST))
+            planRepo.createDayTemplate(plan.id, "Rest") // zero exercises → hidden from Home
+
+            val vm = makeVm(planRepo = planRepo, exerciseRepo = exerciseRepo)
+
+            vm.uiState.test {
+                val state = awaitItem()
+                assertEquals("only the non-empty day should produce a chip", 1, state.templates.size)
+                assertEquals("Push", state.templates.first().name)
                 cancelAndIgnoreRemainingEvents()
             }
         }

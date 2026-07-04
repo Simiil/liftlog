@@ -382,7 +382,7 @@ private fun TemplateChip(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = chip.name,
+                text = chip.name.ifBlank { stringResource(R.string.plan_untitled_day) },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
