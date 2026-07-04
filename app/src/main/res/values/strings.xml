@@ -228,6 +228,9 @@
     <string name="plan_delete_confirm_title">Delete plan?</string>
     <string name="plan_delete_confirm_message">Workouts you already logged from this plan are kept.</string>
 
+    <!-- Default plan seeding (issue #30 PR1): name used when a default plan is auto-created. -->
+    <string name="default_plan_name">Default</string>
+
     <!-- Day editor (M3 redesign) -->
     <string name="day_editor_new">New day</string>
     <string name="day_editor_edit">Edit day</string>

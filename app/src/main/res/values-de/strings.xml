@@ -227,6 +227,9 @@
     <string name="plan_delete_confirm_title">Plan löschen?</string>
     <string name="plan_delete_confirm_message">Bereits geloggte Trainings bleiben erhalten.</string>
 
+    <!-- Default plan seeding (issue #30 PR1): name used when a default plan is auto-created. -->
+    <string name="default_plan_name">Standard</string>
+
     <!-- Day editor (M3 redesign) -->
     <string name="day_editor_new">Neuer Tag</string>
     <string name="day_editor_edit">Tag bearbeiten</string>

@@ -4,6 +4,7 @@ import de.simiil.liftlog.data.backup.AppInfo
 import de.simiil.liftlog.data.backup.BackupCodec
 import de.simiil.liftlog.data.backup.BackupSnapshot
 import de.simiil.liftlog.data.dao.BackupDao
+import de.simiil.liftlog.domain.plan.DefaultPlanEnsurer
 import de.simiil.liftlog.domain.repository.BackupRepository
 import de.simiil.liftlog.domain.repository.ImportSummary
 import de.simiil.liftlog.domain.repository.ParseResult
@@ -22,6 +23,7 @@ class BackupRepositoryImpl
         private val settingsRepository: SettingsRepository,
         private val clock: Clock,
         private val appInfo: AppInfo,
+        private val defaultPlanEnsurer: DefaultPlanEnsurer,
     ) : BackupRepository {
         override suspend fun exportToJson(): String =
             withContext(Dispatchers.IO) {
@@ -56,6 +58,9 @@ class BackupRepositoryImpl
                 backupDao.replaceAll(snapshot)
                 settingsRepository.setWeightUnit(snapshot.weightUnit)
                 settingsRepository.setThemePreference(snapshot.theme)
+                // replaceAll is one atomic transaction, so a zero-plan backup is never observed
+                // mid-import; this reseeds the invisible default plan invariant after the fact.
+                defaultPlanEnsurer.ensure()
                 // exportedAt here is apply-time; the UI shows the parseImport summary, so this field is informational only.
                 ImportSummary(
                     exportedAt = clock.instant(),
