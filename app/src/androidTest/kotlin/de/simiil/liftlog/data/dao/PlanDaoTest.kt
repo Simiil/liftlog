@@ -132,6 +132,24 @@ class PlanDaoTest {
         }
 
     // -------------------------------------------------------------------------
+    // countLivePlans
+    // -------------------------------------------------------------------------
+
+    @Test fun countLivePlans_excludesTombstonedPlans() =
+        runTest {
+            dao.insertPlan(plan("p1", "Plan A", position = 0))
+            dao.insertPlan(plan("p2", "Plan B", position = 1))
+            dao.insertPlan(plan("p3", "Deleted", position = 2, deleted = 99L))
+
+            assertEquals(2, dao.countLivePlans())
+        }
+
+    @Test fun countLivePlans_isZeroWhenNoPlans() =
+        runTest {
+            assertEquals(0, dao.countLivePlans())
+        }
+
+    // -------------------------------------------------------------------------
     // dayTemplatesForPlan
     // -------------------------------------------------------------------------
 

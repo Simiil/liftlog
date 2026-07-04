@@ -37,6 +37,8 @@ class FakePlanDao : PlanDao {
             map.values.filter { it.deletedAt == null }.sortedBy { it.position }
         }
 
+    override suspend fun countLivePlans(): Int = plans.values.count { it.deletedAt == null }
+
     override suspend fun findPlan(id: String): WorkoutPlanEntity? = plans[id]?.takeIf { it.deletedAt == null }
 
     override suspend fun insertPlan(plan: WorkoutPlanEntity) {
