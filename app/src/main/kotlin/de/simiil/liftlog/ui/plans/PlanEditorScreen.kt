@@ -7,36 +7,26 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,9 +52,6 @@ import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.ui.UiTestTags
-import de.simiil.liftlog.ui.components.dashedBorder
-import de.simiil.liftlog.ui.exercises.equipmentLabel
-import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -426,7 +413,12 @@ private fun DayModeContent(
             items(localItems, key = { it.key }) { item ->
                 ReorderableItem(reorderableState, key = item.key) { isDragging ->
                     ExerciseEditorRow(
-                        item = item,
+                        name = item.name,
+                        equipment = item.equipment,
+                        muscleGroup = item.muscleGroup,
+                        targetSets = item.targetSets,
+                        targetRepsMin = item.targetRepsMin,
+                        targetRepsMax = item.targetRepsMax,
                         isDragging = isDragging,
                         onRemove = { onRemoveItem(item.key) },
                         onSetTargets = { sets, min, max -> onSetTargets(item.key, sets, min, max) },
@@ -448,363 +440,6 @@ private fun DayModeContent(
                             .testTag(UiTestTags.TEMPLATE_ADD_EXERCISE),
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun ExerciseEditorRow(
-    item: EditorItemUi,
-    isDragging: Boolean,
-    onRemove: () -> Unit,
-    onSetTargets: (sets: Int?, repsMin: Int?, repsMax: Int?) -> Unit,
-    dragHandleModifier: Modifier,
-    modifier: Modifier = Modifier,
-) {
-    val dragHandleCd = stringResource(R.string.template_drag_handle_cd)
-    val removeCd = stringResource(R.string.template_remove_exercise)
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        color =
-            if (isDragging) {
-                MaterialTheme.colorScheme.surfaceContainerHighest
-            } else {
-                MaterialTheme.colorScheme.surfaceContainerHigh
-            },
-    ) {
-        Column(modifier = Modifier.padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 12.dp)) {
-            // .ex-edit-top: drag handle · name + "{group} · {equip}" · remove
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.DragHandle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier =
-                        dragHandleModifier
-                            .padding(horizontal = 8.dp, vertical = 8.dp)
-                            .semantics { contentDescription = dragHandleCd },
-                )
-                Column(modifier = Modifier.weight(1f).padding(vertical = 8.dp)) {
-                    Text(
-                        text = item.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "${muscleGroupLabel(item.muscleGroup)} · ${equipmentLabel(item.equipment)}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                IconButton(
-                    onClick = onRemove,
-                    modifier =
-                        Modifier
-                            .size(40.dp)
-                            .semantics { contentDescription = removeCd },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-            }
-            // .ex-edit-targets: three min/max steppers (Sets / Reps min / Reps max)
-            Row(
-                modifier = Modifier.padding(start = 44.dp, end = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                TargetStepper(
-                    label = stringResource(R.string.template_target_sets),
-                    value = item.targetSets,
-                    onDecrement = {
-                        val next = (item.targetSets ?: 1) - 1
-                        onSetTargets(next.takeIf { it > 0 }, item.targetRepsMin, item.targetRepsMax)
-                    },
-                    onIncrement = {
-                        onSetTargets(((item.targetSets ?: 0) + 1).coerceAtMost(10), item.targetRepsMin, item.targetRepsMax)
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                TargetStepper(
-                    label = stringResource(R.string.template_target_reps_min),
-                    value = item.targetRepsMin,
-                    onDecrement = {
-                        val next = (item.targetRepsMin ?: 1) - 1
-                        onSetTargets(item.targetSets, next.takeIf { it > 0 }, item.targetRepsMax)
-                    },
-                    onIncrement = {
-                        onSetTargets(item.targetSets, ((item.targetRepsMin ?: 0) + 1).coerceAtMost(50), item.targetRepsMax)
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-                TargetStepper(
-                    label = stringResource(R.string.template_target_reps_max),
-                    value = item.targetRepsMax,
-                    onDecrement = {
-                        val next = (item.targetRepsMax ?: 1) - 1
-                        onSetTargets(item.targetSets, item.targetRepsMin, next.takeIf { it > 0 })
-                    },
-                    onIncrement = {
-                        onSetTargets(item.targetSets, item.targetRepsMin, ((item.targetRepsMax ?: 0) + 1).coerceAtMost(50))
-                    },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-    }
-}
-
-/**
- * A single min/max stepper styled like the mockup's `.target-stepper`
- * (surfaceContainer, radius 12dp, 46dp tall, − / value+label / +).
- */
-@Composable
-private fun TargetStepper(
-    label: String,
-    value: Int?,
-    onDecrement: () -> Unit,
-    onIncrement: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.height(48.dp), // ≥48dp tall so the −/+ buttons hit the touch-target min (F-07)
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            StepperButton(symbol = "−", onClick = onDecrement)
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = value?.toString() ?: "—",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            StepperButton(symbol = "+", onClick = onIncrement)
-        }
-    }
-}
-
-@Composable
-private fun StepperButton(
-    symbol: String,
-    onClick: () -> Unit,
-) {
-    // Fills the 48dp-tall stepper row for a full-height touch target; width stays compact
-    // (~36dp) because three steppers share one row — a 48dp-wide button would overflow. (F-07)
-    Box(
-        modifier =
-            Modifier
-                .fillMaxHeight()
-                .width(36.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = symbol,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-// ─── Shared editor pieces ───────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EditorHeader(
-    title: String,
-    onClose: () -> Unit,
-    closeIsBack: Boolean,
-    closeTag: String?,
-    actionLabel: String,
-    actionEnabled: Boolean,
-    onAction: () -> Unit,
-    actionTag: String,
-) {
-    TopAppBar(
-        title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-            )
-        },
-        navigationIcon = {
-            IconButton(
-                onClick = onClose,
-                modifier = if (closeTag != null) Modifier.testTag(closeTag) else Modifier,
-            ) {
-                if (closeIsBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.navigate_back),
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(R.string.navigate_back),
-                    )
-                }
-            }
-        },
-        actions = {
-            // .editor-save / Done pill: primary when enabled, surfaceContainerHighest when not.
-            Button(
-                onClick = onAction,
-                enabled = actionEnabled,
-                modifier =
-                    Modifier
-                        .padding(end = 8.dp)
-                        .height(40.dp)
-                        .testTag(actionTag),
-                shape = RoundedCornerShape(100.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    ),
-            ) {
-                Text(
-                    text = actionLabel,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-        },
-    )
-}
-
-@Composable
-private fun FieldLabel(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(horizontal = 2.dp),
-    )
-}
-
-@Composable
-private fun FieldLabelWithCount(
-    label: String,
-    count: Int,
-    topSpacing: androidx.compose.ui.unit.Dp,
-) {
-    Row(
-        modifier = Modifier.padding(top = topSpacing),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        FieldLabel(label)
-        // .field-count pill: primary 14% bg, primary text.
-        Surface(
-            shape = RoundedCornerShape(100.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
-        ) {
-            Text(
-                text = count.toString(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 1.dp),
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EditorTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    hint: String,
-    modifier: Modifier = Modifier,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        placeholder = { Text(hint) },
-        singleLine = true,
-        shape = RoundedCornerShape(14.dp),
-    )
-}
-
-@Composable
-private fun EditorEmpty(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    // .editor-empty: surfaceContainerLow bg, radius 16dp, centered, onSurfaceVariant.
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 18.dp),
-        )
-    }
-}
-
-@Composable
-private fun AddRow(
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    // .add-row: 1.5dp dashed outline, primary text, radius 16dp, 54dp.
-    Box(
-        modifier =
-            modifier
-                .height(54.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .dashedBorder(
-                    color = MaterialTheme.colorScheme.outline,
-                    width = 1.5.dp,
-                    cornerRadius = 16.dp,
-                ).clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-            )
         }
     }
 }
