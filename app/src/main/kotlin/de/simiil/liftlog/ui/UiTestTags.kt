@@ -18,15 +18,17 @@ object UiTestTags {
     const val LOGGED_SET_ROW = "logged_set_row" // applied to EACH logged-set row
     const val ADD_EXERCISE = "add_exercise"
 
-    // Plans screens (M3 redesign)
-    const val PLANS_CREATE = "plans_create"
-    const val PLAN_ROW = "plan_row" // plan-group header on the Plans list (→ edit plan)
-    const val PLAN_DAY_ROW = "plan_day_row" // a day row (Plans list day rows + PlanEditor day rows)
-    const val PLAN_DAY_START = "plan_day_start" // the play button that starts a day's session
-    const val PLAN_EDITOR_SAVE = "plan_editor_save"
-    const val PLAN_EDITOR_CANCEL = "plan_editor_cancel"
-    const val PLAN_EDITOR_DELETE = "plan_editor_delete"
+    // Plan tab (single-plan UI, issue #30 PR3b)
+    const val PLAN_OVERFLOW = "plan_overflow" // top-bar "⋮" → rename/delete menu
+    const val PLAN_MENU_RENAME = "plan_menu_rename"
+    const val PLAN_MENU_DELETE = "plan_menu_delete"
+    const val PLAN_RENAME_FIELD = "plan_rename_field" // PlanNameDialog's text field
+    const val PLAN_RENAME_CONFIRM = "plan_rename_confirm"
     const val PLAN_DELETE_CONFIRM = "plan_delete_confirm"
+    const val PLAN_ADD_DAY = "plan_add_day" // dashed "Add training day" row
+    const val PLAN_DAY_START = "plan_day_start" // the play button that starts a day's session
+    const val PLAN_DAY_REMOVE = "plan_day_remove" // the X on a day row
+    const val PLAN_DAY_REMOVE_CONFIRM = "plan_day_remove_confirm"
     const val DAY_EDITOR_DONE = "day_editor_done"
     const val DAY_NAME_FIELD = "day_name_field"
     const val TEMPLATE_ADD_EXERCISE = "template_add_exercise"
