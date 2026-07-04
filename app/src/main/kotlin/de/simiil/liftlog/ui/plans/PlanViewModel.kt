@@ -20,8 +20,8 @@ import javax.inject.Inject
 /**
  * State for the single-plan Plan tab (issue #30 PR3b). Exactly one plan is shown at a time —
  * the tab's current selection, resolved by [PlanRepository.observeSelectedOrFallbackPlanId].
- * [planChoices] lists every live plan for the (not-yet-wired) multi-plan switcher dropdown that
- * lands in a follow-up PR; it ships now so that PR only has to add UI.
+ * [planChoices] lists every live plan, in position order, for the title-bar switcher dropdown
+ * (issue #30 PR4) — shown only when there are 2+ choices.
  */
 data class PlanTabUiState(
     val loading: Boolean = true,
@@ -127,6 +127,19 @@ class PlanViewModel
             viewModelScope.launch {
                 val id = currentPlanId() ?: return@launch
                 planRepository.renamePlan(id, name.trim())
+            }
+        }
+
+        /** Persists [id] as the tab's current selection; the shown plan follows via [uiState]. */
+        fun selectPlan(id: String) {
+            viewModelScope.launch { planRepository.selectPlan(id) }
+        }
+
+        /** Creates a new plan named [name] and switches the tab to it. */
+        fun createPlan(name: String) {
+            viewModelScope.launch {
+                val plan = planRepository.createPlan(name.trim())
+                planRepository.selectPlan(plan.id)
             }
         }
 

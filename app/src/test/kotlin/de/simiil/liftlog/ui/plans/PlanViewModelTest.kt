@@ -287,6 +287,98 @@ class PlanViewModelTest {
             assertNotEquals(plan.id, live.first().id)
             assertEquals("Default", live.first().name)
         }
+
+    // ── Multi-plan chrome: switcher + create (issue #30 PR4) ────────────────────
+
+    @Test
+    fun `planChoices lists all live plans in position order`() =
+        runTest {
+            val planRepo = FakePlanRepository()
+            val planA = planRepo.createPlan("A")
+            val planB = planRepo.createPlan("B")
+            val planC = planRepo.createPlan("C")
+            val vm = makeVm(planRepo)
+
+            vm.uiState.test {
+                var state = awaitItem()
+                while (state.loading || state.plan == null) state = awaitItem()
+
+                assertEquals(listOf(planA.id, planB.id, planC.id), state.planChoices.map { it.id })
+                assertEquals(listOf("A", "B", "C"), state.planChoices.map { it.name })
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `selectPlan persists the selection and the current plan follows`() =
+        runTest {
+            val planRepo = FakePlanRepository()
+            val planA = planRepo.createPlan("A")
+            val planB = planRepo.createPlan("B")
+            val vm = makeVm(planRepo)
+
+            vm.uiState.test {
+                var state = awaitItem()
+                while (state.loading || state.plan == null) state = awaitItem()
+                assertEquals(planA.id, state.plan!!.id) // fallback: first plan by position
+
+                vm.selectPlan(planB.id)
+
+                state = awaitItem()
+                while (state.plan?.id != planB.id) state = awaitItem()
+                assertEquals(planB.id, state.plan!!.id)
+                assertEquals(planB.id, planRepo.selectedPlanId)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `createPlan creates, selects, and shows the new plan`() =
+        runTest {
+            val planRepo = FakePlanRepository()
+            val existing = planRepo.createPlan("Existing")
+            val vm = makeVm(planRepo)
+
+            vm.uiState.test {
+                var state = awaitItem()
+                while (state.loading || state.plan == null) state = awaitItem()
+                assertEquals(existing.id, state.plan!!.id)
+
+                vm.createPlan("  New Plan  ")
+
+                state = awaitItem()
+                while (state.plan?.name != "New Plan") state = awaitItem()
+                assertEquals("New Plan", state.plan!!.name)
+                assertEquals(2, planRepo.plans.values.count { it.deletedAt == null })
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `deleting the current plan while another live plan exists falls back to it without reseeding a default`() =
+        runTest {
+            val planRepo = FakePlanRepository()
+            val planA = planRepo.createPlan("A")
+            val planB = planRepo.createPlan("B")
+            val ensurer = DefaultPlanEnsurer(planRepo, DefaultPlanNameProvider { "Default" })
+            val vm = makeVm(planRepo, ensurer = ensurer)
+
+            vm.selectPlan(planA.id)
+            vm.deletePlan()
+
+            val live = planRepo.plans.values.filter { it.deletedAt == null }
+            assertEquals(2, planRepo.plans.values.size) // A tombstoned, not hard-deleted
+            assertEquals(1, live.size)
+            assertEquals(planB.id, live.first().id)
+            assertTrue(live.none { it.name == "Default" })
+
+            vm.uiState.test {
+                var state = awaitItem()
+                while (state.loading || state.plan == null) state = awaitItem()
+                assertEquals(planB.id, state.plan!!.id)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
 }
 
 /**
