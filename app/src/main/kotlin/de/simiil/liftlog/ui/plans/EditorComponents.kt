@@ -48,9 +48,9 @@ import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.exercises.equipmentLabel
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 
-// Reusable pieces shared by PlanEditorScreen (plan + legacy day mode) and DayEditorScreen
-// (the new DB-backed, single-day autosave editor). Extracted verbatim from PlanEditorScreen.kt
-// — no behavior change; ExerciseEditorRow alone had its parameters generalized from the old
+// Reusable pieces shared by PlanScreen and DayEditorScreen (the DB-backed, single-day
+// autosave editor). Originally extracted verbatim from the now-deleted draft-based
+// PlanEditorScreen — ExerciseEditorRow alone had its parameters generalized from that
 // editor's EditorItemUi to plain fields so both screens' row models can supply them.
 
 // ─── Header ──────────────────────────────────────────────────────────────────

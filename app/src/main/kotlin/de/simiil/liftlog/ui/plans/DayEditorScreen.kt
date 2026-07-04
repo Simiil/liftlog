@@ -33,8 +33,8 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 /**
  * DB-backed, single-day autosave editor (2026-06-12 autosave design). Every field commits to
  * [DayEditorViewModel] on change — there is no Save; back and the "Done" pill are both pure
- * navigation. Not yet reachable from any route (wired up in the next task); built on the shared
- * pieces in `EditorComponents.kt` so it renders identically to the legacy day-mode editor.
+ * navigation. Reached from the Plan tab (issue #30 PR3b) via `DayEditorRoute`; built on the
+ * shared pieces in `EditorComponents.kt` so it renders identically to [PlanScreen]'s own rows.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +49,7 @@ fun DayEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Consume multi-select picker results once (mirrors PlanEditorScreen's consume-once contract).
+    // Consume multi-select picker results once (a standard consume-once savedStateHandle pattern).
     LaunchedEffect(pickedExerciseIds) {
         if (pickedExerciseIds != null) {
             viewModel.addExercises(pickedExerciseIds)
@@ -77,7 +77,7 @@ fun DayEditorScreen(
         }
     }
 
-    // Live drag list, synced from upstream when not mid-drag (mirrors PlanEditorScreen's pattern).
+    // Live drag list, synced from upstream when not mid-drag (mirrors PlanScreen's day-list pattern).
     val localItems = remember { mutableStateListOf<DayExerciseUi>() }
     val lazyListState = rememberLazyListState()
     val reorderableState =

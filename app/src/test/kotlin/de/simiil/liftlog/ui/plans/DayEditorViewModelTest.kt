@@ -422,7 +422,8 @@ private class InstrumentedPlanRepository(
 
 /**
  * Drains turbine emissions until [predicate] holds, returning that item. Tolerates the
- * conflated/intermediate states emitted by combine + stateIn (mirrors PlanEditorViewModelTest).
+ * conflated/intermediate states emitted by combine + stateIn (a pattern shared with
+ * PlanViewModelTest).
  */
 private suspend fun app.cash.turbine.ReceiveTurbine<DayEditorUiState>.awaitItemUntil(
     predicate: (DayEditorUiState) -> Boolean,
