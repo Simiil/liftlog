@@ -3,6 +3,7 @@ package de.simiil.liftlog.data.repository
 import de.simiil.liftlog.data.entity.PlanDayTemplateEntity
 import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
+import de.simiil.liftlog.testing.InMemoryPreferencesDataStore
 import de.simiil.liftlog.testing.fakes.FakePlanDao
 import de.simiil.liftlog.testing.fakes.FakePrefillDao
 import de.simiil.liftlog.testing.fakes.FakeSessionDao
@@ -25,7 +26,7 @@ class SessionFromTemplateTest {
     private val planDao = FakePlanDao()
     private val sessionDao = FakeSessionDao()
     private val clock = Clock.fixed(Instant.ofEpochMilli(7000L), ZoneOffset.UTC)
-    private val planRepo = PlanRepositoryImpl(planDao, FakeTransactor(), clock)
+    private val planRepo = PlanRepositoryImpl(planDao, FakeTransactor(), clock, InMemoryPreferencesDataStore())
     private val sessionRepo = SessionRepositoryImpl(sessionDao, FakeTransactor(), clock, FakePrefillDao(), planDao)
 
     // Seed IDs

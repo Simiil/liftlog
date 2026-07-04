@@ -51,6 +51,34 @@ interface PlanRepository {
     /** Soft-deletes the plan and cascades to its day templates and their template-exercises (atomic). */
     suspend fun softDeletePlan(id: String)
 
+    /**
+     * Idempotent invariant: zero live plans -> create one. No-op if any plan is already live.
+     * [name] is trimmed. Called on every app startup and after a backup import (issue #30).
+     */
+    suspend fun ensureDefaultPlan(name: String)
+
+    /**
+     * Soft-deletes the plan (same cascade as [softDeletePlan]) and, if that was the last live
+     * plan, atomically seeds a fresh one named [defaultName] in the same transaction — observers
+     * never see a zero-plan frame.
+     */
+    suspend fun softDeletePlanAndEnsureDefault(
+        id: String,
+        defaultName: String,
+    )
+
+    /** Persists [id] as the Plan tab's current selection. */
+    suspend fun selectPlan(id: String)
+
+    /**
+     * The Plan tab's current plan id: the persisted selection if it still names a live plan,
+     * else [observeMostUsedOrFirstPlanId]. Never writes back — a stale selection (soft-deleted
+     * plan, unset, or a stale id from a backup import) self-heals purely by re-evaluating on
+     * every emission, so a later re-appearance of the same id (e.g. an import round-trip) resumes
+     * it automatically.
+     */
+    fun observeSelectedOrFallbackPlanId(): Flow<String?>
+
     suspend fun getDayTemplate(id: String): PlanDayTemplate?
 
     suspend fun createDayTemplate(

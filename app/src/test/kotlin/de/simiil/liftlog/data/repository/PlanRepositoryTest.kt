@@ -1,12 +1,15 @@
 package de.simiil.liftlog.data.repository
 
+import app.cash.turbine.test
 import de.simiil.liftlog.data.entity.PlanDayTemplateEntity
 import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
+import de.simiil.liftlog.testing.InMemoryPreferencesDataStore
 import de.simiil.liftlog.testing.fakes.FakePlanDao
 import de.simiil.liftlog.testing.fakes.FakeTransactor
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -23,12 +26,14 @@ class PlanRepositoryTest {
     private val fixedInstant = Instant.ofEpochMilli(clockMillis)
 
     private lateinit var dao: FakePlanDao
+    private lateinit var dataStore: InMemoryPreferencesDataStore
     private lateinit var repo: PlanRepositoryImpl
 
     @Before
     fun setUp() {
         dao = FakePlanDao()
-        repo = PlanRepositoryImpl(dao, FakeTransactor(), clock)
+        dataStore = InMemoryPreferencesDataStore()
+        repo = PlanRepositoryImpl(dao, FakeTransactor(), clock, dataStore)
     }
 
     @Test
@@ -305,5 +310,151 @@ class PlanRepositoryTest {
             assertEquals(clockMillis, storedA.updatedAt)
             assertEquals(clockMillis, storedB.updatedAt)
             assertEquals(clockMillis, storedC.updatedAt)
+        }
+
+    // ── ensureDefaultPlan (Task 30/PR1) ────────────────────────────────────
+
+    @Test
+    fun `ensureDefaultPlan creates a plan with trimmed name, UUID, timestamps when none live`() =
+        runTest {
+            repo.ensureDefaultPlan("  Default  ")
+
+            assertEquals(1, dao.plans.size)
+            val created = dao.plans.values.first()
+            assertEquals("Default", created.name)
+            assertEquals(0, created.position)
+            assertEquals(clockMillis, created.createdAt)
+            assertEquals(clockMillis, created.updatedAt)
+            assertNull(created.deletedAt)
+            assertNotNull(UUID.fromString(created.id))
+        }
+
+    @Test
+    fun `ensureDefaultPlan is a no-op when a live plan exists`() =
+        runTest {
+            val existing = repo.createPlan("Existing")
+
+            repo.ensureDefaultPlan("Default")
+
+            assertEquals(1, dao.plans.size)
+            assertEquals(existing.id, dao.plans.values.first().id)
+            assertEquals("Existing", dao.plans.values.first().name)
+        }
+
+    @Test
+    fun `ensureDefaultPlan after deleting all plans creates a fresh plan with a new UUID`() =
+        runTest {
+            val first = repo.createPlan("First")
+            repo.softDeletePlan(first.id)
+
+            repo.ensureDefaultPlan("Default")
+
+            val live = dao.plans.values.filter { it.deletedAt == null }
+            assertEquals(1, live.size)
+            assertEquals("Default", live.first().name)
+            assertNotEquals(first.id, live.first().id)
+        }
+
+    // ── softDeletePlanAndEnsureDefault (Task 30/PR1) ────────────────────────
+
+    @Test
+    fun `softDeletePlanAndEnsureDefault tombstones plan, days, exercises and seeds a default when it was the only plan`() =
+        runTest {
+            val plan = repo.createPlan("Solo")
+            val day = repo.createDayTemplate(plan.id, "Day")
+            val te = repo.addExerciseToTemplate(day.id, "ex-1")
+
+            repo.softDeletePlanAndEnsureDefault(plan.id, "Default")
+
+            assertEquals(clockMillis, dao.plans[plan.id]!!.deletedAt)
+            assertEquals(clockMillis, dao.dayTemplates[day.id]!!.deletedAt)
+            assertEquals(clockMillis, dao.templateExercises[te.id]!!.deletedAt)
+
+            val live = dao.plans.values.filter { it.deletedAt == null }
+            assertEquals(1, live.size)
+            assertEquals("Default", live.first().name)
+            assertNotEquals(plan.id, live.first().id)
+        }
+
+    @Test
+    fun `softDeletePlanAndEnsureDefault does not seed when another live plan remains`() =
+        runTest {
+            val toDelete = repo.createPlan("A")
+            val remaining = repo.createPlan("B")
+
+            repo.softDeletePlanAndEnsureDefault(toDelete.id, "Default")
+
+            val live = dao.plans.values.filter { it.deletedAt == null }
+            assertEquals(1, live.size)
+            assertEquals(remaining.id, live.first().id)
+        }
+
+    // ── selectPlan / observeSelectedOrFallbackPlanId (Task 30/PR1) ─────────
+
+    @Test
+    fun `selectPlan persists and observeSelectedOrFallbackPlanId emits the selected live plan`() =
+        runTest {
+            repo.createPlan("Plan A")
+            val planB = repo.createPlan("Plan B")
+
+            repo.selectPlan(planB.id)
+
+            repo.observeSelectedOrFallbackPlanId().test {
+                assertEquals(planB.id, awaitItem())
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `observeSelectedOrFallbackPlanId falls back to mostUsedOrFirst when unset`() =
+        runTest {
+            val planA = repo.createPlan("Plan A")
+            repo.createPlan("Plan B")
+            // no selectPlan call — selection is unset
+
+            repo.observeSelectedOrFallbackPlanId().test {
+                assertEquals(planA.id, awaitItem())
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `observeSelectedOrFallbackPlanId falls back when the selected plan is soft-deleted`() =
+        runTest {
+            val planA = repo.createPlan("Plan A")
+            val planB = repo.createPlan("Plan B")
+            repo.selectPlan(planB.id)
+
+            repo.observeSelectedOrFallbackPlanId().test {
+                assertEquals(planB.id, awaitItem())
+
+                repo.softDeletePlan(planB.id)
+                assertEquals(planA.id, awaitItem())
+
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `observeSelectedOrFallbackPlanId recovers when the stored id reappears (import round-trip)`() =
+        runTest {
+            val planA = repo.createPlan("Plan A")
+            val planB = repo.createPlan("Plan B")
+            repo.selectPlan(planA.id)
+
+            repo.observeSelectedOrFallbackPlanId().test {
+                assertEquals(planA.id, awaitItem())
+
+                // planA goes stale (e.g. an import that momentarily doesn't include it) — falls back.
+                repo.softDeletePlan(planA.id)
+                assertEquals(planB.id, awaitItem())
+
+                // planA "reappears" live with the SAME id (e.g. the import re-creates it). The
+                // stored selection was never cleared, so it resumes with no extra write.
+                dao.updatePlan(dao.plans[planA.id]!!.copy(deletedAt = null))
+                assertEquals(planA.id, awaitItem())
+
+                cancelAndIgnoreRemainingEvents()
+            }
         }
 }

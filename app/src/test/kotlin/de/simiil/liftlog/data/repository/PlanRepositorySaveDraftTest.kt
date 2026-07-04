@@ -8,6 +8,7 @@ import de.simiil.liftlog.data.entity.WorkoutPlanEntity
 import de.simiil.liftlog.domain.model.DayDraft
 import de.simiil.liftlog.domain.model.ItemDraft
 import de.simiil.liftlog.domain.model.PlanDraft
+import de.simiil.liftlog.testing.InMemoryPreferencesDataStore
 import de.simiil.liftlog.testing.fakes.FakePlanDao
 import de.simiil.liftlog.testing.fakes.FakeSessionDao
 import de.simiil.liftlog.testing.fakes.FakeTransactor
@@ -25,7 +26,7 @@ class PlanRepositorySaveDraftTest {
     private val planDao = FakePlanDao()
     private val now = 9000L
     private val clock = Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC)
-    private val planRepo = PlanRepositoryImpl(planDao, FakeTransactor(), clock)
+    private val planRepo = PlanRepositoryImpl(planDao, FakeTransactor(), clock, InMemoryPreferencesDataStore())
 
     private fun liveDays(planId: String) =
         planDao.dayTemplates.values

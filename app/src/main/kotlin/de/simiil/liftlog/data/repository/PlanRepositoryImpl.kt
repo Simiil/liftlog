@@ -1,5 +1,9 @@
 package de.simiil.liftlog.data.repository
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import de.simiil.liftlog.data.dao.PlanDao
 import de.simiil.liftlog.data.db.Transactor
 import de.simiil.liftlog.data.entity.PlanDayTemplateEntity
@@ -15,6 +19,7 @@ import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.domain.repository.PlanWithDays
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.time.Clock
 import java.util.UUID
@@ -28,6 +33,7 @@ class PlanRepositoryImpl
         private val dao: PlanDao,
         private val transactor: Transactor,
         private val clock: Clock,
+        private val dataStore: DataStore<Preferences>,
     ) : PlanRepository {
         override fun observePlans() = dao.observePlans().map { it.map(WorkoutPlanEntity::toDomain) }
 
@@ -201,11 +207,52 @@ class PlanRepositoryImpl
 
         override suspend fun softDeletePlan(id: String) =
             transactor.immediate {
-                val now = clock.millis()
-                dao.softDeleteTemplateExercisesForPlan(id, now)
-                dao.softDeleteDayTemplatesForPlan(id, now)
-                dao.softDeletePlan(id, now)
+                cascadeSoftDeletePlan(id, clock.millis())
             }
+
+        override suspend fun ensureDefaultPlan(name: String) =
+            transactor.immediate {
+                if (dao.countLivePlans() > 0) return@immediate
+                insertDefaultPlan(name, clock.millis())
+            }
+
+        override suspend fun softDeletePlanAndEnsureDefault(
+            id: String,
+            defaultName: String,
+        ) = transactor.immediate {
+            val now = clock.millis()
+            cascadeSoftDeletePlan(id, now)
+            if (dao.countLivePlans() == 0) {
+                insertDefaultPlan(defaultName, now)
+            }
+        }
+
+        /** Cascade shared by [softDeletePlan] and [softDeletePlanAndEnsureDefault]: template exercises -> day templates -> plan. */
+        private suspend fun cascadeSoftDeletePlan(
+            id: String,
+            now: Long,
+        ) {
+            dao.softDeleteTemplateExercisesForPlan(id, now)
+            dao.softDeleteDayTemplatesForPlan(id, now)
+            dao.softDeletePlan(id, now)
+        }
+
+        /** Inserts a fresh plan named [name] at the end of the manual order. Caller owns the transaction. */
+        private suspend fun insertDefaultPlan(
+            name: String,
+            now: Long,
+        ) {
+            val plan =
+                WorkoutPlanEntity(
+                    id = UUID.randomUUID().toString(),
+                    name = name.trim(),
+                    position = (dao.maxPlanPosition() ?: -1) + 1,
+                    createdAt = now,
+                    updatedAt = now,
+                    deletedAt = null,
+                )
+            dao.insertPlan(plan)
+        }
 
         override suspend fun getDayTemplate(id: String): PlanDayTemplate? = dao.findDayTemplate(id)?.toDomain()
 
@@ -293,5 +340,22 @@ class PlanRepositoryImpl
                     dao.updateTemplateExercisePosition(id, index, now)
                 }
             }
+        }
+
+        override suspend fun selectPlan(id: String) {
+            dataStore.edit { it[KEY_SELECTED_PLAN_ID] = id }
+        }
+
+        override fun observeSelectedOrFallbackPlanId(): Flow<String?> =
+            combine(
+                dataStore.data.map { it[KEY_SELECTED_PLAN_ID] },
+                dao.observePlans(),
+                observeMostUsedOrFirstPlanId(),
+            ) { selectedId, livePlans, fallbackId ->
+                if (selectedId != null && livePlans.any { it.id == selectedId }) selectedId else fallbackId
+            }.distinctUntilChanged()
+
+        private companion object {
+            val KEY_SELECTED_PLAN_ID = stringPreferencesKey("selected_plan_id")
         }
     }

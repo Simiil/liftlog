@@ -6,6 +6,7 @@ import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class FakePlanDao : PlanDao {
@@ -203,9 +204,14 @@ class FakePlanDao : PlanDao {
         notifyTemplateExercises()
     }
 
-    // ── Home quick-start flows — not needed in JVM repo tests (tested at instrumented DAO level) ──
-    override fun observeMostRecentlyUsedPlanId(): Flow<List<String>> =
-        TODO("not used in JVM repository tests — tested at instrumented DAO level")
+    // ── Home quick-start flows ──────────────────────────────────────────────
+    // This fake tracks no session data, so "most recently used" is always empty — session-based
+    // recency is exercised at the instrumented DAO level (PlanDaoTest). JVM repository tests that
+    // need the mostUsedOrFirst fallback therefore always land on the first live plan by position.
+    override fun observeMostRecentlyUsedPlanId(): Flow<List<String>> = flowOf(emptyList())
 
-    override fun observeFirstPlanId(): Flow<List<String>> = TODO("not used in JVM repository tests — tested at instrumented DAO level")
+    override fun observeFirstPlanId(): Flow<List<String>> =
+        plansFlow.map { map ->
+            map.values.filter { it.deletedAt == null }.minByOrNull { it.position }?.id?.let { listOf(it) } ?: emptyList()
+        }
 }
