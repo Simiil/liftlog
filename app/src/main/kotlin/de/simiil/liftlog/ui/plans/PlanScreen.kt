@@ -11,12 +11,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.MoreVert
@@ -50,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -82,6 +86,8 @@ fun PlanScreen(
         onReorderDays = viewModel::reorderDays,
         onRenamePlan = viewModel::renamePlan,
         onDeletePlan = viewModel::deletePlan,
+        onSelectPlan = viewModel::selectPlan,
+        onCreatePlan = viewModel::createPlan,
         modifier = modifier,
     )
 }
@@ -99,11 +105,15 @@ private fun PlanContent(
     onReorderDays: (List<String>) -> Unit,
     onRenamePlan: (String) -> Unit,
     onDeletePlan: () -> Unit,
+    onSelectPlan: (String) -> Unit,
+    onCreatePlan: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val plan = state.plan
     var overflowExpanded by remember { mutableStateOf(false) }
+    var switcherExpanded by remember { mutableStateOf(false) }
     var showRenameDialog by rememberSaveable { mutableStateOf(false) }
+    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteConfirm by rememberSaveable { mutableStateOf(false) }
     var pendingRemoveDayId by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -133,13 +143,23 @@ private fun PlanContent(
                     // While loading/plan == null this is a transient gap, not a real plan with
                     // a blank name — render nothing rather than flashing the "Untitled plan"
                     // fallback, which is reserved for an actually-loaded, actually-blank name.
-                    val titleText =
-                        if (state.loading || plan == null) {
-                            ""
-                        } else {
-                            plan.name.ifBlank { stringResource(R.string.plan_untitled) }
-                        }
-                    Text(titleText)
+                    if (state.loading || plan == null) {
+                        Text("")
+                    } else if (state.planChoices.size >= 2) {
+                        PlanSwitcherTitle(
+                            currentId = plan.id,
+                            currentName = plan.name,
+                            choices = state.planChoices,
+                            expanded = switcherExpanded,
+                            onExpandedChange = { switcherExpanded = it },
+                            onSelect = { id ->
+                                switcherExpanded = false
+                                onSelectPlan(id)
+                            },
+                        )
+                    } else {
+                        Text(plan.name.ifBlank { stringResource(R.string.plan_untitled) })
+                    }
                 },
                 actions = {
                     Box {
@@ -156,6 +176,14 @@ private fun PlanContent(
                             expanded = overflowExpanded,
                             onDismissRequest = { overflowExpanded = false },
                         ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.plans_create)) },
+                                onClick = {
+                                    overflowExpanded = false
+                                    showCreateDialog = true
+                                },
+                                modifier = Modifier.testTag(UiTestTags.PLAN_MENU_NEW),
+                            )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.plan_menu_rename)) },
                                 onClick = {
@@ -237,6 +265,21 @@ private fun PlanContent(
                 showRenameDialog = false
             },
             onDismiss = { showRenameDialog = false },
+        )
+    }
+
+    if (showCreateDialog) {
+        PlanNameDialog(
+            title = stringResource(R.string.plans_create),
+            initialName = "",
+            confirmLabel = stringResource(R.string.common_create),
+            fieldTag = UiTestTags.PLAN_NEW_FIELD,
+            confirmTag = UiTestTags.PLAN_NEW_CONFIRM,
+            onConfirm = { name ->
+                onCreatePlan(name)
+                showCreateDialog = false
+            },
+            onDismiss = { showCreateDialog = false },
         )
     }
 
@@ -404,7 +447,7 @@ private fun daySubtitle(day: PlanDayUi): String {
     return "$count · $groups"
 }
 
-// ─── Shared plan-name dialog (rename now; reused by "New plan" in a follow-up PR) ────────────
+// ─── Shared plan-name dialog (rename and "New plan" both use this) ──────────────
 
 @Composable
 internal fun PlanNameDialog(
@@ -412,6 +455,9 @@ internal fun PlanNameDialog(
     initialName: String,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
+    confirmLabel: String = stringResource(R.string.common_save),
+    fieldTag: String = UiTestTags.PLAN_RENAME_FIELD,
+    confirmTag: String = UiTestTags.PLAN_RENAME_CONFIRM,
 ) {
     var name by rememberSaveable(initialName) { mutableStateOf(initialName) }
     AlertDialog(
@@ -424,7 +470,7 @@ internal fun PlanNameDialog(
                     value = name,
                     onValueChange = { name = it },
                     hint = stringResource(R.string.plan_name_field_hint),
-                    modifier = Modifier.testTag(UiTestTags.PLAN_RENAME_FIELD),
+                    modifier = Modifier.testTag(fieldTag),
                 )
             }
         },
@@ -432,9 +478,9 @@ internal fun PlanNameDialog(
             TextButton(
                 onClick = { onConfirm(name) },
                 enabled = name.isNotBlank(),
-                modifier = Modifier.testTag(UiTestTags.PLAN_RENAME_CONFIRM),
+                modifier = Modifier.testTag(confirmTag),
             ) {
-                Text(stringResource(R.string.common_save))
+                Text(confirmLabel)
             }
         },
         dismissButton = {
@@ -443,6 +489,67 @@ internal fun PlanNameDialog(
             }
         },
     )
+}
+
+// ─── Title-bar plan switcher (2+ plans only, issue #30 PR4) ─────────────────────
+
+@Composable
+private fun PlanSwitcherTitle(
+    currentId: String?,
+    currentName: String,
+    choices: List<PlanChoiceUi>,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onSelect: (String) -> Unit,
+) {
+    val untitled = stringResource(R.string.plan_untitled)
+    val switcherCd = stringResource(R.string.plan_switcher_cd)
+    Box {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier =
+                Modifier
+                    .clickable { onExpandedChange(true) }
+                    .testTag(UiTestTags.PLAN_SWITCHER)
+                    .semantics { contentDescription = switcherCd },
+        ) {
+            Text(
+                text = currentName.ifBlank { untitled },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) },
+        ) {
+            choices.forEach { choice ->
+                val isCurrent = choice.id == currentId
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = choice.name.ifBlank { untitled },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    leadingIcon =
+                        if (isCurrent) {
+                            { Icon(imageVector = Icons.Default.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    onClick = { onSelect(choice.id) },
+                    modifier =
+                        Modifier
+                            .widthIn(max = 280.dp)
+                            .testTag(UiTestTags.PLAN_SWITCHER_ITEM),
+                )
+            }
+        }
+    }
 }
 
 // ─── Previews ──────────────────────────────────────────────────────────────────
@@ -472,6 +579,8 @@ private fun PreviewPlanLoadingLight() {
             onReorderDays = {},
             onRenamePlan = {},
             onDeletePlan = {},
+            onSelectPlan = {},
+            onCreatePlan = {},
         )
     }
 }
@@ -489,6 +598,8 @@ private fun PreviewPlanPopulatedLight() {
             onReorderDays = {},
             onRenamePlan = {},
             onDeletePlan = {},
+            onSelectPlan = {},
+            onCreatePlan = {},
         )
     }
 }
@@ -506,6 +617,8 @@ private fun PreviewPlanPopulatedDark() {
             onReorderDays = {},
             onRenamePlan = {},
             onDeletePlan = {},
+            onSelectPlan = {},
+            onCreatePlan = {},
         )
     }
 }

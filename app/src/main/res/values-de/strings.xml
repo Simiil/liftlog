@@ -119,6 +119,7 @@
     <string name="common_delete">Löschen</string>
     <string name="common_save">Speichern</string>
     <string name="common_remove">Entfernen</string>
+    <string name="common_create">Erstellen</string>
     <string name="session_remove_exercise">Übung entfernen</string>
     <string name="session_replace_exercise">Übung ersetzen</string>
     <string name="session_finish_summary">%1$s — %2$d Sätze</string>
@@ -207,6 +208,10 @@
     <string name="plan_overflow_cd">Plan-Optionen</string>
     <string name="plan_menu_rename">Plan umbenennen</string>
     <string name="plan_start_day_cd">%1$s starten</string>
+
+    <!-- Multi-plan chrome: title-bar switcher + "New plan" (issue #30 PR4) -->
+    <string name="plans_create">Neuer Plan</string>
+    <string name="plan_switcher_cd">Plan wechseln</string>
 
     <string name="plan_name_field_label">Planname</string>
     <string name="plan_name_field_hint">z. B. Ober / Unter, PUSH PULL LEGS, 5×5</string>

@@ -119,6 +119,7 @@
     <string name="common_delete">Delete</string>
     <string name="common_save">Save</string>
     <string name="common_remove">Remove</string>
+    <string name="common_create">Create</string>
     <string name="session_remove_exercise">Remove exercise</string>
     <string name="session_replace_exercise">Replace exercise</string>
     <string name="session_finish_summary">%1$s — %2$d sets</string>
@@ -208,6 +209,10 @@
     <string name="plan_overflow_cd">Plan options</string>
     <string name="plan_menu_rename">Rename plan</string>
     <string name="plan_start_day_cd">Start %1$s</string>
+
+    <!-- Multi-plan chrome: title-bar switcher + "New plan" (issue #30 PR4) -->
+    <string name="plans_create">New plan</string>
+    <string name="plan_switcher_cd">Switch plan</string>
 
     <string name="plan_name_field_label">Plan name</string>
     <string name="plan_name_field_hint">e.g. Upper / Lower, PPL, 5×5</string>
