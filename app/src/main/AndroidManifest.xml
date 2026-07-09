@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Deliberately zero permissions: no network, no storage (SAF needs none).
-         HANDOFF §10 / 00-product-spec §6.4. -->
+    <!-- Only permissions: the optional in-workout notification (issue #36).
+         No network, no storage (SAF needs none). HANDOFF §10 / 00-product-spec §6.4. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <application
         android:name=".LiftLogApplication"
@@ -16,11 +19,23 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- specialUse (API 34+; inert below): the "health" type would force an extra
+             runtime permission (e.g. ACTIVITY_RECOGNITION) the app doesn't need. -->
+        <service
+            android:name=".notification.SessionNotificationService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Persistent ongoing-workout progress display with one-tap set logging while the user trains" />
+        </service>
     </application>
 </manifest>

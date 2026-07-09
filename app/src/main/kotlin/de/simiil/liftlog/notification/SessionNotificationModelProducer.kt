@@ -41,7 +41,20 @@ data class SessionNotificationModel(
     val nextWeightKg: Double?,
     val nextReps: Int,
     val unit: WeightUnit,
-)
+) {
+    /** LOG SET only when there is something concrete to log. */
+    val showLogSet: Boolean
+        get() = sessionExerciseId != null && nextWeightKg != null
+
+    fun bodyState(): NotificationBodyState =
+        when {
+            exerciseName == null || nextWeightKg == null -> NotificationBodyState.EMPTY
+            targetSets != null && setsDone < targetSets -> NotificationBodyState.TARGET_PROGRESS
+            else -> NotificationBodyState.SET_COUNT
+        }
+}
+
+enum class NotificationBodyState { EMPTY, TARGET_PROGRESS, SET_COUNT }
 
 /**
  * Maps session state to [SessionNotificationModel]s, mirroring the Active Session

@@ -355,4 +355,17 @@
     <string name="exercise_barbell_wrist_curl">Langhantel-Handgelenk-Curl</string>
     <string name="exercise_reverse_barbell_curl">Langhantel-Reverse-Curl</string>
     <string name="exercise_kettlebell_swing">Kettlebell-Swing</string>
+
+    <!-- Session notification (issue #36) -->
+    <string name="session_notification_channel_name">Aktives Training</string>
+    <string name="session_notification_channel_description">Zeigt das laufende Training mit schnellem Satz-Logging.</string>
+    <string name="session_notification_placeholder">Training läuft</string>
+    <!-- %1$d = nächste Satznummer, %2$d = Zielsätze, %3$s = nächstes Gewicht inkl. Einheit (z. B. 80 kg), %4$d = nächste Wdh. -->
+    <string name="session_notification_body_target">Satz %1$d von %2$d · als Nächstes: %3$s × %4$d</string>
+    <!-- %1$d = geloggte Sätze, %2$s = nächstes Gewicht inkl. Einheit, %3$d = nächste Wdh. -->
+    <plurals name="session_notification_body_count">
+        <item quantity="one">%1$d Satz · als Nächstes: %2$s × %3$d</item>
+        <item quantity="other">%1$d Sätze · als Nächstes: %2$s × %3$d</item>
+    </plurals>
+    <string name="session_notification_body_empty">Noch keine Sätze · zum Loggen tippen</string>
 </resources>

@@ -386,6 +386,51 @@ class SessionNotificationModelProducerTest {
             }
         }
 
+    // ---- body-state rules (consumed by the notification builder) ----
+
+    private fun model(
+        exerciseName: String? = "Bench",
+        sessionExerciseId: String? = "se1",
+        setsDone: Int = 0,
+        targetSets: Int? = null,
+        nextWeightKg: Double? = 80.0,
+    ) = SessionNotificationModel(
+        sessionId = "s1",
+        startedAt = now,
+        sessionName = null,
+        exerciseName = exerciseName,
+        sessionExerciseId = sessionExerciseId,
+        setsDone = setsDone,
+        targetSets = targetSets,
+        nextWeightKg = nextWeightKg,
+        nextReps = 8,
+        unit = WeightUnit.KG,
+    )
+
+    @Test
+    fun `body state - target progress while below target, log set shown`() {
+        val m = model(setsDone = 2, targetSets = 5)
+        assertEquals(NotificationBodyState.TARGET_PROGRESS, m.bodyState())
+        assertEquals(true, m.showLogSet)
+    }
+
+    @Test
+    fun `body state - set count for ad-hoc and for met targets`() {
+        assertEquals(NotificationBodyState.SET_COUNT, model(setsDone = 3, targetSets = null).bodyState())
+        assertEquals(NotificationBodyState.SET_COUNT, model(setsDone = 5, targetSets = 5).bodyState())
+    }
+
+    @Test
+    fun `body state - empty when weight unknown or no exercise, log set hidden`() {
+        val neverPerformed = model(nextWeightKg = null)
+        assertEquals(NotificationBodyState.EMPTY, neverPerformed.bodyState())
+        assertEquals(false, neverPerformed.showLogSet)
+
+        val noExercises = model(exerciseName = null, sessionExerciseId = null, nextWeightKg = null)
+        assertEquals(NotificationBodyState.EMPTY, noExercises.bodyState())
+        assertEquals(false, noExercises.showLogSet)
+    }
+
     @Test
     fun `emits null when session is discarded`() =
         runTest {

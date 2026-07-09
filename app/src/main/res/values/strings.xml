@@ -356,4 +356,17 @@
     <string name="exercise_barbell_wrist_curl">Barbell Wrist Curl</string>
     <string name="exercise_reverse_barbell_curl">Reverse Barbell Curl</string>
     <string name="exercise_kettlebell_swing">Kettlebell Swing</string>
+
+    <!-- Session notification (issue #36) -->
+    <string name="session_notification_channel_name">Active workout</string>
+    <string name="session_notification_channel_description">Shows the running workout with quick set logging.</string>
+    <string name="session_notification_placeholder">Workout in progress</string>
+    <!-- %1$d = upcoming set number, %2$d = target sets, %3$s = next weight incl. unit (e.g. 80 kg), %4$d = next reps -->
+    <string name="session_notification_body_target">Set %1$d of %2$d · next: %3$s × %4$d</string>
+    <!-- %1$d = sets done, %2$s = next weight incl. unit (e.g. 80 kg), %3$d = next reps -->
+    <plurals name="session_notification_body_count">
+        <item quantity="one">%1$d set · next: %2$s × %3$d</item>
+        <item quantity="other">%1$d sets · next: %2$s × %3$d</item>
+    </plurals>
+    <string name="session_notification_body_empty">No sets yet · tap to log</string>
 </resources>
