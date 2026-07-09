@@ -263,12 +263,12 @@ Rules:
 
 The seed asset (`app/src/main/assets/seed/exercises.v2.json`) is the source of
 truth — 331 exercises curated from the free-exercise-db catalog (873 entries;
-owner-reviewed relevance pass, 2026-07-09) by the pipeline in `tools/seed/`
-(judgment file, UUID mapping, and debug CSV under `~/Code/`; see
-`tools/seed/README.md`). The 69 v1 exercises kept their UUIDs, names, and
-classifications, with one exception: Kettlebell Swing's equipment moved
-`DUMBBELL` → `KETTLEBELL` (see `EXISTING_EQUIPMENT_FIX` in
-`tools/seed/seed_common.py`). New entries carry deterministic UUIDv5 ids.
+owner-reviewed relevance pass, 2026-07-09) by a one-off scripted pipeline
+(preserved in the git history of PR #41; judgment file, UUID mapping, and
+debug CSV archived under `~/Code/` on the owner's machine). The 69 v1
+exercises kept their UUIDs, names, and classifications, with one exception:
+Kettlebell Swing's equipment moved `DUMBBELL` → `KETTLEBELL` (it predated the
+KETTLEBELL equipment type). New entries carry deterministic UUIDv5 ids.
 
 | Muscle group | Count | | Equipment | Count |
 |---|---|---|---|---|
@@ -286,6 +286,6 @@ classifications, with one exception: Kettlebell Swing's equipment moved
 | OTHER | 21 | | | |
 
 Force: 126 PUSH · 150 PULL · 49 STATIC · 6 unclassified. 203 entries carry
-secondary muscle groups. German names: first pass model-translated
-(`tools/seed/names-de.json`), native-speaker review requested — same status as
-the M6 translation pass.
+secondary muscle groups. German names (`values-de/strings.xml`): first pass
+model-translated, native-speaker review requested — same status as the M6
+translation pass.
