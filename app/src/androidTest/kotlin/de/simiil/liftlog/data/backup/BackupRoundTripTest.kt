@@ -29,7 +29,6 @@ import de.simiil.liftlog.ui.plans.ResourceDefaultPlanNameProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -62,10 +61,6 @@ class BackupRoundTripTest {
         override suspend fun setWeightUnit(unit: WeightUnit) {
             unitFlow.value = unit
         }
-
-        override val notificationPromptShown: Flow<Boolean> = flowOf(false)
-
-        override suspend fun setNotificationPromptShown() {}
     }
 
     // tiny in-file DataStore fake — PlanRepositoryImpl requires one, but selection isn't

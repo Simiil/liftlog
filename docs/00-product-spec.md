@@ -83,4 +83,4 @@ Qualitative bar for shipping:
 1. The §5 tap math in [03-ux-spec](03-ux-spec.md) holds on a real device with a real program (1 tap to repeat a set; 3 taps cold-start → first set logged).
 2. A mid-session process kill loses zero logged sets and resumes to the active session.
 3. Export → wipe → import round-trip is lossless ([05-roadmap](05-roadmap.md) M5 exit criterion).
-4. Zero network permission in the manifest. The only runtime prompt is the optional notification permission for the in-workout notification (issue #36) — one-time, deniable, and off the logging hot path.
+4. Zero network permission in the manifest. The only runtime prompt is the optional notification permission for the in-workout notification (issue #36) — deniable, OS-capped (silenced permanently after two denials), and off the logging hot path.

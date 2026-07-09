@@ -52,10 +52,6 @@ class AnalyticsBrowserViewModelTest {
         override suspend fun setThemePreference(preference: ThemePreference) {}
 
         override suspend fun setWeightUnit(unit: WeightUnit) {}
-
-        override val notificationPromptShown: Flow<Boolean> = flowOf(false)
-
-        override suspend fun setNotificationPromptShown() {}
     }
 
     @Test fun search_filtersByNameCaseInsensitive() =

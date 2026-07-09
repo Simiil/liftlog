@@ -12,14 +12,8 @@ interface SettingsRepository {
     val themePreference: Flow<ThemePreference>
     val weightUnit: Flow<WeightUnit>
 
-    /** True once the one-time POST_NOTIFICATIONS prompt was shown (issue #36).
-     *  Device-local prompt bookkeeping — deliberately NOT part of the backup format. */
-    val notificationPromptShown: Flow<Boolean>
-
     suspend fun setThemePreference(preference: ThemePreference)
 
     /** Persistence for the kg/lb unit. Toggle UI lands in M5 PR2; import restores it now. */
     suspend fun setWeightUnit(unit: WeightUnit)
-
-    suspend fun setNotificationPromptShown()
 }

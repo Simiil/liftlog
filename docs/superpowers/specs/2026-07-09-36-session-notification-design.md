@@ -14,9 +14,12 @@ tap-to-open landing directly on the running session.
 LiftLog is deliberately zero-permission (`PRIVACY.md`, `HANDOFF.md` §10,
 `docs/00-product-spec.md` §6.4). This feature knowingly relaxes that stance — an
 explicit owner decision. The app gains exactly one runtime prompt:
-`POST_NOTIFICATIONS` (Android 13+), requested contextually the first time the user
-lands on the Active Session screen, default-on, denial respected without nagging or
-custom rationale UI. Android 12 (minSdk 31/32) needs no prompt. Manifest also gains
+`POST_NOTIFICATIONS` (Android 13+), requested contextually when the user lands on the
+Active Session screen without the permission, default-on, no custom rationale UI. The
+cadence is OS-managed, not tracked by the app (owner decision 2026-07-09): Android
+silences requests permanently after two explicit denials, so a denier sees at most two
+dialogs ever while an accidental dismissal still gets re-asked. Android 12
+(minSdk 31/32) needs no prompt. Manifest also gains
 `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_SPECIAL_USE` (install-time, promptless).
 Docs and privacy copy are updated accordingly. minSdk stays 31 — the feature is
 identical across 31–36 apart from the single SDK-33 prompt guard.

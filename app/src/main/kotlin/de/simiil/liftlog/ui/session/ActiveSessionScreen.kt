@@ -86,8 +86,9 @@ fun ActiveSessionScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showDiscardDialog by remember { mutableStateOf(false) }
 
-    // Contextual POST_NOTIFICATIONS prompt (issue #36): plain system dialog, once ever,
-    // on the first session. Denial is respected — no rationale UI, no re-prompt.
+    // Contextual POST_NOTIFICATIONS prompt (issue #36): plain system dialog, no rationale
+    // UI. Cadence is OS-managed — after two explicit denials Android silences further
+    // requests permanently, so this can fire on every session without nagging.
     val context = LocalContext.current
     val permissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -96,8 +97,7 @@ fun ActiveSessionScreen(
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED &&
-            viewModel.consumeNotificationPromptOpportunity()
+            PackageManager.PERMISSION_GRANTED
         ) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }

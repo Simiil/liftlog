@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -431,15 +430,8 @@ class ActiveSessionViewModel
 
         // --- Notification permission prompt (issue #36) ---
 
-        /** True (and latches the persisted flag) exactly once ever — the screen requests
-         *  POST_NOTIFICATIONS contextually on the first session, then never nags again. */
-        suspend fun consumeNotificationPromptOpportunity(): Boolean {
-            if (settingsRepository.notificationPromptShown.first()) return false
-            settingsRepository.setNotificationPromptShown()
-            return true
-        }
-
-        /** Called when the system prompt resolves so a grant takes effect mid-session. */
+        /** Called when the system prompt resolves so a grant takes effect mid-session.
+         *  Prompt cadence itself is OS-managed (two explicit denials → silent no-ops). */
         fun onNotificationPermissionResult() {
             permissionTick.bump()
         }

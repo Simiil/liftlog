@@ -138,17 +138,17 @@ install-time `FOREGROUND_SERVICE` / `FOREGROUND_SERVICE_SPECIAL_USE`. minSdk sta
 
 ### Step 5 — Contextual permission prompt
 
-- `domain/repository/SettingsRepository.kt` + `data/repository/SettingsRepositoryImpl.kt`:
-  DataStore one-shot flag `notificationPromptShown: Flow<Boolean>` /
-  `suspend setNotificationPromptShown()` (`booleanPreferencesKey("notification_prompt_shown")`;
-  device-local, NOT in the backup format).
-- `ActiveSessionViewModel.kt`: inject coordinator;
-  `suspend fun consumeNotificationPromptOpportunity(): Boolean` (true + latch exactly once
-  ever); `fun onNotificationPermissionResult()` → `coordinator.onNotificationPermissionMaybeChanged()`.
+- No app-side "prompt shown" bookkeeping (owner decision 2026-07-09, revised from the
+  original once-ever DataStore latch): Android caps the cadence itself — after two
+  explicit denials, further requests are silent no-ops. Simpler, and recovers from an
+  accidentally dismissed dialog (which the OS does not count as a denial strike).
+- `ActiveSessionViewModel.kt`: `fun onNotificationPermissionResult()` →
+  `NotificationPermissionTick.bump()` (shared with the coordinator) so a mid-session
+  grant takes effect immediately.
 - `ActiveSessionScreen.kt`: `rememberLauncherForActivityResult(RequestPermission())` +
-  `LaunchedEffect(Unit)` — request only if `SDK_INT >= 33` && not granted &&
-  `consumeNotificationPromptOpportunity()`. No custom rationale UI, never re-prompt.
-- Tests: `FakeSettingsRepository` additions; VM test for the once-ever latch.
+  `LaunchedEffect(Unit)` — request whenever `SDK_INT >= 33` && not granted. No custom
+  rationale UI.
+- Tests: VM test for the permission tick.
   `GrantPermissionRule.grant(POST_NOTIFICATIONS)` on Active-Session Compose tests
   (`CriticalLoggingPathTest` etc.) so the new prompt can't obscure them on API 34 CI.
 

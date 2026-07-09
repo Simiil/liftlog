@@ -30,7 +30,7 @@ Treat every "decision" in §2 as fixed unless you flag a concrete problem with i
 3. **Analytics** — progress charts per exercise (e.g. weight and volume over time) and simple summaries.
 
 ### Selling points (these are the design north stars — optimize for them)
-1. **No cloud, no account. Install and go.** Zero onboarding friction. The app is fully functional the moment it's installed, with no sign-up, no network call, no permissions prompts beyond what's strictly required (the one optional prompt: the in-workout notification permission, issue #36 — deniable, one-time).
+1. **No cloud, no account. Install and go.** Zero onboarding friction. The app is fully functional the moment it's installed, with no sign-up, no network call, no permissions prompts beyond what's strictly required (the one optional prompt: the in-workout notification permission, issue #36 — deniable, cadence capped by the OS).
 2. **Ultra-fast data entry that doesn't break training stride.** Logging a set mid-workout must be near-instant: minimal taps, large touch targets, sensible defaults, no modal dialogs that interrupt flow. A user with sweaty hands, resting 60 seconds between sets, should be able to log without thinking.
 
 ### What v1 is NOT

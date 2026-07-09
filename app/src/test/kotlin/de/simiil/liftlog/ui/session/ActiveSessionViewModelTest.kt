@@ -24,7 +24,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -661,22 +660,6 @@ class ActiveSessionViewModelTest {
         }
 
     // ---- Notification permission prompt (issue #36) ----
-
-    @Test
-    fun `notification prompt opportunity is granted exactly once ever`() =
-        runTest {
-            val sessionRepo = FakeSessionRepository()
-            val exerciseRepo = singleExerciseSetup(sessionRepo)
-            val settings = FakeSettingsRepository(initialWeightUnit = WeightUnit.KG)
-
-            val vm = createVm(sessionRepo, exerciseRepo, settings = settings)
-            assertTrue(vm.consumeNotificationPromptOpportunity())
-            assertFalse(vm.consumeNotificationPromptOpportunity())
-
-            // A later session (new ViewModel, same persisted settings) must not re-prompt.
-            val vm2 = createVm(sessionRepo, exerciseRepo, settings = settings)
-            assertFalse(vm2.consumeNotificationPromptOpportunity())
-        }
 
     @Test
     fun `permission result bumps the coordinator tick`() =
