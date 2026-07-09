@@ -4,6 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.simiil.liftlog.domain.logging.ActiveEntry
+import de.simiil.liftlog.domain.logging.ActiveEntryTracker
+import de.simiil.liftlog.domain.logging.ActiveExerciseDefaults
 import de.simiil.liftlog.domain.logging.Prefill
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
@@ -85,6 +88,7 @@ class ActiveSessionViewModel
         private val settingsRepository: SettingsRepository,
         private val savedStateHandle: SavedStateHandle,
         private val names: ExerciseNameResolver,
+        private val tracker: ActiveEntryTracker,
     ) : ViewModel() {
         // Type-safe route fields land in the handle under their field name; reading the key
         // directly works identically in production and in pure-JVM tests (which build a
@@ -173,6 +177,15 @@ class ActiveSessionViewModel
             }
             viewModelScope.launch {
                 settingsRepository.weightUnit.collect { currentUnit = it }
+            }
+            // Mirror the entry into the shared tracker so the session notification
+            // shows (and logs) exactly what the app would (issue #36). entryFlow
+            // always tracks the ACTIVE card, so this covers activation, dialing,
+            // numpad edits, and post-log re-priming.
+            viewModelScope.launch {
+                entryFlow.collect { e ->
+                    tracker.update(e?.let { ActiveEntry(it.sessionExerciseId, it.weightKg, it.reps) })
+                }
             }
             viewModelScope.launch {
                 pendingNote.filterNotNull().debounce(500).collect { text ->
@@ -400,6 +413,7 @@ class ActiveSessionViewModel
                 pendingNote.value?.let { sessionRepository.updateSessionNote(sessionId, it) }
                 val count = latestDetails?.exercises?.sumOf { it.sets.size } ?: 0
                 sessionRepository.finishSession(sessionId)
+                tracker.clear()
                 nav.update { it.copy(finished = true, lastFinishedSetCount = count) }
             }
         }
@@ -407,6 +421,7 @@ class ActiveSessionViewModel
         fun onDiscard() {
             viewModelScope.launch {
                 sessionRepository.softDeleteSession(sessionId)
+                tracker.clear()
                 nav.update { it.copy(discarded = true) }
             }
         }
@@ -433,16 +448,9 @@ class ActiveSessionViewModel
             }
         }
 
-        private fun pickDefault(details: SessionWithDetails): String? {
-            if (details.exercises.isEmpty()) return null
-            val incomplete = details.exercises.firstOrNull { !isComplete(it) }
-            return (incomplete ?: details.exercises.last()).sessionExercise.id
-        }
+        private fun pickDefault(details: SessionWithDetails): String? = ActiveExerciseDefaults.pickDefault(details)
 
-        private fun isComplete(ews: SessionExerciseWithSets): Boolean {
-            val targetSets = ews.sessionExercise.targetSets ?: return false
-            return ews.sets.size >= targetSets
-        }
+        private fun isComplete(ews: SessionExerciseWithSets): Boolean = ActiveExerciseDefaults.isComplete(ews)
 
         private data class NavSignals(
             val finished: Boolean = false,

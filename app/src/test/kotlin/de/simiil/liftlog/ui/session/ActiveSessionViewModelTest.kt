@@ -2,6 +2,8 @@ package de.simiil.liftlog.ui.session
 
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
+import de.simiil.liftlog.domain.logging.ActiveEntry
+import de.simiil.liftlog.domain.logging.ActiveEntryTracker
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.LoggedSet
@@ -123,6 +125,7 @@ class ActiveSessionViewModelTest {
         session: FakeSessionRepository,
         exercises: FakeExerciseRepository,
         settings: FakeSettingsRepository = FakeSettingsRepository(initialWeightUnit = WeightUnit.KG),
+        tracker: ActiveEntryTracker = ActiveEntryTracker(),
     ): ActiveSessionViewModel =
         ActiveSessionViewModel(
             sessionRepository = session,
@@ -130,6 +133,7 @@ class ActiveSessionViewModelTest {
             settingsRepository = settings,
             savedStateHandle = SavedStateHandle(mapOf("sessionId" to "s1")),
             names = names,
+            tracker = tracker,
         )
 
     // ---- Tests ----
@@ -571,5 +575,84 @@ class ActiveSessionViewModelTest {
                 "flush must write without waiting for the debounce",
                 sessionRepo.updateSessionNoteCalls.contains("s1" to "quick"),
             )
+        }
+
+    // ---- ActiveEntryTracker mirroring (session notification, issue #36) ----
+
+    private fun singleExerciseSetup(sessionRepo: FakeSessionRepository): FakeExerciseRepository {
+        val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
+        sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
+        sessionRepo.setSessionDetails(
+            "s1",
+            SessionWithDetails(
+                session("s1"),
+                listOf(SessionExerciseWithSets(sessionExercise("se1", "ex1"), emptyList())),
+            ),
+        )
+        return exerciseRepo
+    }
+
+    @Test
+    fun `tracker mirrors the seeded entry`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = singleExerciseSetup(sessionRepo)
+            val tracker = ActiveEntryTracker()
+
+            createVm(sessionRepo, exerciseRepo, tracker = tracker)
+            advanceUntilIdle()
+
+            assertEquals(ActiveEntry("se1", 30.0, 10), tracker.state.value)
+        }
+
+    @Test
+    fun `tracker mirrors dialed weight and reps changes`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = singleExerciseSetup(sessionRepo)
+            val tracker = ActiveEntryTracker()
+
+            val vm = createVm(sessionRepo, exerciseRepo, tracker = tracker)
+            advanceUntilIdle()
+
+            vm.onWeightIncrement()
+            vm.onRepsDecrement()
+            runCurrent()
+
+            assertEquals(ActiveEntry("se1", 32.5, 9), tracker.state.value)
+        }
+
+    @Test
+    fun `tracker clears on finish`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = singleExerciseSetup(sessionRepo)
+            val tracker = ActiveEntryTracker()
+
+            val vm = createVm(sessionRepo, exerciseRepo, tracker = tracker)
+            advanceUntilIdle()
+            assertEquals("se1", tracker.state.value?.sessionExerciseId)
+
+            vm.onFinish()
+            advanceUntilIdle()
+
+            assertNull(tracker.state.value)
+        }
+
+    @Test
+    fun `tracker clears on discard`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = singleExerciseSetup(sessionRepo)
+            val tracker = ActiveEntryTracker()
+
+            val vm = createVm(sessionRepo, exerciseRepo, tracker = tracker)
+            advanceUntilIdle()
+            assertEquals("se1", tracker.state.value?.sessionExerciseId)
+
+            vm.onDiscard()
+            advanceUntilIdle()
+
+            assertNull(tracker.state.value)
         }
 }
