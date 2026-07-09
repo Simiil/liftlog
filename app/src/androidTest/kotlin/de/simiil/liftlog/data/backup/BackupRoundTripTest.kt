@@ -236,8 +236,8 @@ class BackupRoundTripTest {
             assertTrue(parsed is ParseResult.Ready)
             repo.applyImport((parsed as ParseResult.Ready).parsed)
 
-            // replaceAll cleared seed_state → applyImport reseeded: 69 built-ins + ex1/ex2 live fixtures
-            assertEquals(69 + 2, db.exerciseDao().countLive())
+            // replaceAll cleared seed_state → applyImport reseeded: 331 built-ins + ex1/ex2 live fixtures
+            assertEquals(331 + 2, db.exerciseDao().countLive())
             assertEquals(ExerciseSeeder.SEED_VERSION, db.seedStateDao().appliedVersion())
         }
 

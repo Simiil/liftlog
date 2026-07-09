@@ -259,23 +259,33 @@ Rules:
 - Import clears `seed_state` inside the restore transaction and re-runs the seeder right after, so restoring an old backup cannot leave stale or missing built-ins.
 - Built-in UUIDs are stable across all installs → exports from any device reference the same built-in IDs, keeping future sync/merge sane.
 
-## Appendix A — Built-in exercise library (v1, ~70)
+## Appendix A — Built-in exercise library (v2, 331)
 
-Authored list; final UUIDs assigned in the seed asset at M1.
+The seed asset (`app/src/main/assets/seed/exercises.v2.json`) is the source of
+truth — 331 exercises curated from the free-exercise-db catalog (873 entries;
+owner-reviewed relevance pass, 2026-07-09) by a one-off scripted pipeline
+(preserved in the git history of PR #41; judgment file, UUID mapping, and
+debug CSV archived under `~/Code/` on the owner's machine). The 69 v1
+exercises kept their UUIDs, names, and classifications, with one exception:
+Kettlebell Swing's equipment moved `DUMBBELL` → `KETTLEBELL` (it predated the
+KETTLEBELL equipment type). New entries carry deterministic UUIDv5 ids.
 
-| Muscle group | Exercises (equipment) |
-|---|---|
-| CHEST | Barbell Bench Press (BB) · Incline Barbell Bench Press (BB) · Dumbbell Bench Press (DB) · Incline Dumbbell Press (DB) · Machine Chest Press (M) · Pec Deck (M) · Cable Fly (C) · Push-up (BW) · Dips (BW) |
-| BACK | Deadlift (BB) · Barbell Row (BB) · T-Bar Row (BB) · Pull-up (BW) · Chin-up (BW) · Lat Pulldown (C) · Seated Cable Row (C) · Straight-Arm Pulldown (C) · One-Arm Dumbbell Row (DB) · Machine Row (M) · Back Extension (BW) |
-| SHOULDERS | Overhead Press (BB) · Seated Dumbbell Shoulder Press (DB) · Machine Shoulder Press (M) · Lateral Raise (DB) · Cable Lateral Raise (C) · Rear Delt Fly (M) · Face Pull (C) · Front Raise (DB) · Upright Row (BB) |
-| BICEPS | Barbell Curl (BB) · EZ-Bar Curl (BB) · Dumbbell Curl (DB) · Hammer Curl (DB) · Incline Dumbbell Curl (DB) · Cable Curl (C) · Preacher Curl Machine (M) |
-| TRICEPS | Close-Grip Bench Press (BB) · Skull Crusher (BB) · Triceps Pushdown (C) · Overhead Cable Extension (C) · Dumbbell Overhead Extension (DB) · Machine Triceps Extension (M) |
-| QUADS | Back Squat (BB) · Front Squat (BB) · Goblet Squat (DB) · Leg Press (M) · Hack Squat (M) · Bulgarian Split Squat (DB) · Walking Lunge (DB) · Leg Extension (M) |
-| HAMSTRINGS | Romanian Deadlift (BB) · Stiff-Leg Deadlift (BB) · Lying Leg Curl (M) · Seated Leg Curl (M) · Good Morning (BB) |
-| GLUTES | Hip Thrust (BB) · Cable Glute Kickback (C) · Hip Abduction Machine (M) |
-| CALVES | Standing Calf Raise (M) · Seated Calf Raise (M) · Calf Press on Leg Press (M) |
-| ABS | Sit-up (BW) · Crunch (BW) · Cable Crunch (C) · Hanging Leg Raise (BW) · Ab Wheel Rollout (BW) |
-| FOREARMS | Barbell Wrist Curl (BB) · Reverse Barbell Curl (BB) |
-| OTHER | Kettlebell Swing (DB) |
+| Muscle group | Count | | Equipment | Count |
+|---|---|---|---|---|
+| CHEST | 31 | | BODYWEIGHT | 90 |
+| BACK | 50 | | BARBELL | 63 |
+| SHOULDERS | 40 | | DUMBBELL | 47 |
+| BICEPS | 19 | | CABLE | 34 |
+| TRICEPS | 22 | | MACHINE | 32 |
+| QUADS | 46 | | OTHER | 32 |
+| HAMSTRINGS | 27 | | KETTLEBELL | 10 |
+| GLUTES | 12 | | FOAM_ROLLER | 9 |
+| CALVES | 12 | | MEDICINE_BALL | 5 |
+| ABS | 37 | | BANDS | 5 |
+| FOREARMS | 14 | | EXERCISE_BALL | 4 |
+| OTHER | 21 | | | |
 
-(BB = barbell, DB = dumbbell, M = machine, C = cable, BW = bodyweight)
+Force: 126 PUSH · 150 PULL · 49 STATIC · 6 unclassified. 203 entries carry
+secondary muscle groups. German names (`values-de/strings.xml`): first pass
+model-translated, native-speaker review requested — same status as the M6
+translation pass.

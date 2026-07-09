@@ -45,9 +45,10 @@ class ExerciseSeeder
             val exercises = json.decodeFromString<SeedFile>(text).exercises
             val now = clock.millis()
             transactor.immediate {
+                val existingById = dao.findAllAny().associateBy { it.id }
                 val toInsert = mutableListOf<ExerciseEntity>()
                 for (seed in exercises) {
-                    val existing = dao.findByIdAny(seed.id)
+                    val existing = existingById[seed.id]
                     when {
                         existing == null -> toInsert += seed.toEntity(now)
                         existing.deletedAt != null -> Unit // tombstone wins; never resurrect
@@ -86,7 +87,7 @@ class ExerciseSeeder
 
         companion object {
             /** Bump together with a new `seed/exercises.v<N>.json` asset. SeedAssetTest locks file ↔ constant. */
-            const val SEED_VERSION = 1
+            const val SEED_VERSION = 2
             private const val ASSET = "seed/exercises.v$SEED_VERSION.json"
         }
     }

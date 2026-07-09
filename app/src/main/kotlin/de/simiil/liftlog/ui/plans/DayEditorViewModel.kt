@@ -117,7 +117,7 @@ class DayEditorViewModel(
                                 id = te.id,
                                 exerciseId = te.exerciseId,
                                 name = exercise?.let { names.displayName(it.id, it.name) }.orEmpty(),
-                                equipment = exercise?.equipment ?: Equipment.MACHINE,
+                                equipment = exercise?.equipment ?: Equipment.OTHER,
                                 muscleGroup = exercise?.muscleGroup ?: MuscleGroup.OTHER,
                                 targetSets = if (overlay != null) overlay.sets else te.targetSets,
                                 targetRepsMin = if (overlay != null) overlay.repsMin else te.targetRepsMin,
