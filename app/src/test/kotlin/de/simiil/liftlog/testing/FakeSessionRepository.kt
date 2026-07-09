@@ -48,6 +48,9 @@ class FakeSessionRepository : SessionRepository {
     /** Returned by [lastPerformance]. Tests can set this before calling. */
     var lastPerformanceResult: List<LoggedSet> = emptyList()
 
+    /** Exercise ids passed to [lastPerformance], in call order. */
+    val lastPerformanceCalls = mutableListOf<String>()
+
     private var sessionIdCounter = 0
 
     // --- SessionRepository implementation ---
@@ -168,7 +171,10 @@ class FakeSessionRepository : SessionRepository {
         )
     }
 
-    override suspend fun lastPerformance(exerciseId: String): List<LoggedSet> = lastPerformanceResult
+    override suspend fun lastPerformance(exerciseId: String): List<LoggedSet> {
+        lastPerformanceCalls += exerciseId
+        return lastPerformanceResult
+    }
 
     val updateSessionRpeCalls = mutableListOf<Pair<String, Double?>>()
     val updateSessionNoteCalls = mutableListOf<Pair<String, String?>>()
