@@ -19,6 +19,7 @@ import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
+import de.simiil.liftlog.notification.NotificationPermissionTick
 import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -89,6 +91,7 @@ class ActiveSessionViewModel
         private val savedStateHandle: SavedStateHandle,
         private val names: ExerciseNameResolver,
         private val tracker: ActiveEntryTracker,
+        private val permissionTick: NotificationPermissionTick,
     ) : ViewModel() {
         // Type-safe route fields land in the handle under their field name; reading the key
         // directly works identically in production and in pure-JVM tests (which build a
@@ -424,6 +427,21 @@ class ActiveSessionViewModel
                 tracker.clear()
                 nav.update { it.copy(discarded = true) }
             }
+        }
+
+        // --- Notification permission prompt (issue #36) ---
+
+        /** True (and latches the persisted flag) exactly once ever — the screen requests
+         *  POST_NOTIFICATIONS contextually on the first session, then never nags again. */
+        suspend fun consumeNotificationPromptOpportunity(): Boolean {
+            if (settingsRepository.notificationPromptShown.first()) return false
+            settingsRepository.setNotificationPromptShown()
+            return true
+        }
+
+        /** Called when the system prompt resolves so a grant takes effect mid-session. */
+        fun onNotificationPermissionResult() {
+            permissionTick.bump()
         }
 
         // --- Helpers ---

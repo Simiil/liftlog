@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
@@ -56,6 +57,12 @@ class SessionMetaPathTest {
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
+
+    // The Active Session screen requests POST_NOTIFICATIONS contextually (#36); pre-grant
+    // so the system dialog never obscures the tree on API 33+.
+    @get:Rule(order = 2)
+    val grantPermissionRule: GrantPermissionRule =
+        GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
     @Inject
     lateinit var sessionRepository: SessionRepository

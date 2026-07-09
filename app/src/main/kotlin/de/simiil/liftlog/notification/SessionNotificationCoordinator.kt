@@ -13,11 +13,9 @@ import de.simiil.liftlog.domain.logging.ActiveEntryTracker
 import de.simiil.liftlog.domain.repository.SessionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,16 +33,15 @@ class SessionNotificationCoordinator
         @ApplicationContext private val context: Context,
         private val sessionRepository: SessionRepository,
         private val tracker: ActiveEntryTracker,
+        private val permissionTick: NotificationPermissionTick,
         @ApplicationScope private val appScope: CoroutineScope,
     ) {
-        private val permissionTick = MutableStateFlow(0)
-
         fun start() {
             appScope.launch(Dispatchers.Main) {
                 ProcessLifecycleOwner.get().lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     combine(
                         sessionRepository.observeActiveSession().map { it != null }.distinctUntilChanged(),
-                        permissionTick,
+                        permissionTick.ticks,
                     ) { active, _ -> active }
                         .collect { active ->
                             if (!active) {
@@ -60,10 +57,5 @@ class SessionNotificationCoordinator
                         }
                 }
             }
-        }
-
-        /** Called after the permission prompt resolves so a mid-session grant takes effect immediately. */
-        fun onNotificationPermissionMaybeChanged() {
-            permissionTick.update { it + 1 }
         }
     }

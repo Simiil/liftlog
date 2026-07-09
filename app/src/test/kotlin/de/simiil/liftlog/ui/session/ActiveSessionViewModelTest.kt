@@ -13,6 +13,7 @@ import de.simiil.liftlog.domain.model.SessionExercise
 import de.simiil.liftlog.domain.model.SessionExerciseWithSets
 import de.simiil.liftlog.domain.model.SessionWithDetails
 import de.simiil.liftlog.domain.model.WeightUnit
+import de.simiil.liftlog.notification.NotificationPermissionTick
 import de.simiil.liftlog.testing.FakeExerciseRepository
 import de.simiil.liftlog.testing.FakeSessionRepository
 import de.simiil.liftlog.testing.FakeSettingsRepository
@@ -23,6 +24,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -126,6 +128,7 @@ class ActiveSessionViewModelTest {
         exercises: FakeExerciseRepository,
         settings: FakeSettingsRepository = FakeSettingsRepository(initialWeightUnit = WeightUnit.KG),
         tracker: ActiveEntryTracker = ActiveEntryTracker(),
+        permissionTick: NotificationPermissionTick = NotificationPermissionTick(),
     ): ActiveSessionViewModel =
         ActiveSessionViewModel(
             sessionRepository = session,
@@ -134,6 +137,7 @@ class ActiveSessionViewModelTest {
             savedStateHandle = SavedStateHandle(mapOf("sessionId" to "s1")),
             names = names,
             tracker = tracker,
+            permissionTick = permissionTick,
         )
 
     // ---- Tests ----
@@ -654,5 +658,37 @@ class ActiveSessionViewModelTest {
             advanceUntilIdle()
 
             assertNull(tracker.state.value)
+        }
+
+    // ---- Notification permission prompt (issue #36) ----
+
+    @Test
+    fun `notification prompt opportunity is granted exactly once ever`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = singleExerciseSetup(sessionRepo)
+            val settings = FakeSettingsRepository(initialWeightUnit = WeightUnit.KG)
+
+            val vm = createVm(sessionRepo, exerciseRepo, settings = settings)
+            assertTrue(vm.consumeNotificationPromptOpportunity())
+            assertFalse(vm.consumeNotificationPromptOpportunity())
+
+            // A later session (new ViewModel, same persisted settings) must not re-prompt.
+            val vm2 = createVm(sessionRepo, exerciseRepo, settings = settings)
+            assertFalse(vm2.consumeNotificationPromptOpportunity())
+        }
+
+    @Test
+    fun `permission result bumps the coordinator tick`() =
+        runTest {
+            val sessionRepo = FakeSessionRepository()
+            val exerciseRepo = singleExerciseSetup(sessionRepo)
+            val tick = NotificationPermissionTick()
+
+            val vm = createVm(sessionRepo, exerciseRepo, permissionTick = tick)
+            val before = tick.ticks.value
+            vm.onNotificationPermissionResult()
+
+            assertEquals(before + 1, tick.ticks.value)
         }
 }

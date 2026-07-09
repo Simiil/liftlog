@@ -13,6 +13,7 @@ import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.TrainedExercise
 import de.simiil.liftlog.domain.repository.WeekSummary
 import de.simiil.liftlog.testing.MainDispatcherRule
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -87,6 +88,10 @@ class ExerciseDetailViewModelTest {
         override suspend fun setThemePreference(preference: de.simiil.liftlog.domain.model.ThemePreference) {}
 
         override suspend fun setWeightUnit(unit: WeightUnit) {}
+
+        override val notificationPromptShown: Flow<Boolean> = flowOf(false)
+
+        override suspend fun setNotificationPromptShown() {}
     }
 
     @Test fun weightedExercise_offersWeightMetrics_volumeFirst() =

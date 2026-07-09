@@ -12,9 +12,11 @@ class FakeSettingsRepository(
 ) : SettingsRepository {
     private val theme = MutableStateFlow(initial)
     private val weightUnitState = MutableStateFlow(initialWeightUnit)
+    private val notificationPromptShownState = MutableStateFlow(false)
 
     override val themePreference: Flow<ThemePreference> = theme
     override val weightUnit: Flow<WeightUnit> = weightUnitState
+    override val notificationPromptShown: Flow<Boolean> = notificationPromptShownState
 
     override suspend fun setThemePreference(preference: ThemePreference) {
         theme.value = preference
@@ -22,5 +24,9 @@ class FakeSettingsRepository(
 
     override suspend fun setWeightUnit(unit: WeightUnit) {
         weightUnitState.value = unit
+    }
+
+    override suspend fun setNotificationPromptShown() {
+        notificationPromptShownState.value = true
     }
 }
