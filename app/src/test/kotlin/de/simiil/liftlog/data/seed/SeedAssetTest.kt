@@ -12,9 +12,11 @@ import java.io.File
 class SeedAssetTest {
     private val seed =
         Json { ignoreUnknownKeys = true }
-            .decodeFromString<SeedFile>(File("src/main/assets/seed/exercises.v1.json").readText())
+            .decodeFromString<SeedFile>(
+                File("src/main/assets/seed/exercises.v${ExerciseSeeder.SEED_VERSION}.json").readText(),
+            )
 
-    @Test fun hasExactlyExpectedCount() = assertEquals(69, seed.exercises.size)
+    @Test fun hasExactlyExpectedCount() = assertEquals(331, seed.exercises.size)
 
     @Test fun seedVersionMatchesSeederConstant() = assertEquals(ExerciseSeeder.SEED_VERSION, seed.seedVersion)
 

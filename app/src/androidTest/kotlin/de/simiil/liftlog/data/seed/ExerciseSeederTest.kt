@@ -48,7 +48,7 @@ class ExerciseSeederTest {
     @Test fun seed_insertsAllBuiltIns() =
         runTest {
             seederAt(1_000).seed()
-            assertEquals(69, db.exerciseDao().countLive())
+            assertEquals(331, db.exerciseDao().countLive())
             db.exerciseDao().observeAll().test {
                 val items = awaitItem()
                 assertTrue("all rows should be isBuiltIn", items.all { it.isBuiltIn })
@@ -60,7 +60,7 @@ class ExerciseSeederTest {
         runTest {
             seederAt(1_000).seed()
             seederAt(2_000).seed()
-            assertEquals(69, db.exerciseDao().countLive())
+            assertEquals(331, db.exerciseDao().countLive())
         }
 
     @Test fun seed_storesAppliedVersion() =

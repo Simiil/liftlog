@@ -86,7 +86,7 @@ class ExerciseSeeder
 
         companion object {
             /** Bump together with a new `seed/exercises.v<N>.json` asset. SeedAssetTest locks file ↔ constant. */
-            const val SEED_VERSION = 1
+            const val SEED_VERSION = 2
             private const val ASSET = "seed/exercises.v$SEED_VERSION.json"
         }
     }

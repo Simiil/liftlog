@@ -27,7 +27,7 @@ class SyntheticHistorySeeder
 
         suspend fun seed() {
             val now = clock.millis()
-            // (exerciseId from seed/exercises.v1.json, startWeight, weeklyStep, sessions, reps)
+            // (exerciseId from seed/exercises.v2.json, startWeight, weeklyStep, sessions, reps)
             val plans =
                 listOf(
                     Plan("7a0737bd-d46f-4dd1-9dad-ed3e4a83869a", 80.0, 1.6, 52, listOf(5, 5, 4)), // Barbell Bench Press

@@ -2,6 +2,7 @@ package de.simiil.liftlog.ui.exercises
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import de.simiil.liftlog.data.seed.ExerciseSeeder
 import de.simiil.liftlog.data.seed.SeedFile
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -14,7 +15,7 @@ class BuiltInExerciseNameBindingTest {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val text =
             context.assets
-                .open("seed/exercises.v1.json")
+                .open("seed/exercises.v${ExerciseSeeder.SEED_VERSION}.json")
                 .bufferedReader()
                 .use { it.readText() }
         val seed = Json { ignoreUnknownKeys = true }.decodeFromString<SeedFile>(text)
