@@ -105,6 +105,12 @@
     <string name="equipment_machine">Machine</string>
     <string name="equipment_cable">Cable</string>
     <string name="equipment_bodyweight">Bodyweight</string>
+    <string name="equipment_kettlebell">Kettlebell</string>
+    <string name="equipment_medicine_ball">Medicine ball</string>
+    <string name="equipment_foam_roller">Foam roller</string>
+    <string name="equipment_bands">Bands</string>
+    <string name="equipment_exercise_ball">Exercise ball</string>
+    <string name="equipment_other">Other</string>
 
     <!-- Active Session screen -->
     <string name="session_target_sets">target %1$d×</string>

@@ -18,6 +18,6 @@ class ConvertersTest {
 
     @Test fun unknownStrings_fallBack() {
         assertEquals(MuscleGroup.OTHER, c.toMuscleGroup("???"))
-        assertEquals(Equipment.MACHINE, c.toEquipment("???"))
+        assertEquals(Equipment.OTHER, c.toEquipment("???"))
     }
 }

@@ -34,6 +34,12 @@ fun equipmentLabel(equipment: Equipment): String =
             Equipment.MACHINE -> R.string.equipment_machine
             Equipment.CABLE -> R.string.equipment_cable
             Equipment.BODYWEIGHT -> R.string.equipment_bodyweight
+            Equipment.KETTLEBELL -> R.string.equipment_kettlebell
+            Equipment.MEDICINE_BALL -> R.string.equipment_medicine_ball
+            Equipment.FOAM_ROLLER -> R.string.equipment_foam_roller
+            Equipment.BANDS -> R.string.equipment_bands
+            Equipment.EXERCISE_BALL -> R.string.equipment_exercise_ball
+            Equipment.OTHER -> R.string.equipment_other
         },
     )
 
