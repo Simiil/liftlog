@@ -12,4 +12,6 @@ import kotlinx.serialization.Serializable
     val name: String,
     val muscleGroup: String,
     val equipment: String,
+    val force: String? = null,
+    val secondaryMuscleGroups: List<String> = emptyList(),
 )

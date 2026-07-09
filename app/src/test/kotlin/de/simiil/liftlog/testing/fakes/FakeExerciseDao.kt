@@ -18,6 +18,8 @@ class FakeExerciseDao : ExerciseDao {
 
     override suspend fun findById(id: String): ExerciseEntity? = rows[id]?.takeIf { it.deletedAt == null }
 
+    override suspend fun findByIdAny(id: String): ExerciseEntity? = rows[id]
+
     override suspend fun findLiveByName(name: String): ExerciseEntity? =
         rows.values.firstOrNull { it.deletedAt == null && it.name.equals(name, ignoreCase = true) }
 
