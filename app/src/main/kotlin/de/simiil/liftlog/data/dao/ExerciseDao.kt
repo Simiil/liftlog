@@ -19,9 +19,9 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises WHERE id = :id AND deletedAt IS NULL")
     suspend fun findById(id: String): ExerciseEntity?
 
-    /** Seeder convergence: reads THROUGH tombstones so a soft-deleted id is never re-inserted (PK conflict). */
-    @Query("SELECT * FROM exercises WHERE id = :id")
-    suspend fun findByIdAny(id: String): ExerciseEntity?
+    /** Seeder convergence: full read THROUGH tombstones (bulk — one query for the whole converge pass). */
+    @Query("SELECT * FROM exercises")
+    suspend fun findAllAny(): List<ExerciseEntity>
 
     @Query("SELECT * FROM exercises WHERE deletedAt IS NULL AND name = :name COLLATE NOCASE LIMIT 1")
     suspend fun findLiveByName(name: String): ExerciseEntity?

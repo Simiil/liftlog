@@ -13,8 +13,9 @@ import de.simiil.liftlog.data.entity.SessionExerciseEntity
 import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
 
-/** Backup-only DAO: the sole place that reads rows WITHOUT the `deletedAt IS NULL` filter
- *  (full-fidelity snapshot) and the sole place that hard-deletes (full-replace import). */
+/** Backup-only DAO: reads rows WITHOUT the `deletedAt IS NULL` filter (full-fidelity snapshot;
+ *  the seeder's converge pass also reads through tombstones) and the sole place that
+ *  hard-deletes (full-replace import). */
 @Dao
 interface BackupDao {
     @Query("SELECT * FROM exercises")
