@@ -78,8 +78,8 @@ def norm(name: str) -> str:
     return n
 
 
-v1 = json.load(open(current_seed_path()))["exercises"]
-fedb = json.load(open(FEDB))
+v1 = json.load(open(current_seed_path(), encoding="utf-8"))["exercises"]
+fedb = json.load(open(FEDB, encoding="utf-8"))
 
 fedb_by_norm = {}
 for e in fedb:
@@ -110,7 +110,7 @@ for ex in v1:
     else:
         unmatched.append(ex["name"])
 
-json.dump(mapping, open(OUT, "w"), indent=1)
+json.dump(mapping, open(OUT, "w", encoding="utf-8"), indent=1)
 
 print(f"v1 exercises: {len(v1)}")
 print(f"matched: {len(mapping)}  carryover(absent): {len(carryover)}  unmatched: {len(unmatched)}")

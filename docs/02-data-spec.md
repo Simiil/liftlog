@@ -266,7 +266,9 @@ truth — 331 exercises curated from the free-exercise-db catalog (873 entries;
 owner-reviewed relevance pass, 2026-07-09) by the pipeline in `tools/seed/`
 (judgment file, UUID mapping, and debug CSV under `~/Code/`; see
 `tools/seed/README.md`). The 69 v1 exercises kept their UUIDs, names, and
-classifications; new entries carry deterministic UUIDv5 ids.
+classifications, with one exception: Kettlebell Swing's equipment moved
+`DUMBBELL` → `KETTLEBELL` (see `EXISTING_EQUIPMENT_FIX` in
+`tools/seed/seed_common.py`). New entries carry deterministic UUIDv5 ids.
 
 | Muscle group | Count | | Equipment | Count |
 |---|---|---|---|---|

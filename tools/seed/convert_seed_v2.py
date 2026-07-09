@@ -84,7 +84,7 @@ if errors:
         print(" -", err)
     sys.exit(1)
 
-with open(OUT, "w") as f:
+with open(OUT, "w", encoding="utf-8") as f:
     json.dump({"seedVersion": SEED_VERSION, "exercises": entries}, f, indent=2, ensure_ascii=False)
     f.write("\n")
 

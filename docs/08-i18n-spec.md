@@ -57,7 +57,7 @@ a localized string resource **at render time**:
   object BuiltInExerciseNames {
       val resById: Map<String, Int> = mapOf(
           "7a0737bd-d46f-4dd1-9dad-ed3e4a83869a" to R.string.exercise_barbell_bench_press,
-          // … one entry per built-in (≈70)
+          // … one entry per built-in (331)
       )
   }
   ```
@@ -115,11 +115,13 @@ composable does not re-resolve per frame.
 A JVM unit test keeps the seed asset and the resources in lockstep — CI fails if
 they diverge:
 
-1. Every `id` in `assets/seed/exercises.v1.json` has an entry in
-   `BuiltInExerciseNames.resById`, and vice-versa.
+1. Every `id` in `assets/seed/exercises.v<N>.json` (N = `ExerciseSeeder.SEED_VERSION`)
+   has an entry in `BuiltInExerciseNames.resById`, and vice-versa.
 2. Every mapped `@StringRes` resolves (no dangling resource id).
-3. Each English `exercise_*` value **equals** the corresponding JSON `name` — so
-   the canonical DB name and the English display string can never silently drift.
+3. Each English `exercise_*` value **equals** the corresponding JSON `name` after
+   unescaping `\'` (apostrophes must be XML-escaped for AAPT; `BuiltInExerciseNamesTest`
+   unescapes before comparing) — so the canonical DB name and the English display
+   string can never silently drift.
 
 This also defends future seed additions ([02-data-spec](02-data-spec.md) §7): a
 new exercise without a mapping/translation breaks the build rather than shipping a
@@ -230,7 +232,7 @@ Mirrors the M5 three-PR pattern; each PR builds + lints + tests green on its own
    and into picker search/sort (§3.2–3.3), the drift-guard test (§3.4). Mechanism
    in place; values still English.
 3. **PR3 — German translation.** `values-de/strings.xml` for all UI strings,
-   muscle/equipment labels, and the ≈70 exercise names; localized-search UI test;
+   muscle/equipment labels, and the 331 exercise names; localized-search UI test;
    German TalkBack spot-check.
 
 ## 9. Sequencing & exit criteria
@@ -244,7 +246,7 @@ recorded here so it isn't relitigated.
 
 - App renders fully in German when the device/per-app language is German; no
   hardcoded UI text remains (lint `HardcodedText` clean).
-- All ≈69 built-in exercises display localized names; custom exercises render
+- All 331 built-in exercises display localized names; custom exercises render
   verbatim; the seed↔resource drift test is green.
 - Picker search and sort operate on localized names (UI test green).
 - Weights, volume, and RPE format with the locale decimal separator; numpad entry

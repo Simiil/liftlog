@@ -11,7 +11,6 @@ Idempotent; re-run after any seed or translation change. Never edit the outputs 
 import json
 import os
 import re
-import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -38,19 +37,19 @@ def xml_value(v):
 
 
 def replace_block(path, new_lines):
-    text = open(path).read()
+    text = open(path, encoding="utf-8").read()
     pat = re.compile(r'[ \t]*<string name="exercise_[a-z0-9_]+">.*</string>\n')
     ms = list(pat.finditer(text))
     assert ms, f"no exercise_* strings found in {path}"
     start, end = ms[0].start(), ms[-1].end()
     inner = text[start:end]
     assert inner.count("\n") == len(ms), f"exercise_* block not contiguous in {path}"
-    open(path, "w").write(text[:start] + "".join(new_lines) + text[end:])
+    open(path, "w", encoding="utf-8").write(text[:start] + "".join(new_lines) + text[end:])
 
 
 seed_path = find_seed()
-seed = json.load(open(seed_path))["exercises"]
-de_names = json.load(open(NAMES_DE))
+seed = json.load(open(seed_path, encoding="utf-8"))["exercises"]
+de_names = json.load(open(NAMES_DE, encoding="utf-8"))
 
 missing_de = [e["name"] for e in seed if e["name"] not in de_names]
 assert not missing_de, f"names-de.json missing {len(missing_de)} names: {missing_de[:5]}..."
@@ -79,6 +78,6 @@ kt = [
 ]
 kt += [f'            "{e["id"]}" to R.string.{s},\n' for s, e in zip(slugs, seed)]
 kt += ["        )\n", "}\n"]
-open(KT, "w").write("".join(kt))
+open(KT, "w", encoding="utf-8").write("".join(kt))
 
 print(f"generated from {os.path.basename(seed_path)}: {len(seed)} entries -> EN block, DE block, BuiltInExerciseNames.kt")

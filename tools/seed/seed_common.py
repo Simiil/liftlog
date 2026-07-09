@@ -70,8 +70,8 @@ def map_secondaries(entry, primary_mapped):
 def load_all():
     """Returns (fedb, judged, id_map, curated) where `curated` is the CURRENT seed asset's
     exercises — the source of shipped names/classifications that reruns must preserve."""
-    fedb = json.load(open(FEDB))
-    judged = json.load(open(JUDGED))
-    id_map = json.load(open(ID_MAP))
-    curated = json.load(open(current_seed_path()))["exercises"]
+    fedb = json.load(open(FEDB, encoding="utf-8"))
+    judged = json.load(open(JUDGED, encoding="utf-8"))
+    id_map = json.load(open(ID_MAP, encoding="utf-8"))
+    curated = json.load(open(current_seed_path(), encoding="utf-8"))["exercises"]
     return fedb, judged, id_map, curated
