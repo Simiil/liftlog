@@ -229,7 +229,7 @@ class ActiveSessionViewModel
                         sessionExerciseId = se.id,
                         exerciseId = se.exerciseId,
                         name = exercise?.let { names.displayName(it.id, it.name) }.orEmpty(),
-                        equipment = exercise?.equipment ?: Equipment.MACHINE,
+                        equipment = exercise?.equipment ?: Equipment.OTHER,
                         targetSets = se.targetSets,
                         targetRepsMin = se.targetRepsMin,
                         targetRepsMax = se.targetRepsMax,

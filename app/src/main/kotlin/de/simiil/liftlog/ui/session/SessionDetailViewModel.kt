@@ -75,7 +75,7 @@ class SessionDetailViewModel
                         DetailExerciseUi(
                             sessionExerciseId = ews.sessionExercise.id,
                             name = exercise?.let { names.displayName(it.id, it.name) }.orEmpty(),
-                            equipment = exercise?.equipment ?: Equipment.MACHINE,
+                            equipment = exercise?.equipment ?: Equipment.OTHER,
                             muscleGroup = exercise?.muscleGroup ?: MuscleGroup.OTHER,
                             sets = ews.sets,
                         )

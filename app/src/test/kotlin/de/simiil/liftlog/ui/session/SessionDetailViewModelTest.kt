@@ -194,7 +194,7 @@ class SessionDetailViewModelTest {
                 assertFalse(state.loading)
                 val exerciseUi = state.exercises.first()
                 assertEquals("", exerciseUi.name)
-                assertEquals(Equipment.MACHINE, exerciseUi.equipment)
+                assertEquals(Equipment.OTHER, exerciseUi.equipment)
                 cancelAndIgnoreRemainingEvents()
             }
         }
