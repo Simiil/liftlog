@@ -38,6 +38,10 @@ import kotlinx.serialization.Serializable
     val exerciseId: String,
 )
 
+/** Deep-link base for [ActiveSessionRoute] (`liftlog://session/{sessionId}`) — internal-only,
+ *  used by the session notification's content PendingIntent; no manifest intent-filter. */
+const val SESSION_DEEP_LINK_BASE = "liftlog://session"
+
 /** savedStateHandle key the Exercise Picker writes its single selected exercise id to,
  *  read by the caller (e.g. Active Session) after popBackStack. */
 const val PICKED_EXERCISE_ID = "picked_exercise_id"

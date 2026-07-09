@@ -5,6 +5,7 @@ import dagger.hilt.android.HiltAndroidApp
 import de.simiil.liftlog.data.seed.ExerciseSeeder
 import de.simiil.liftlog.di.ApplicationScope
 import de.simiil.liftlog.domain.plan.DefaultPlanEnsurer
+import de.simiil.liftlog.notification.SessionNotificationCoordinator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,6 +16,8 @@ class LiftLogApplication : Application() {
 
     @Inject lateinit var defaultPlanEnsurer: DefaultPlanEnsurer
 
+    @Inject lateinit var sessionNotificationCoordinator: SessionNotificationCoordinator
+
     @Inject @ApplicationScope
     lateinit var appScope: CoroutineScope
 
@@ -24,5 +27,6 @@ class LiftLogApplication : Application() {
             seeder.seed()
             defaultPlanEnsurer.ensure()
         }
+        sessionNotificationCoordinator.start()
     }
 }

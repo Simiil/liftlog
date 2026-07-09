@@ -65,6 +65,7 @@
 - Analytics (M4) after Plans (M3) only because M3 is small and unblocks full dogfooding; M4 doesn't depend on M3 and could swap if priorities change.
 - M6 (i18n) after M5: its locale-correctness fixes are invisible in English, so they don't block the M5 release. M5 ships English-only v1; whether the public release tag waits for M6 (bilingual launch) is an owner decision ([08-i18n-spec](08-i18n-spec.md) §9).
 - Each milestone = one reviewable PR series; review gate at every exit ([HANDOFF.md](../HANDOFF.md) §8).
+- If the app is ever published to Google Play (targetSdk 34+): the session notification's foreground service uses type `specialUse` (issue #36), which requires a special-use FGS declaration (plus demo video) in the Play Console at submission.
 
 ## Post-v1 candidates (explicitly out of scope, recorded so they're not re-litigated)
 

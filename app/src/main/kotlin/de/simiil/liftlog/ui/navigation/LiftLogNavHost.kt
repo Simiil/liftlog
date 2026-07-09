@@ -7,6 +7,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import de.simiil.liftlog.ui.analytics.AnalyticsScreen
 import de.simiil.liftlog.ui.analytics.ExerciseDetailScreen
@@ -53,7 +54,10 @@ fun LiftLogNavHost(
         composable<SettingsRoute> {
             SettingsScreen(onBack = { navController.popBackStack() })
         }
-        composable<ActiveSessionRoute> { entry ->
+        composable<ActiveSessionRoute>(
+            // Internal-only (no intent-filter): the session notification's content intent (#36).
+            deepLinks = listOf(navDeepLink<ActiveSessionRoute>(basePath = SESSION_DEEP_LINK_BASE)),
+        ) { entry ->
             val pickedId by entry.savedStateHandle
                 .getStateFlow<String?>(PICKED_EXERCISE_ID, null)
                 .collectAsStateWithLifecycle()
