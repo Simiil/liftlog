@@ -73,4 +73,27 @@ class MigrationTest {
             assertEquals("session note", c.getString(1))
         }
     }
+
+    @Test
+    fun migrate2To3_addsClassificationColumns_andSeedStateTable() {
+        helper.createDatabase("migration-test-v3", 2).apply {
+            execSQL(
+                "INSERT INTO exercises (id, name, muscleGroup, equipment, isBuiltIn, isHidden, createdAt, updatedAt, deletedAt) " +
+                    "VALUES ('ex1', 'Bench', 'CHEST', 'BARBELL', 1, 0, 1000, 1000, NULL)",
+            )
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate("migration-test-v3", 3, true, MIGRATION_2_3)
+
+        db.query("SELECT force, secondaryMuscleGroups FROM exercises WHERE id = 'ex1'").use { c ->
+            assertTrue(c.moveToFirst())
+            assertTrue("existing rows get NULL force", c.isNull(0))
+            assertEquals("existing rows get empty secondaries", "[]", c.getString(1))
+        }
+        db.query("SELECT COUNT(*) FROM seed_state").use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("seed_state starts empty so the seeder re-converges", 0, c.getInt(0))
+        }
+    }
 }

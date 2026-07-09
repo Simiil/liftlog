@@ -12,4 +12,6 @@ data class Exercise(
     val createdAt: Instant,
     val updatedAt: Instant,
     val deletedAt: Instant?,
+    val force: Force? = null,
+    val secondaryMuscleGroups: List<MuscleGroup> = emptyList(),
 )

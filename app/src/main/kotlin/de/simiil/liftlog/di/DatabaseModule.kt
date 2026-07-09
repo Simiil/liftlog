@@ -14,10 +14,12 @@ import de.simiil.liftlog.data.dao.BackupDao
 import de.simiil.liftlog.data.dao.ExerciseDao
 import de.simiil.liftlog.data.dao.PlanDao
 import de.simiil.liftlog.data.dao.PrefillDao
+import de.simiil.liftlog.data.dao.SeedStateDao
 import de.simiil.liftlog.data.dao.SessionDao
 import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.DB_SCHEMA_VERSION
 import de.simiil.liftlog.data.db.MIGRATION_1_2
+import de.simiil.liftlog.data.db.MIGRATION_2_3
 import de.simiil.liftlog.data.db.RoomTransactor
 import de.simiil.liftlog.data.db.Transactor
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +38,7 @@ object DatabaseModule {
     ): AppDatabase =
         Room
             .databaseBuilder(context, AppDatabase::class.java, "liftlog.db")
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
 
     @Provides fun provideExerciseDao(db: AppDatabase): ExerciseDao = db.exerciseDao()
@@ -50,6 +52,8 @@ object DatabaseModule {
     @Provides fun providePrefillDao(db: AppDatabase): PrefillDao = db.prefillDao()
 
     @Provides fun provideBackupDao(db: AppDatabase): BackupDao = db.backupDao()
+
+    @Provides fun provideSeedStateDao(db: AppDatabase): SeedStateDao = db.seedStateDao()
 
     @Provides @Singleton
     fun provideAppInfo(): AppInfo = AppInfo(name = "LiftLog", versionName = BuildConfig.VERSION_NAME, dbSchemaVersion = DB_SCHEMA_VERSION)

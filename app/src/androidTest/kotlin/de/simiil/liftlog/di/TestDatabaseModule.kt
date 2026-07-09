@@ -13,6 +13,7 @@ import de.simiil.liftlog.data.dao.BackupDao
 import de.simiil.liftlog.data.dao.ExerciseDao
 import de.simiil.liftlog.data.dao.PlanDao
 import de.simiil.liftlog.data.dao.PrefillDao
+import de.simiil.liftlog.data.dao.SeedStateDao
 import de.simiil.liftlog.data.dao.SessionDao
 import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.DB_SCHEMA_VERSION
@@ -45,6 +46,8 @@ object TestDatabaseModule {
     @Provides fun providePrefillDao(db: AppDatabase): PrefillDao = db.prefillDao()
 
     @Provides fun provideBackupDao(db: AppDatabase): BackupDao = db.backupDao()
+
+    @Provides fun provideSeedStateDao(db: AppDatabase): SeedStateDao = db.seedStateDao()
 
     @Provides @Singleton
     fun provideAppInfo(): AppInfo = AppInfo(name = "LiftLog", versionName = "test", dbSchemaVersion = DB_SCHEMA_VERSION)
