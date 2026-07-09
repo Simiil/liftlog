@@ -1,8 +1,10 @@
 package de.simiil.liftlog.data.db
 
 import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class ConvertersTest {
@@ -19,5 +21,34 @@ class ConvertersTest {
     @Test fun unknownStrings_fallBack() {
         assertEquals(MuscleGroup.OTHER, c.toMuscleGroup("???"))
         assertEquals(Equipment.OTHER, c.toEquipment("???"))
+    }
+
+    @Test fun force_roundTrips() {
+        Force.entries.forEach { assertEquals(it, c.toForce(c.fromForce(it))) }
+        assertNull(c.toForce(c.fromForce(null)))
+    }
+
+    @Test fun muscleGroupList_roundTrips() {
+        val lists =
+            listOf(
+                emptyList(),
+                listOf(MuscleGroup.BACK),
+                listOf(MuscleGroup.BACK, MuscleGroup.BICEPS, MuscleGroup.FOREARMS),
+            )
+        lists.forEach { assertEquals(it, c.toMuscleGroupList(c.fromMuscleGroupList(it))) }
+    }
+
+    @Test fun muscleGroupList_emptyEncodesAsEmptyJsonArray() {
+        // The v2→v3 migration backfills existing rows with '[]' — lock the encoding.
+        assertEquals("[]", c.fromMuscleGroupList(emptyList()))
+    }
+
+    @Test fun muscleGroupList_unknownNameFallsBackToOther() {
+        assertEquals(listOf(MuscleGroup.OTHER), c.toMuscleGroupList("""["WINGS"]"""))
+    }
+
+    @Test fun muscleGroupList_malformedCellDegradesToEmpty() {
+        assertEquals(emptyList<MuscleGroup>(), c.toMuscleGroupList("not json"))
+        assertEquals(emptyList<MuscleGroup>(), c.toMuscleGroupList(""))
     }
 }
