@@ -13,8 +13,8 @@ class EnumFallbackTest {
 
     @Test fun equipment_knownValue_parses() = assertEquals(Equipment.BARBELL, Equipment.fromStorageValue("BARBELL"))
 
-    @Test fun equipment_unknownOrNull_fallsBackToMachine() {
-        assertEquals(Equipment.MACHINE, Equipment.fromStorageValue("RESISTANCE_BAND"))
-        assertEquals(Equipment.MACHINE, Equipment.fromStorageValue(null))
+    @Test fun equipment_unknownOrNull_fallsBackToOther() {
+        assertEquals(Equipment.OTHER, Equipment.fromStorageValue("RESISTANCE_BAND"))
+        assertEquals(Equipment.OTHER, Equipment.fromStorageValue(null))
     }
 }
