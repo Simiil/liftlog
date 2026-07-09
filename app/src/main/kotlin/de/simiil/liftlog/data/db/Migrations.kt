@@ -31,3 +31,19 @@ val MIGRATION_1_2 =
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_logged_sets_sessionExerciseId` ON `logged_sets` (`sessionExerciseId`)")
         }
     }
+
+/**
+ * v2 → v3 (issue #37): exercise classification extension + seeder version gate.
+ * - exercises gains nullable `force` and NOT NULL `secondaryMuscleGroups` (JSON array, default `[]`)
+ * - new single-row `seed_state` table (created empty → the next seeder run converges and stamps it)
+ */
+val MIGRATION_2_3 =
+    object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE exercises ADD COLUMN force TEXT")
+            db.execSQL("ALTER TABLE exercises ADD COLUMN secondaryMuscleGroups TEXT NOT NULL DEFAULT '[]'")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `seed_state` (`id` INTEGER NOT NULL, `appliedSeedVersion` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+            )
+        }
+    }

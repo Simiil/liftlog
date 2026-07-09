@@ -4,6 +4,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.cash.turbine.test
 import de.simiil.liftlog.data.db.AppDatabase
+import de.simiil.liftlog.data.db.RoomTransactor
+import de.simiil.liftlog.data.entity.SeedStateEntity
+import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.testing.newInMemoryDb
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -11,33 +15,39 @@ import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 @RunWith(AndroidJUnit4::class)
 class ExerciseSeederTest {
     private lateinit var db: AppDatabase
-    private lateinit var seeder: ExerciseSeeder
 
     @Before fun setUp() {
         db = newInMemoryDb()
-        seeder =
-            ExerciseSeeder(
-                context = InstrumentationRegistry.getInstrumentation().targetContext,
-                dao = db.exerciseDao(),
-                clock = Clock.systemUTC(),
-                json = Json { ignoreUnknownKeys = true },
-            )
     }
 
     @After fun tearDown() = db.close()
 
+    /** Fixed clocks so updatedAt assertions can't race the wall clock. */
+    private fun seederAt(millis: Long) =
+        ExerciseSeeder(
+            context = InstrumentationRegistry.getInstrumentation().targetContext,
+            dao = db.exerciseDao(),
+            seedStateDao = db.seedStateDao(),
+            transactor = RoomTransactor(db),
+            clock = Clock.fixed(Instant.ofEpochMilli(millis), ZoneOffset.UTC),
+            json = Json { ignoreUnknownKeys = true },
+        )
+
     @Test fun seed_insertsAllBuiltIns() =
         runTest {
-            seeder.seed()
+            seederAt(1_000).seed()
             assertEquals(69, db.exerciseDao().countLive())
             db.exerciseDao().observeAll().test {
                 val items = awaitItem()
@@ -48,21 +58,79 @@ class ExerciseSeederTest {
 
     @Test fun seed_isIdempotent() =
         runTest {
-            seeder.seed()
-            seeder.seed()
+            seederAt(1_000).seed()
+            seederAt(2_000).seed()
             assertEquals(69, db.exerciseDao().countLive())
         }
 
-    @Test fun seed_doesNotOverwriteUserHidden() =
+    @Test fun seed_storesAppliedVersion() =
         runTest {
-            seeder.seed()
+            seederAt(1_000).seed()
+            assertEquals(ExerciseSeeder.SEED_VERSION, db.seedStateDao().appliedVersion())
+        }
+
+    @Test fun seed_skipsEntirelyWhenVersionCurrent() =
+        runTest {
+            seederAt(1_000).seed()
             val dao = db.exerciseDao()
-            val firstRow = dao.observeAll().first().first()
-            val hiddenId = firstRow.id
-            dao.update(firstRow.copy(isHidden = true, updatedAt = Clock.systemUTC().millis()))
-            seeder.seed()
-            val after = dao.findById(hiddenId)
+            val row = dao.observeAll().first().first()
+            // Tamper a classification field: a converge pass WOULD fix it, so it staying
+            // tampered proves the early return (asset not applied).
+            dao.update(row.copy(muscleGroup = MuscleGroup.OTHER, updatedAt = 1_500L))
+            seederAt(2_000).seed()
+            assertEquals(MuscleGroup.OTHER, dao.findById(row.id)!!.muscleGroup)
+        }
+
+    @Test fun seed_skipsOnDowngrade() =
+        runTest {
+            db.seedStateDao().upsert(SeedStateEntity(appliedSeedVersion = 999))
+            seederAt(1_000).seed()
+            assertEquals(0, db.exerciseDao().countLive())
+        }
+
+    @Test fun seed_convergesChangedClassification_preservingUserState() =
+        runTest {
+            seederAt(1_000).seed()
+            val dao = db.exerciseDao()
+            val original = dao.observeAll().first().first()
+            dao.update(
+                original.copy(
+                    muscleGroup = MuscleGroup.OTHER,
+                    equipment = Equipment.OTHER,
+                    isHidden = true,
+                    updatedAt = 1_500L,
+                ),
+            )
+            db.seedStateDao().upsert(SeedStateEntity(appliedSeedVersion = 0)) // simulate a newer seed file
+            seederAt(2_000).seed()
+            val after = dao.findById(original.id)
             assertNotNull(after)
-            assertTrue("isHidden should still be true after re-seed", after!!.isHidden)
+            assertEquals("classification restored from seed", original.muscleGroup, after!!.muscleGroup)
+            assertEquals("classification restored from seed", original.equipment, after.equipment)
+            assertTrue("user isHidden preserved", after.isHidden)
+            assertEquals("createdAt preserved", original.createdAt, after.createdAt)
+            assertEquals("updatedAt bumped on real change", 2_000L, after.updatedAt)
+            assertEquals(ExerciseSeeder.SEED_VERSION, db.seedStateDao().appliedVersion())
+        }
+
+    @Test fun seed_noDiff_doesNotBumpUpdatedAt() =
+        runTest {
+            seederAt(1_000).seed()
+            db.seedStateDao().upsert(SeedStateEntity(appliedSeedVersion = 0)) // force a converge pass
+            seederAt(2_000).seed()
+            val rows = db.exerciseDao().observeAll().first()
+            assertTrue("unchanged rows keep their updatedAt", rows.all { it.updatedAt == 1_000L })
+        }
+
+    @Test fun seed_neverResurrectsTombstones() =
+        runTest {
+            // Built-ins aren't deletable via the UI; the seeder still honors tombstones defensively.
+            seederAt(1_000).seed()
+            val dao = db.exerciseDao()
+            val row = dao.observeAll().first().first()
+            dao.update(row.copy(deletedAt = 5_000L))
+            db.seedStateDao().upsert(SeedStateEntity(appliedSeedVersion = 0))
+            seederAt(2_000).seed()
+            assertNull("tombstone must survive re-seed", dao.findById(row.id))
         }
 }

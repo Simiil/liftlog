@@ -29,28 +29,32 @@ private fun Instant?.toMillisOrNull(): Long? = this?.toEpochMilli()
 
 fun ExerciseEntity.toDomain() =
     Exercise(
-        id,
-        name,
-        muscleGroup,
-        equipment,
-        isBuiltIn,
-        isHidden,
-        createdAt.toInstant(),
-        updatedAt.toInstant(),
-        deletedAt.toInstantOrNull(),
+        id = id,
+        name = name,
+        muscleGroup = muscleGroup,
+        equipment = equipment,
+        isBuiltIn = isBuiltIn,
+        isHidden = isHidden,
+        createdAt = createdAt.toInstant(),
+        updatedAt = updatedAt.toInstant(),
+        deletedAt = deletedAt.toInstantOrNull(),
+        force = force,
+        secondaryMuscleGroups = secondaryMuscleGroups,
     )
 
 fun Exercise.toEntity() =
     ExerciseEntity(
-        id,
-        name,
-        muscleGroup,
-        equipment,
-        isBuiltIn,
-        isHidden,
-        createdAt.toMillis(),
-        updatedAt.toMillis(),
-        deletedAt.toMillisOrNull(),
+        id = id,
+        name = name,
+        muscleGroup = muscleGroup,
+        equipment = equipment,
+        isBuiltIn = isBuiltIn,
+        isHidden = isHidden,
+        createdAt = createdAt.toMillis(),
+        updatedAt = updatedAt.toMillis(),
+        deletedAt = deletedAt.toMillisOrNull(),
+        force = force,
+        secondaryMuscleGroups = secondaryMuscleGroups,
     )
 
 fun WorkoutPlanEntity.toDomain() =

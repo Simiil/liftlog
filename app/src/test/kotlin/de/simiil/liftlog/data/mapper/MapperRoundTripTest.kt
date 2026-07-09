@@ -3,6 +3,7 @@ package de.simiil.liftlog.data.mapper
 import de.simiil.liftlog.data.entity.ExerciseEntity
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -20,6 +21,24 @@ class MapperRoundTripTest {
                 createdAt = 1_000,
                 updatedAt = 2_000,
                 deletedAt = null,
+            )
+        assertEquals(e, e.toDomain().toEntity())
+    }
+
+    @Test fun exercise_withForceAndSecondaries_roundTrips() {
+        val e =
+            ExerciseEntity(
+                "id2",
+                "Push-up",
+                MuscleGroup.CHEST,
+                Equipment.BODYWEIGHT,
+                isBuiltIn = true,
+                isHidden = false,
+                createdAt = 1_000,
+                updatedAt = 2_000,
+                deletedAt = null,
+                force = Force.PUSH,
+                secondaryMuscleGroups = listOf(MuscleGroup.TRICEPS, MuscleGroup.SHOULDERS),
             )
         assertEquals(e, e.toDomain().toEntity())
     }

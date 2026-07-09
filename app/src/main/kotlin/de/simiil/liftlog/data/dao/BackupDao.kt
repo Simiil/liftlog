@@ -58,6 +58,10 @@ interface BackupDao {
     @Query("DELETE FROM exercises")
     suspend fun deleteAllExercises()
 
+    /** Restore clears the applied seed version so the post-import reseed re-converges built-ins. */
+    @Query("DELETE FROM seed_state")
+    suspend fun deleteSeedState()
+
     @Query("DELETE FROM workout_plans")
     suspend fun deleteAllWorkoutPlans()
 
@@ -86,6 +90,7 @@ interface BackupDao {
         deleteAllPlanDayTemplates()
         deleteAllWorkoutPlans()
         deleteAllExercises()
+        deleteSeedState()
         insertExercises(s.exercises)
         insertWorkoutPlans(s.workoutPlans)
         insertPlanDayTemplates(s.planDayTemplates)

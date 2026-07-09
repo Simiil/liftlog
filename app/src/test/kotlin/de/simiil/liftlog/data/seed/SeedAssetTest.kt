@@ -1,6 +1,7 @@
 package de.simiil.liftlog.data.seed
 
 import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -15,7 +16,23 @@ class SeedAssetTest {
 
     @Test fun hasExactlyExpectedCount() = assertEquals(69, seed.exercises.size)
 
-    @Test fun seedVersionIsOne() = assertEquals(1, seed.seedVersion)
+    @Test fun seedVersionMatchesSeederConstant() = assertEquals(ExerciseSeeder.SEED_VERSION, seed.seedVersion)
+
+    @Test fun forceValuesAreRecognizedWhenPresent() {
+        seed.exercises.mapNotNull { it.force }.forEach { f ->
+            assertTrue("bad force $f", Force.entries.any { it.name == f })
+        }
+    }
+
+    @Test fun secondaryMusclesAreValidDedupedAndExcludePrimary() {
+        seed.exercises.forEach { e ->
+            assertEquals("duplicate secondaries in ${e.name}", e.secondaryMuscleGroups.size, e.secondaryMuscleGroups.toSet().size)
+            e.secondaryMuscleGroups.forEach { m ->
+                assertTrue("bad secondary $m in ${e.name}", MuscleGroup.entries.any { it.name == m })
+            }
+            assertTrue("primary listed as secondary in ${e.name}", e.muscleGroup !in e.secondaryMuscleGroups)
+        }
+    }
 
     @Test fun idsAreUniqueValidUuids() {
         val ids = seed.exercises.map { it.id }

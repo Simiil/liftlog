@@ -1,8 +1,10 @@
 package de.simiil.liftlog.data.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
 
 @Entity(tableName = "exercises")
@@ -16,4 +18,7 @@ data class ExerciseEntity(
     val createdAt: Long,
     val updatedAt: Long,
     val deletedAt: Long?,
+    val force: Force? = null,
+    @ColumnInfo(defaultValue = "[]")
+    val secondaryMuscleGroups: List<MuscleGroup> = emptyList(),
 )

@@ -45,10 +45,18 @@ Tombstones are never purged in v1. Settings are **not** an entity (DataStore, §
 | id | TEXT PK | Built-ins ship with **fixed** UUIDs (Appendix A / seed JSON) |
 | name | TEXT | Unique among live rows (case-insensitive), enforced in repository |
 | muscleGroup | TEXT | Enum: `CHEST BACK SHOULDERS BICEPS TRICEPS QUADS HAMSTRINGS GLUTES CALVES ABS FOREARMS OTHER` |
-| equipment | TEXT | Enum: `BARBELL DUMBBELL MACHINE CABLE BODYWEIGHT` |
+| equipment | TEXT | Enum: `BARBELL DUMBBELL MACHINE CABLE BODYWEIGHT KETTLEBELL MEDICINE_BALL FOAM_ROLLER BANDS EXERCISE_BALL OTHER` |
+| force | TEXT? | Enum: `PUSH PULL STATIC`; `NULL` = unclassified (custom exercises, stretches) |
+| secondaryMuscleGroups | TEXT | JSON string array of `muscleGroup` enum names (e.g. `["BACK","BICEPS"]`), `[]` = none; excludes the primary, no duplicates |
 | isBuiltIn | INTEGER (bool) | Built-ins: not editable, not deletable — only hidable |
 | isHidden | INTEGER (bool) | Hides from pickers; history/analytics unaffected |
 | createdAt / updatedAt / deletedAt | INTEGER / INTEGER / INTEGER? | §2 |
+
+### `seed_state`
+| Column | Type | Notes |
+|---|---|---|
+| id | INTEGER PK | Always `1` — single-row table |
+| appliedSeedVersion | INTEGER | Seed version last converged into `exercises` (§7). Local derived state: **not** exported/imported; cleared by import so restores re-converge |
 
 ### `workout_plans`
 | Column | Type | Notes |
@@ -200,14 +208,15 @@ One JSON file, UTF-8, default name `liftlog-backup-YYYY-MM-DD.json`, written via
 
 ```json
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "exportedAt": "2026-06-11T10:00:00Z",
-  "app": { "name": "LiftLog", "versionName": "1.0.0", "dbSchemaVersion": 2 },
+  "app": { "name": "LiftLog", "versionName": "1.0.0", "dbSchemaVersion": 3 },
   "settings": { "weightUnit": "KG", "theme": "SYSTEM" },
   "data": {
     "exercises": [
       { "id": "6f1c9e9a-…", "name": "Barbell Bench Press", "muscleGroup": "CHEST",
-        "equipment": "BARBELL", "isBuiltIn": true, "isHidden": false,
+        "equipment": "BARBELL", "force": "PUSH", "secondaryMuscleGroups": ["TRICEPS","SHOULDERS"],
+        "isBuiltIn": true, "isHidden": false,
         "createdAt": "2026-06-01T09:00:00Z", "updatedAt": "2026-06-01T09:00:00Z",
         "deletedAt": null }
     ],
@@ -236,16 +245,18 @@ Rules:
 
 - **Full fidelity**: includes tombstones (`deletedAt != null`) and hidden exercises — an import restores the exact state.
 - Timestamps are ISO-8601 UTC strings in the file (human-readable), epoch millis in the DB.
-- **Format versioning**: `formatVersion` bumps only on breaking changes. Current version: **2** (since 2026-06-11 spec; `MIGRATION_1_2`). The importer accepts `formatVersion <= current`; a `Newer(version)` check refuses files from a newer app with a clear message ("backup was created by a newer app version").
+- **Format versioning**: `formatVersion` bumps only on breaking changes. Current version: **3** (since 2026-07-09, issue #37; adds exercise `force` + `secondaryMuscleGroups`). The importer accepts `formatVersion <= current`; a `Newer(version)` check refuses files from a newer app with a clear message ("backup was created by a newer app version").
+- **v1/v2 → v3 import compat**: `ExerciseDto.force` (string enum name or `null`) and `ExerciseDto.secondaryMuscleGroups` (string array) default to `null`/`[]` when absent, so older files import cleanly. Unlike `muscleGroup`/`equipment` (identity fields, strict `UNKNOWN_ENUM` rejection), the two new classification fields import **leniently**: unknown `force` → `null`, unknown secondary names → `OTHER`.
 - **v1 → v2 import compat**: v1 files (`formatVersion: 1`) import cleanly — the codec sets `ignoreUnknownKeys = true`, so stale per-set `rpe`/`note` fields on `loggedSets` entries are silently dropped. Imported sessions receive `rpe = null` (the `SessionDto.rpe` field defaults to `null`). This drops any per-set RPE/note data by design; the user is not warned (the v2 UI no longer surfaces per-set RPE/note; old values are discarded by MIGRATION_1_2 by design).
 - **Import = full replace**, single Room transaction: validate file → show summary ("Replace current data with backup from 11 Jun 2026? 412 sessions, 38 exercises…") → explicit confirm → wipe + insert. No merge in v1 (merge ≈ sync engine, deliberately out of scope). An in-progress session blocks import.
 - Validation failures (malformed JSON, missing required fields, FK orphans) reject the **whole file** before any write.
 
 ## 7. Built-in exercise seeding
 
-- `data/seed/exercises.v1.json` asset: ~70 exercises (Appendix A), each with a **hardcoded fixed UUID**, name, muscleGroup, equipment.
-- Seeded on first launch in one transaction. Idempotent: insert-if-id-absent, never overwrites — safe to re-run on every app start.
-- Future library additions ship as new entries in the asset (bump `seedVersion`); existing rows are never touched, so user hides and tombstones survive app updates.
+- `assets/seed/exercises.v<N>.json` asset (N = `ExerciseSeeder.SEED_VERSION`, locked by SeedAssetTest): built-in exercises, each with a **hardcoded fixed UUID**, name, muscleGroup, equipment, optional force, optional secondaryMuscleGroups.
+- **Version-gated convergence** (since v3 / issue #37): the seeder reads the single `seed_state` row and returns immediately — without opening the asset — when `appliedSeedVersion >= SEED_VERSION`. Otherwise (fresh install, first launch after the v3 migration, or a seed bump) it converges in one transaction: inserts missing ids; updates changed classification fields (`name, muscleGroup, equipment, force, secondaryMuscleGroups`) on live built-in rows, preserving `isHidden`/`createdAt` and bumping `updatedAt` only on real change; then stamps `appliedSeedVersion = SEED_VERSION`. A crash mid-seed re-runs the idempotent converge next launch.
+- Convergence never removes or resurrects: rows absent from the seed file are left untouched (user history may hang off them), tombstoned rows stay tombstoned. App downgrades (stored version > constant) skip seeding.
+- Import clears `seed_state` inside the restore transaction and re-runs the seeder right after, so restoring an old backup cannot leave stale or missing built-ins.
 - Built-in UUIDs are stable across all installs → exports from any device reference the same built-in IDs, keeping future sync/merge sane.
 
 ## Appendix A — Built-in exercise library (v1, ~70)

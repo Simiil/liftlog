@@ -105,6 +105,12 @@
     <string name="equipment_machine">Maschine</string>
     <string name="equipment_cable">Kabelzug</string>
     <string name="equipment_bodyweight">Körpergewicht</string>
+    <string name="equipment_kettlebell">Kettlebell</string>
+    <string name="equipment_medicine_ball">Medizinball</string>
+    <string name="equipment_foam_roller">Faszienrolle</string>
+    <string name="equipment_bands">Bänder</string>
+    <string name="equipment_exercise_ball">Gymnastikball</string>
+    <string name="equipment_other">Sonstiges</string>
 
     <!-- Active Session screen -->
     <string name="session_target_sets">Ziel %1$d×</string>
