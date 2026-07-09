@@ -10,7 +10,7 @@ LiftLog is a native Android app for logging resistance training. A user records 
 
 ### Selling points (design north stars)
 
-1. **No cloud, no account. Install and go.** Fully functional the moment it's installed. No sign-up, no network calls, no onboarding wizard, no runtime permissions in v1.
+1. **No cloud, no account. Install and go.** Fully functional the moment it's installed. No sign-up, no network calls, no onboarding wizard, no runtime permissions in v1 (sole exception: the optional in-workout notification permission, issue #36).
 2. **Ultra-fast data entry that doesn't break training stride.** Logging a set mid-workout is 1–2 taps with values pre-filled from history. Big touch targets, no flow-breaking modals, state survives backgrounding and process death.
 
 Every feature below must justify itself against these two points. When in doubt, the selling points win over feature breadth.
@@ -83,4 +83,4 @@ Qualitative bar for shipping:
 1. The §5 tap math in [03-ux-spec](03-ux-spec.md) holds on a real device with a real program (1 tap to repeat a set; 3 taps cold-start → first set logged).
 2. A mid-session process kill loses zero logged sets and resumes to the active session.
 3. Export → wipe → import round-trip is lossless ([05-roadmap](05-roadmap.md) M5 exit criterion).
-4. Zero network permission in the manifest. Zero runtime permission prompts.
+4. Zero network permission in the manifest. The only runtime prompt is the optional notification permission for the in-workout notification (issue #36) — one-time, deniable, and off the logging hot path.

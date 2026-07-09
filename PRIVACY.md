@@ -1,6 +1,6 @@
 # Privacy Policy — LiftLog
 
-**Last updated: 11 June 2026**
+**Last updated: 9 July 2026**
 
 LiftLog is an offline workout tracker. **your data never
 leaves your device.** The app has no accounts, no servers, and no network
@@ -24,7 +24,10 @@ transmitted anywhere by the app.
 - **No accounts or registration.** There is nothing to sign up for.
 - **No analytics, advertising, tracking, or crash reporting.**
 - **No third-party services or SDKs** that receive your data.
-- **No permissions.** The app requests no Android permissions whatsoever.
+- **Almost no permissions.** The only permission the app can ask for is the
+  notification permission (Android 13+), used solely to show your own
+  in-progress workout in a notification on your device. It is optional — deny
+  it and everything else works exactly the same. Nothing is transmitted.
 
 ## Export files
 
