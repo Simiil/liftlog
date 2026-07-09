@@ -225,7 +225,13 @@ class BackupRoundTripTest {
             val settings = FakeSettings(WeightUnit.KG, ThemePreference.SYSTEM)
             val repo = BackupRepositoryImpl(dao, settings, clock, appInfo, defaultPlanEnsurer(), exerciseSeeder())
 
-            val json = repo.exportToJson()
+            val json = repo.exportToJson() // backup captured BEFORE seeding: no built-ins inside
+            // Seed like a real device: built-ins inserted and seed_state stamped. The restore
+            // must clear that stamp (BackupDao.deleteSeedState) or the post-import reseed would
+            // early-return and leave the built-ins missing.
+            exerciseSeeder().seed()
+            assertEquals(ExerciseSeeder.SEED_VERSION, db.seedStateDao().appliedVersion())
+
             val parsed = repo.parseImport(json)
             assertTrue(parsed is ParseResult.Ready)
             repo.applyImport((parsed as ParseResult.Ready).parsed)
