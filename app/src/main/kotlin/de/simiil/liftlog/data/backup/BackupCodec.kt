@@ -8,6 +8,7 @@ import de.simiil.liftlog.data.entity.SessionExerciseEntity
 import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
 import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.domain.model.WeightUnit
@@ -23,7 +24,7 @@ import java.time.Instant
 
 /** Pure JSON codec for the versioned backup (02-data-spec §6). No Android, no DB. */
 object BackupCodec {
-    const val CURRENT_FORMAT_VERSION = 2
+    const val CURRENT_FORMAT_VERSION = 3
 
     private val json =
         Json {
@@ -152,15 +153,17 @@ object BackupCodec {
     // --- entity → DTO ---
     private fun ExerciseEntity.toDto() =
         ExerciseDto(
-            id,
-            name,
-            muscleGroup.name,
-            equipment.name,
-            isBuiltIn,
-            isHidden,
-            createdAt.iso(),
-            updatedAt.iso(),
-            deletedAt?.iso(),
+            id = id,
+            name = name,
+            muscleGroup = muscleGroup.name,
+            equipment = equipment.name,
+            isBuiltIn = isBuiltIn,
+            isHidden = isHidden,
+            createdAt = createdAt.iso(),
+            updatedAt = updatedAt.iso(),
+            deletedAt = deletedAt?.iso(),
+            force = force?.name,
+            secondaryMuscleGroups = secondaryMuscleGroups.map { it.name },
         )
 
     private fun WorkoutPlanEntity.toDto() =
@@ -242,15 +245,17 @@ object BackupCodec {
     // --- DTO → entity (may throw UnknownEnumException / DateTimeException / ArithmeticException) ---
     private fun ExerciseDto.toEntity() =
         ExerciseEntity(
-            id,
-            name,
-            muscle(muscleGroup),
-            equip(equipment),
-            isBuiltIn,
-            isHidden,
-            createdAt.millis(),
-            updatedAt.millis(),
-            deletedAt?.millis(),
+            id = id,
+            name = name,
+            muscleGroup = muscle(muscleGroup),
+            equipment = equip(equipment),
+            isBuiltIn = isBuiltIn,
+            isHidden = isHidden,
+            createdAt = createdAt.millis(),
+            updatedAt = updatedAt.millis(),
+            deletedAt = deletedAt?.millis(),
+            force = Force.fromStorageValue(force), // lenient: unknown → null
+            secondaryMuscleGroups = secondaryMuscleGroups.map { MuscleGroup.fromStorageValue(it) }, // lenient: unknown → OTHER
         )
 
     private fun WorkoutPlanDto.toEntity() =

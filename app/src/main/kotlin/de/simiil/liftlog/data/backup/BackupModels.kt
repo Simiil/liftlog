@@ -50,6 +50,8 @@ data class ExerciseDto(
     val createdAt: String,
     val updatedAt: String,
     val deletedAt: String?,
+    val force: String? = null, // v3; default = v1/v2-import compat, always on the wire (encodeDefaults)
+    val secondaryMuscleGroups: List<String> = emptyList(), // v3; same compat pattern
 )
 
 @Serializable

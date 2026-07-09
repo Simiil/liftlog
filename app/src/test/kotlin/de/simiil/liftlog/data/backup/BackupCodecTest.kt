@@ -8,6 +8,7 @@ import de.simiil.liftlog.data.entity.SessionExerciseEntity
 import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
 import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.domain.model.WeightUnit
@@ -20,7 +21,7 @@ import org.junit.Test
 import java.time.Instant
 
 class BackupCodecTest {
-    private val appInfo = AppInfo(name = "LiftLog", versionName = "0.1.0", dbSchemaVersion = 2)
+    private val appInfo = AppInfo(name = "LiftLog", versionName = "0.1.0", dbSchemaVersion = 3)
     private val exportedAt = Instant.parse("2026-06-09T12:00:00Z")
 
     // One row per table; includes a tombstone (exercise ex2) and a hidden exercise.
@@ -38,6 +39,8 @@ class BackupCodecTest {
                         createdAt = 1000L,
                         updatedAt = 2000L,
                         deletedAt = null,
+                        force = Force.PUSH,
+                        secondaryMuscleGroups = listOf(MuscleGroup.TRICEPS, MuscleGroup.SHOULDERS),
                     ),
                     ExerciseEntity(
                         "ex2",
@@ -168,8 +171,8 @@ class BackupCodecTest {
 
     @Test
     fun `newer format version is rejected as Newer`() {
-        val newer = BackupCodec.encode(fixture(), exportedAt, appInfo).replace("\"formatVersion\": 2", "\"formatVersion\": 3")
-        assertEquals(ParseResult.Newer(3), BackupCodec.decode(newer))
+        val newer = BackupCodec.encode(fixture(), exportedAt, appInfo).replace("\"formatVersion\": 3", "\"formatVersion\": 4")
+        assertEquals(ParseResult.Newer(4), BackupCodec.decode(newer))
     }
 
     @Test
@@ -329,5 +332,40 @@ class BackupCodecTest {
         assertEquals(1, result.summary.sessions)
         assertEquals(1, result.summary.exercises)
         assertEquals(1, result.summary.sets)
+    }
+
+    @Test
+    fun `v2 file without force or secondaries imports with null and empty`() {
+        val v2 =
+            """
+            {"formatVersion":2,"exportedAt":"2026-06-09T12:00:00Z",
+             "app":{"name":"LiftLog","versionName":"0.1.0","dbSchemaVersion":2},
+             "settings":{"weightUnit":"KG","theme":"SYSTEM"},
+             "data":{
+               "exercises":[{"id":"ex1","name":"Bench","muscleGroup":"CHEST","equipment":"BARBELL",
+                 "isBuiltIn":true,"isHidden":false,"createdAt":"1970-01-01T00:00:01Z","updatedAt":"1970-01-01T00:00:01Z","deletedAt":null}],
+               "workoutPlans":[],"planDayTemplates":[],"templateExercises":[],
+               "sessions":[],"sessionExercises":[],"loggedSets":[]}}
+            """.trimIndent()
+        val result = BackupCodec.decode(v2)
+        assertTrue(result is ParseResult.Ready)
+        val exercise = ((result as ParseResult.Ready).parsed as BackupSnapshot).exercises.single()
+        assertNull(exercise.force)
+        assertEquals(emptyList<MuscleGroup>(), exercise.secondaryMuscleGroups)
+    }
+
+    @Test
+    fun `unknown force and secondary muscle fall back leniently`() {
+        // Unlike muscleGroup/equipment (identity, strict), the new classification fields are lenient.
+        val odd =
+            BackupCodec
+                .encode(fixture(), exportedAt, appInfo)
+                .replace("\"force\": \"PUSH\"", "\"force\": \"YEET\"")
+                .replace("\"TRICEPS\"", "\"WINGS\"")
+        val result = BackupCodec.decode(odd)
+        assertTrue(result is ParseResult.Ready)
+        val ex1 = ((result as ParseResult.Ready).parsed as BackupSnapshot).exercises.first { it.id == "ex1" }
+        assertNull(ex1.force)
+        assertEquals(listOf(MuscleGroup.OTHER, MuscleGroup.SHOULDERS), ex1.secondaryMuscleGroups)
     }
 }

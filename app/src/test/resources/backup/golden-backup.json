@@ -1,10 +1,10 @@
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "exportedAt": "2026-06-09T12:00:00Z",
   "app": {
     "name": "LiftLog",
     "versionName": "0.1.0",
-    "dbSchemaVersion": 2
+    "dbSchemaVersion": 3
   },
   "settings": {
     "weightUnit": "LB",
@@ -21,7 +21,12 @@
         "isHidden": false,
         "createdAt": "1970-01-01T00:00:01Z",
         "updatedAt": "1970-01-01T00:00:02Z",
-        "deletedAt": null
+        "deletedAt": null,
+        "force": "PUSH",
+        "secondaryMuscleGroups": [
+          "TRICEPS",
+          "SHOULDERS"
+        ]
       },
       {
         "id": "ex2",
@@ -32,7 +37,9 @@
         "isHidden": true,
         "createdAt": "1970-01-01T00:00:01Z",
         "updatedAt": "1970-01-01T00:00:05Z",
-        "deletedAt": "1970-01-01T00:00:06Z"
+        "deletedAt": "1970-01-01T00:00:06Z",
+        "force": null,
+        "secondaryMuscleGroups": []
       }
     ],
     "workoutPlans": [
