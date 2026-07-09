@@ -4,6 +4,7 @@ import de.simiil.liftlog.data.backup.AppInfo
 import de.simiil.liftlog.data.backup.BackupCodec
 import de.simiil.liftlog.data.backup.BackupSnapshot
 import de.simiil.liftlog.data.dao.BackupDao
+import de.simiil.liftlog.data.seed.ExerciseSeeder
 import de.simiil.liftlog.domain.plan.DefaultPlanEnsurer
 import de.simiil.liftlog.domain.repository.BackupRepository
 import de.simiil.liftlog.domain.repository.ImportSummary
@@ -24,6 +25,7 @@ class BackupRepositoryImpl
         private val clock: Clock,
         private val appInfo: AppInfo,
         private val defaultPlanEnsurer: DefaultPlanEnsurer,
+        private val seeder: ExerciseSeeder,
     ) : BackupRepository {
         override suspend fun exportToJson(): String =
             withContext(Dispatchers.IO) {
@@ -56,6 +58,9 @@ class BackupRepositoryImpl
             withContext(Dispatchers.IO) {
                 val snapshot = parsed as BackupSnapshot
                 backupDao.replaceAll(snapshot)
+                // replaceAll cleared seed_state; re-converge so a restore from an old backup
+                // can't leave stale or missing built-in rows behind (02-data-spec §7).
+                seeder.seed()
                 settingsRepository.setWeightUnit(snapshot.weightUnit)
                 settingsRepository.setThemePreference(snapshot.theme)
                 // replaceAll itself is one atomic transaction, but ensure() below runs as a

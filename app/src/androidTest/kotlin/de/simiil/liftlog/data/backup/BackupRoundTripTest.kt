@@ -17,6 +17,7 @@ import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
 import de.simiil.liftlog.data.repository.BackupRepositoryImpl
 import de.simiil.liftlog.data.repository.PlanRepositoryImpl
+import de.simiil.liftlog.data.seed.ExerciseSeeder
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.ThemePreference
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -86,6 +88,16 @@ class BackupRoundTripTest {
         val planRepository = PlanRepositoryImpl(db.planDao(), RoomTransactor(db), clock, FakeDataStore())
         return DefaultPlanEnsurer(planRepository, ResourceDefaultPlanNameProvider(context))
     }
+
+    private fun exerciseSeeder() =
+        ExerciseSeeder(
+            context = InstrumentationRegistry.getInstrumentation().targetContext,
+            dao = db.exerciseDao(),
+            seedStateDao = db.seedStateDao(),
+            transactor = RoomTransactor(db),
+            clock = clock,
+            json = Json { ignoreUnknownKeys = true },
+        )
 
     @Before fun setUp() {
         db = newInMemoryDb()
@@ -174,7 +186,7 @@ class BackupRoundTripTest {
             seed()
             val dao = db.backupDao()
             val settings = FakeSettings(WeightUnit.LB, ThemePreference.DARK)
-            val repo = BackupRepositoryImpl(dao, settings, clock, appInfo, defaultPlanEnsurer())
+            val repo = BackupRepositoryImpl(dao, settings, clock, appInfo, defaultPlanEnsurer(), exerciseSeeder())
 
             val before = snapshotTables(dao)
             val json = repo.exportToJson()
@@ -195,10 +207,32 @@ class BackupRoundTripTest {
             assertTrue(parsed is ParseResult.Ready)
             repo.applyImport((parsed as ParseResult.Ready).parsed)
 
-            assertEquals(before, snapshotTables(dao)) // row-for-row, incl. tombstone + hidden
+            // applyImport now reseeds built-ins after restore (issue #37): the exercises table
+            // gains seeded rows, so compare the backup's own rows by id; other tables stay exact.
+            val fixtureIds = setOf("ex1", "ex2", "ex3")
+            assertEquals(before[0], dao.getAllExercises().filter { it.id in fixtureIds }) // row-for-row, incl. tombstone + hidden
+            assertEquals(before.drop(1), snapshotTables(dao).drop(1))
             assertEquals(WeightUnit.LB, settings.unitFlow.value) // settings restored
             assertEquals(ThemePreference.DARK, settings.themeFlow.value)
             assertEquals(2, parsed.summary.exercises) // summary from parseImport: live exercises only (ex3 tombstoned)
+        }
+
+    @Test
+    fun `import re-converges built-ins after restore`() =
+        runTest {
+            seed() // fixture rows only — no built-ins in this backup
+            val dao = db.backupDao()
+            val settings = FakeSettings(WeightUnit.KG, ThemePreference.SYSTEM)
+            val repo = BackupRepositoryImpl(dao, settings, clock, appInfo, defaultPlanEnsurer(), exerciseSeeder())
+
+            val json = repo.exportToJson()
+            val parsed = repo.parseImport(json)
+            assertTrue(parsed is ParseResult.Ready)
+            repo.applyImport((parsed as ParseResult.Ready).parsed)
+
+            // replaceAll cleared seed_state → applyImport reseeded: 69 built-ins + ex1/ex2 live fixtures
+            assertEquals(69 + 2, db.exerciseDao().countLive())
+            assertEquals(ExerciseSeeder.SEED_VERSION, db.seedStateDao().appliedVersion())
         }
 
     @Test
@@ -207,7 +241,7 @@ class BackupRoundTripTest {
             seed()
             val dao = db.backupDao()
             val settings = FakeSettings(WeightUnit.KG, ThemePreference.SYSTEM)
-            val repo = BackupRepositoryImpl(dao, settings, clock, appInfo, defaultPlanEnsurer())
+            val repo = BackupRepositoryImpl(dao, settings, clock, appInfo, defaultPlanEnsurer(), exerciseSeeder())
             val json = repo.exportToJson()
 
             dao.insertSessions(
@@ -236,7 +270,7 @@ class BackupRoundTripTest {
             // No seed() call: db starts empty, so the exported backup has zero plans.
             val dao = db.backupDao()
             val settings = FakeSettings(WeightUnit.KG, ThemePreference.SYSTEM)
-            val repo = BackupRepositoryImpl(dao, settings, clock, appInfo, defaultPlanEnsurer())
+            val repo = BackupRepositoryImpl(dao, settings, clock, appInfo, defaultPlanEnsurer(), exerciseSeeder())
             val json = repo.exportToJson()
 
             val parsed = repo.parseImport(json)
