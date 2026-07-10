@@ -285,6 +285,27 @@
     <string name="analytics_pr">PR</string>
     <string name="analytics_need_two">Mindestens 2 Einheiten für ein Diagramm nötig</string>
 
+    <!-- Muscle-balance radar card (spec 2026-07-10) -->
+    <string name="balance_title">Muskelbalance</string>
+    <string name="balance_empty">Logge Einheiten, um deine Muskelbalance zu sehen</string>
+    <string name="balance_group_arms">Arme</string>
+    <string name="balance_group_hams_glutes">Beinbeuger &amp; Gesäß</string>
+    <string name="balance_group_core">Rumpf</string>
+    <string name="balance_legend_up">steigend</string>
+    <string name="balance_legend_down">fallend</string>
+    <string name="balance_legend_flat">stabil</string>
+    <string name="balance_legend_no_trend">keine Daten</string>
+    <string name="balance_legend_target">Ziel: %1$d Sätze/Woche</string>
+    <string name="balance_cd_group">%1$s: %2$s Sätze pro Woche, %3$s</string>
+    <string name="balance_cd_up">steigender Trend</string>
+    <string name="balance_cd_down">fallender Trend</string>
+    <string name="balance_cd_flat">stabil</string>
+    <string name="balance_cd_no_trend">keine Trend-Daten</string>
+    <plurals name="balance_unclassified">
+        <item quantity="one">%1$d Satz in Übungen der Gruppe „Sonstige“ wird nicht angezeigt</item>
+        <item quantity="other">%1$d Sätze in Übungen der Gruppe „Sonstige“ werden nicht angezeigt</item>
+    </plurals>
+
     <!-- Built-in exercise names (08-i18n-spec §3) -->
     <string name="exercise_barbell_bench_press">Langhantel-Bankdrücken</string>
     <string name="exercise_incline_barbell_bench_press">Schrägbank-Langhanteldrücken</string>

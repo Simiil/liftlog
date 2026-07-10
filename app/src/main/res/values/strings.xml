@@ -286,6 +286,27 @@
     <string name="analytics_pr">PR</string>
     <string name="analytics_need_two">Need 2+ sessions for a chart</string>
 
+    <!-- Muscle-balance radar card (spec 2026-07-10) -->
+    <string name="balance_title">Muscle balance</string>
+    <string name="balance_empty">Log workouts to see your muscle balance</string>
+    <string name="balance_group_arms">Arms</string>
+    <string name="balance_group_hams_glutes">Hams &amp; Glutes</string>
+    <string name="balance_group_core">Core</string>
+    <string name="balance_legend_up">up</string>
+    <string name="balance_legend_down">down</string>
+    <string name="balance_legend_flat">flat</string>
+    <string name="balance_legend_no_trend">no data</string>
+    <string name="balance_legend_target">target %1$d sets/week</string>
+    <string name="balance_cd_group">%1$s: %2$s sets per week, %3$s</string>
+    <string name="balance_cd_up">trending up</string>
+    <string name="balance_cd_down">trending down</string>
+    <string name="balance_cd_flat">flat</string>
+    <string name="balance_cd_no_trend">no trend data</string>
+    <plurals name="balance_unclassified">
+        <item quantity="one">%1$d set in “Other” exercises not shown</item>
+        <item quantity="other">%1$d sets in “Other” exercises not shown</item>
+    </plurals>
+
     <!-- Built-in exercise names (08-i18n-spec §3) -->
     <string name="exercise_barbell_bench_press">Barbell Bench Press</string>
     <string name="exercise_incline_barbell_bench_press">Incline Barbell Bench Press</string>
