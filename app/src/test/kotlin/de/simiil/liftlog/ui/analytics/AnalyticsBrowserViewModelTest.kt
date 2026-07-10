@@ -2,6 +2,7 @@ package de.simiil.liftlog.ui.analytics
 
 import app.cash.turbine.test
 import de.simiil.liftlog.domain.analytics.ExerciseSummary
+import de.simiil.liftlog.domain.analytics.RadarGroup
 import de.simiil.liftlog.domain.analytics.SetWithExercise
 import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.domain.model.Equipment
@@ -19,6 +20,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 class AnalyticsBrowserViewModelTest {
     @get:Rule
@@ -27,6 +31,10 @@ class AnalyticsBrowserViewModelTest {
     private val names =
         de.simiil.liftlog.ui.exercises
             .ExerciseNameResolver { _, fallback -> fallback }
+
+    private val now = 1_000_000_000_000L
+    private val day = 86_400_000L
+    private val fixedClock = Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC)
 
     private fun trained(
         id: String,
@@ -65,6 +73,7 @@ class AnalyticsBrowserViewModelTest {
                     FakeRepo(listOf(trained("a", "Bench Press"), trained("b", "Squat"))),
                     FakeSettings(),
                     names,
+                    fixedClock,
                 )
             vm.uiState.test {
                 awaitItem() // initial
@@ -77,7 +86,7 @@ class AnalyticsBrowserViewModelTest {
 
     @Test fun weekSummary_isExposed() =
         runTest {
-            val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names)
+            val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names, fixedClock)
             vm.uiState.test {
                 var s = awaitItem()
                 while (s.week == null) s = awaitItem()
@@ -88,11 +97,49 @@ class AnalyticsBrowserViewModelTest {
 
     @Test fun unit_isExposedFromSettings() =
         runTest {
-            val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names)
+            val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names, fixedClock)
             vm.uiState.test {
                 var s = awaitItem()
                 while (s.week == null) s = awaitItem()
                 assertEquals(WeightUnit.KG, s.unit)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test fun muscleBalance_exposedAndRecomputesOnRangeChange() =
+        runTest {
+            // 8 chest sets yesterday → effective window floors at 1 week → 8.0 sets/week.
+            val rows =
+                List(8) {
+                    SetWithExercise("s1", "e1", now - day, 100.0, 5, MuscleGroup.CHEST, Equipment.BARBELL)
+                }
+            val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList(), rows), FakeSettings(), names, fixedClock)
+            vm.balanceState.test {
+                var s = awaitItem()
+                while (s.balance == null) s = awaitItem()
+                assertEquals(Range.D90, s.selectedRange)
+                assertEquals(
+                    8.0,
+                    s.balance!!
+                        .groups
+                        .first { it.group == RadarGroup.CHEST }
+                        .setsPerWeek,
+                    1e-9,
+                )
+                vm.onBalanceRangeChange(Range.D30)
+                s = awaitItem()
+                assertEquals(Range.D30, s.selectedRange)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test fun muscleBalance_noSets_flagsEmpty() =
+        runTest {
+            val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names, fixedClock)
+            vm.balanceState.test {
+                var s = awaitItem()
+                while (s.balance == null) s = awaitItem()
+                assertEquals(true, s.balance!!.isEmpty)
                 cancelAndIgnoreRemainingEvents()
             }
         }
