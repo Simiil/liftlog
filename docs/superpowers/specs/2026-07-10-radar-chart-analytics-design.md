@@ -55,9 +55,10 @@ chart whose **shape** is training dose and whose **vertex colors** are progress.
   `rim = max(maxGroup, TARGET_SETS_PER_WEEK = 10.0)`.
   Target ring radius = `TARGET / rim`.
 - **Per-group trend:** for each exercise contributing sets to the group in
-  range, build per-session points of its **headline metric** (e1RM for
+  range, build per-session points of its **headline metric** (volume for
   weighted, total reps for bodyweight — the existing swap in
-  `ExerciseAnalytics.summarize`) and run the existing OLS `trend()` with
+  `ExerciseAnalytics.summarize`, the same series every trend badge uses)
+  and run the existing OLS `trend()` with
   `windowDays = selected range`. Existing guards apply (≥3 sessions in
   window, stale if last point > 21 days old). Group direction = set-count-
   weighted mean of the contributing exercises' percent changes, thresholded
@@ -90,12 +91,13 @@ established `observePrSessionIds` pattern in `AnalyticsRepositoryImpl`.
 
 ### ViewModel
 
-Extend the existing `AnalyticsViewModel`:
+Extend the existing `AnalyticsBrowserViewModel`:
 `MutableStateFlow<Range>` (default `D90`) `combine`d with
 `observeSetsWithExercise()`, mapped through `muscleBalance(...)` into
-`MuscleBalanceUiState` (list of spokes: label res + fraction + vertex color
-role; footnote count; empty flag). Cutoff derivation mirrors
-`ExerciseDetailViewModel`'s `nowFallbackCutoff`.
+`MuscleBalanceUiState` (balance + selected range; presentational mapping to
+spokes lives in the card). Cutoff is calendar-true: `now − range.days`
+(unlike the detail screen's newest-session anchoring — the card has an
+honest empty state instead).
 
 ### UI
 
