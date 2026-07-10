@@ -2,6 +2,7 @@ package de.simiil.liftlog.ui.analytics
 
 import app.cash.turbine.test
 import de.simiil.liftlog.domain.analytics.ExerciseSummary
+import de.simiil.liftlog.domain.analytics.SetWithExercise
 import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
@@ -34,6 +35,7 @@ class AnalyticsBrowserViewModelTest {
 
     private class FakeRepo(
         val list: List<TrainedExercise>,
+        val rows: List<SetWithExercise> = emptyList(),
     ) : AnalyticsRepository {
         override fun observeWeekSummary(): Flow<WeekSummary> = flowOf(WeekSummary(3, 86, 14250.0, 12980.0))
 
@@ -43,6 +45,8 @@ class AnalyticsBrowserViewModelTest {
             flowOf(ExerciseSummary(false, emptyList(), TrendResult.Insufficient, 0.0, 0L))
 
         override fun observePrSessionIds(): Flow<Set<String>> = flowOf(emptySet())
+
+        override fun observeSetsWithExercise(): Flow<List<SetWithExercise>> = flowOf(rows)
     }
 
     private class FakeSettings : SettingsRepository {

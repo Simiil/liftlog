@@ -74,6 +74,8 @@ class ExerciseDetailViewModelTest {
             override fun observeExerciseSummary(exerciseId: String) = flowOf(summary)
 
             override fun observePrSessionIds() = flowOf(emptySet<String>())
+
+            override fun observeSetsWithExercise() = flowOf(emptyList<de.simiil.liftlog.domain.analytics.SetWithExercise>())
         },
         FakeSettings(),
         Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC),
