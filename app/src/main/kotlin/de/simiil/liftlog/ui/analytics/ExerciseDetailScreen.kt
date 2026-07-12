@@ -91,44 +91,11 @@ fun ExerciseDetailScreen(
                 }
             }
             item {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Range.entries.forEach { r ->
-                        val selected = r == ui.selectedRange
-                        Surface(
-                            onClick = { viewModel.onRangeChange(r) },
-                            modifier =
-                                Modifier
-                                    .weight(1f)
-                                    .height(36.dp),
-                            shape = RoundedCornerShape(10.dp),
-                            color =
-                                if (selected) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.surfaceContainerHigh
-                                },
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    rangeLabel(r),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color =
-                                        if (selected) {
-                                            MaterialTheme.colorScheme.onPrimary
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurface
-                                        },
-                                )
-                            }
-                        }
-                    }
-                }
+                RangePills(
+                    selected = ui.selectedRange,
+                    onChange = viewModel::onRangeChange,
+                    modifier = Modifier.padding(bottom = 14.dp),
+                )
             }
             item {
                 // The empty-data placeholder reuses the chart's exact container (same surface,
@@ -236,16 +203,5 @@ private fun metricLabel(m: Metric) =
             Metric.VOLUME -> R.string.metric_volume
             Metric.MAX_REPS -> R.string.metric_max_reps
             Metric.TOTAL_REPS -> R.string.metric_total_reps
-        },
-    )
-
-@Composable
-private fun rangeLabel(r: Range) =
-    stringResource(
-        when (r) {
-            Range.D30 -> R.string.range_30d
-            Range.D90 -> R.string.range_90d
-            Range.Y1 -> R.string.range_1y
-            Range.ALL -> R.string.range_all
         },
     )

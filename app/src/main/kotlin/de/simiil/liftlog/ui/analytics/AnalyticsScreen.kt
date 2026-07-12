@@ -53,6 +53,7 @@ fun AnalyticsScreen(
     viewModel: AnalyticsBrowserViewModel = hiltViewModel(),
 ) {
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
+    val balance by viewModel.balanceState.collectAsStateWithLifecycle()
     Column(modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
         Text(
             stringResource(R.string.analytics_title),
@@ -60,18 +61,33 @@ fun AnalyticsScreen(
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(vertical = 12.dp),
         )
-        ui.week?.let { WeekCard(it, ui.unit) }
-        Spacer(Modifier.height(12.dp))
-        SearchBar(ui.query, viewModel::onQueryChange)
-        if (ui.exercises.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    stringResource(R.string.analytics_empty),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        LazyColumn {
+            ui.week?.let { week ->
+                item(key = "week") {
+                    WeekCard(week, ui.unit)
+                    Spacer(Modifier.height(12.dp))
+                }
             }
-        } else {
-            LazyColumn {
+            item(key = "balance") {
+                MuscleBalanceCard(balance, viewModel::onBalanceRangeChange, Modifier.fillMaxWidth())
+                Spacer(Modifier.height(12.dp))
+            }
+            item(key = "search") {
+                SearchBar(ui.query, viewModel::onQueryChange)
+            }
+            if (ui.exercises.isEmpty()) {
+                item(key = "empty") {
+                    Box(
+                        Modifier.fillMaxWidth().padding(vertical = 48.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            stringResource(R.string.analytics_empty),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            } else {
                 items(ui.exercises, key = { it.id }) { ex ->
                     ExerciseRow(ex, ui.unit, viewModel, onOpenExercise)
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

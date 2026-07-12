@@ -1,6 +1,7 @@
 package de.simiil.liftlog.domain.repository
 
 import de.simiil.liftlog.domain.analytics.ExerciseSummary
+import de.simiil.liftlog.domain.analytics.SetWithExercise
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +15,9 @@ interface AnalyticsRepository {
 
     /** Ids of sessions containing at least one headline PR, across all exercises. */
     fun observePrSessionIds(): Flow<Set<String>>
+
+    /** Every logged set (finished sessions, soft-deletes excluded) + its exercise's classification. */
+    fun observeSetsWithExercise(): Flow<List<SetWithExercise>>
 }
 
 /** Analytics browser header card (04-analytics-spec §6, chart 3). */

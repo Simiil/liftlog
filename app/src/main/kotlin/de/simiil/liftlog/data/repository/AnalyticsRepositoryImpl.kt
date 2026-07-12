@@ -4,6 +4,7 @@ import de.simiil.liftlog.data.dao.AnalyticsDao
 import de.simiil.liftlog.domain.analytics.DatedSet
 import de.simiil.liftlog.domain.analytics.ExerciseSummary
 import de.simiil.liftlog.domain.analytics.SetEntry
+import de.simiil.liftlog.domain.analytics.SetWithExercise
 import de.simiil.liftlog.domain.analytics.prSessionIds
 import de.simiil.liftlog.domain.analytics.summarize
 import de.simiil.liftlog.domain.analytics.volumeKg
@@ -87,5 +88,18 @@ class AnalyticsRepositoryImpl
                     equipmentById = exercises.associate { it.id to it.equipment },
                     nowMillis = clock.millis(),
                 )
+            }.flowOn(Dispatchers.Default)
+
+        override fun observeSetsWithExercise(): Flow<List<SetWithExercise>> =
+            combine(
+                analyticsDao.observeAllSetsSince(0L),
+                exerciseRepository.observeAll(),
+            ) { rows, exercises ->
+                val byId = exercises.associateBy { it.id }
+                rows.mapNotNull { r ->
+                    byId[r.exerciseId]?.let { ex ->
+                        SetWithExercise(r.sessionId, r.exerciseId, r.startedAt, r.weightKg, r.reps, ex.muscleGroup, ex.equipment)
+                    }
+                }
             }.flowOn(Dispatchers.Default)
     }
