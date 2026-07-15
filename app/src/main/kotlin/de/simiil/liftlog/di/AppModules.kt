@@ -22,6 +22,7 @@ import de.simiil.liftlog.data.repository.SessionRepositoryImpl
 import de.simiil.liftlog.data.repository.SettingsRepositoryImpl
 import de.simiil.liftlog.data.seed.ExerciseSeeder
 import de.simiil.liftlog.data.seed.SyntheticHistorySeeder
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.domain.logging.ActiveEntryTracker
 import de.simiil.liftlog.domain.plan.DefaultPlanEnsurer
 import de.simiil.liftlog.domain.plan.DefaultPlanNameProvider
@@ -40,6 +41,7 @@ import de.simiil.liftlog.ui.analytics.ExerciseDetailViewModel
 import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import de.simiil.liftlog.ui.exercises.ExercisePickerViewModel
 import de.simiil.liftlog.ui.exercises.ResourceExerciseNameResolver
+import de.simiil.liftlog.ui.format.AndroidLocaleFormatters
 import de.simiil.liftlog.ui.history.HistoryViewModel
 import de.simiil.liftlog.ui.home.HomeViewModel
 import de.simiil.liftlog.ui.plans.DayEditorViewModel
@@ -112,6 +114,7 @@ val uiModule =
         factory<DocumentIo> { AndroidDocumentIo(androidContext()) } // unscoped
         single<ExerciseNameResolver> { ResourceExerciseNameResolver(androidContext()) }
         single<DefaultPlanNameProvider> { ResourceDefaultPlanNameProvider(androidContext()) }
+        single<LocaleFormatters> { AndroidLocaleFormatters(androidContext()) }
     }
 
 /** Android-only services (stays androidMain forever). */
