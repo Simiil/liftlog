@@ -63,6 +63,8 @@ fun ProgressLineChart(
         modifier
             .fillMaxWidth()
             .height(188.dp)
+            // The chart is non-text content; expose a spoken summary so screen-reader
+            // users get the trend the line conveys visually (F-06).
             .then(
                 if (contentDescription != null) {
                     Modifier.semantics { this.contentDescription = contentDescription }
@@ -71,7 +73,8 @@ fun ProgressLineChart(
                 },
             ),
     ) {
-        val labelWidth = ticks.maxOf { textMeasurer.measure(tickLabel(it), labelStyle).size.width } + 8.dp.toPx()
+        val tickLayouts = ticks.map { t -> t to textMeasurer.measure(tickLabel(t), labelStyle) }
+        val labelWidth = tickLayouts.maxOf { it.second.size.width } + 8.dp.toPx()
         val plot = Rect(labelWidth, 6.dp.toPx(), size.width, size.height - 6.dp.toPx())
         val xMin = points.first().x
         val xSpan = (points.last().x - xMin).takeIf { it > 0f } ?: 1f
@@ -85,10 +88,9 @@ fun ProgressLineChart(
             )
 
         // Gridlines + labels.
-        ticks.forEach { t ->
+        tickLayouts.forEach { (t, layout) ->
             val y = plot.bottom - (t - yFirst).toFloat() / ySpan * plot.height
             drawLine(axisColor, Offset(plot.left, y), Offset(plot.right, y), strokeWidth = 1.dp.toPx())
-            val layout = textMeasurer.measure(tickLabel(t), labelStyle)
             drawText(layout, topLeft = Offset(0f, y - layout.size.height / 2f))
         }
 
