@@ -1,7 +1,7 @@
 # 01 — Architecture
 
 > **Status:** Draft for review · 2026-06-07
-> **Fixed by [HANDOFF.md](../HANDOFF.md) §2:** Kotlin + Jetpack Compose, Room, MVVM + UDF + repository pattern, Coroutines/Flow, Hilt, Material 3. This doc concretizes those decisions.
+> **Fixed by [HANDOFF.md](../HANDOFF.md) §2:** Kotlin + Jetpack Compose, Room, MVVM + UDF + repository pattern, Coroutines/Flow, Koin (DI; amended from Hilt by the M7 multiplatform decision, docs/superpowers/specs/2026-07-15-ios-port-design.md), Material 3. This doc concretizes those decisions.
 
 ## 1. Layering
 
@@ -58,7 +58,7 @@ de.simiil.liftlog/          (applicationId TBD with app name)
 │   ├── components/    shared: inline numpad, steppers, charts wrapper
 │   ├── home/  session/  exercises/  plans/  history/  analytics/  settings/
 │   └── …               (one package per screen/feature: Screen + ViewModel + UiState)
-└── di/                Hilt modules
+└── di/                Koin modules
 ```
 
 ## 3. MVVM / UDF conventions
@@ -84,7 +84,7 @@ Explicitly **not** done in v1: no sync metadata tables, no change journal, no ne
 | Compose BOM + Material 3 | Fixed by handoff | — |
 | Navigation Compose | Standard type-safe nav for Compose | Simpler hand-rolled nav loses deep-link/back-stack handling for free |
 | Room (+ KTX) | Fixed by handoff; SQLite SSOT | — |
-| Hilt (+ hilt-navigation-compose) | Fixed by handoff | — |
+| Koin (koin-android, koin-compose-viewmodel) | M7 spec: multiplatform DI, Hilt is Android-only | Hilt (pre-M7) |
 | DataStore (Preferences) | Settings (unit, theme): tiny, typed, Flow-based | SharedPreferences is legacy; Room is overkill for 3 keys |
 | kotlinx.serialization | Export/import JSON ([02-data-spec](02-data-spec.md) §6) | Kotlin-first, no reflection, compile-time safe; Moshi adds a second codegen stack, Gson is effectively unmaintained |
 | **Vico** (compose charts) | Line/column charts with time axes; actively maintained, Apache-2.0, Compose-native | MPAndroidChart is View-based + dormant; hand-rolled Canvas is the documented **fallback** if Vico disappoints — it sits behind our own `ui/components` chart wrapper so swapping it touches one package |
