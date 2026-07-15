@@ -50,6 +50,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import kotlin.time.Instant as KotlinInstant
 
 private enum class PickField { START, END }
 
@@ -84,18 +85,20 @@ internal fun combineDateAndTime(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditWorkoutSheet(
-    startedAt: Instant,
-    endedAt: Instant,
+    startedAt: KotlinInstant,
+    endedAt: KotlinInstant,
     rpe: Double?,
     note: String?,
-    onSave: (Instant, Instant, Double?, String?) -> Unit,
+    onSave: (KotlinInstant, KotlinInstant, Double?, String?) -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val formatters = koinInject<LocaleFormatters>()
     val zone = ZoneId.systemDefault()
-    var startMillis by remember { mutableLongStateOf(startedAt.toEpochMilli()) }
-    var endMillis by remember { mutableLongStateOf(endedAt.toEpochMilli()) }
+    // Boundary bridge: callers now hand us kotlin.time.Instant; everything below this line
+    // (combineDateAndTime, picker logic) stays on java.time.Instant, untouched (Task 7 ports it).
+    var startMillis by remember { mutableLongStateOf(startedAt.toEpochMilliseconds()) }
+    var endMillis by remember { mutableLongStateOf(endedAt.toEpochMilliseconds()) }
     var editRpe by remember { mutableStateOf(rpe) }
     var noteDraft by remember { mutableStateOf(note ?: "") }
     var pickField by remember { mutableStateOf<PickField?>(null) }
@@ -183,8 +186,8 @@ fun EditWorkoutSheet(
                     enabled = valid,
                     onClick = {
                         onSave(
-                            Instant.ofEpochMilli(startMillis),
-                            Instant.ofEpochMilli(endMillis),
+                            KotlinInstant.fromEpochMilliseconds(startMillis),
+                            KotlinInstant.fromEpochMilliseconds(endMillis),
                             editRpe,
                             noteDraft.trim().takeIf { it.isNotEmpty() },
                         )

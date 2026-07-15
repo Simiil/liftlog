@@ -6,8 +6,8 @@ import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.time.Instant
 import java.util.UUID
+import kotlin.time.Instant
 
 class FakeExerciseRepository : ExerciseRepository {
     val all: MutableStateFlow<List<Exercise>> = MutableStateFlow(emptyList())
@@ -38,7 +38,7 @@ class FakeExerciseRepository : ExerciseRepository {
         if (duplicateNames.contains(name.lowercase())) {
             throw IllegalArgumentException("An exercise with this name already exists")
         }
-        val now = Instant.EPOCH
+        val now = Instant.fromEpochMilliseconds(0)
         val exercise =
             Exercise(
                 id = UUID.randomUUID().toString(),

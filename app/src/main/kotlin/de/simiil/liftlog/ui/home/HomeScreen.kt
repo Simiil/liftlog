@@ -64,8 +64,7 @@ import de.simiil.liftlog.ui.format.AndroidLocaleFormatters
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import java.time.Duration
-import java.time.Instant
+import kotlin.time.Clock
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -199,7 +198,7 @@ private fun ResumeCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val elapsedMinutes = Duration.between(resume.startedAt, Instant.now()).toMinutes()
+    val elapsedMinutes = (Clock.System.now() - resume.startedAt).inWholeMinutes
     val name = resume.name ?: stringResource(R.string.session_untitled)
 
     Card(
@@ -442,7 +441,7 @@ private fun RecentSessionItem(
     modifier: Modifier = Modifier,
 ) {
     val name = session.name ?: stringResource(R.string.session_untitled)
-    val relativeDate = formatters.relativeDay(session.startedAt.toEpochMilli())
+    val relativeDate = formatters.relativeDay(session.startedAt.toEpochMilliseconds())
 
     Column(modifier = modifier) {
         Row(

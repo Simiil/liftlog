@@ -67,7 +67,8 @@ import de.simiil.liftlog.ui.theme.LiftLogTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -131,14 +132,14 @@ fun ActiveSessionScreen(
     val elapsedSeconds =
         remember(uiState.startedAt) {
             androidx.compose.runtime.mutableLongStateOf(
-                uiState.startedAt?.let { Instant.now().epochSecond - it.epochSecond } ?: 0L,
+                uiState.startedAt?.let { Clock.System.now().epochSeconds - it.epochSeconds } ?: 0L,
             )
         }
     LaunchedEffect(uiState.startedAt) {
         while (true) {
             delay(1_000)
             elapsedSeconds.longValue =
-                uiState.startedAt?.let { Instant.now().epochSecond - it.epochSecond } ?: 0L
+                uiState.startedAt?.let { Clock.System.now().epochSeconds - it.epochSeconds } ?: 0L
         }
     }
 
@@ -336,7 +337,7 @@ internal fun formatElapsed(seconds: Long): String {
 
 // ─── Previews ─────────────────────────────────────────────────────────────────
 
-private val fakeInstant = Instant.ofEpochSecond(0)
+private val fakeInstant = Instant.fromEpochSeconds(0)
 
 private fun fakeSet(
     id: String,

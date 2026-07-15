@@ -7,7 +7,8 @@ import de.simiil.liftlog.domain.model.SessionWithDetails
 import de.simiil.liftlog.domain.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class FakeSessionRepository : SessionRepository {
     // --- Observable state ---
@@ -66,7 +67,7 @@ class FakeSessionRepository : SessionRepository {
     override suspend fun startEmptySession(): Session {
         startEmptySessionCalls += Unit
         val id = "new-session-${++sessionIdCounter}"
-        val now = Instant.now()
+        val now = Clock.System.now()
         val session =
             Session(
                 id = id,
@@ -100,7 +101,7 @@ class FakeSessionRepository : SessionRepository {
         exerciseId: String,
     ): SessionExercise {
         addExerciseCalls += sessionId to exerciseId
-        val now = Instant.now()
+        val now = Clock.System.now()
         return SessionExercise(
             id = "se-$sessionId-$exerciseId",
             sessionId = sessionId,
@@ -121,7 +122,7 @@ class FakeSessionRepository : SessionRepository {
         reps: Int,
     ): LoggedSet {
         logSetCalls += Triple(sessionExerciseId, weightKg, reps)
-        val now = Instant.now()
+        val now = Clock.System.now()
         return LoggedSet(
             id = "set-${logSetCalls.size}",
             sessionExerciseId = sessionExerciseId,
@@ -156,7 +157,7 @@ class FakeSessionRepository : SessionRepository {
         newExerciseId: String,
     ): SessionExercise {
         replaceExerciseCalls += sessionExerciseId to newExerciseId
-        val now = Instant.now()
+        val now = Clock.System.now()
         return SessionExercise(
             id = "se-$sessionExerciseId-replaced",
             sessionId = "unknown",
@@ -217,7 +218,7 @@ class FakeSessionRepository : SessionRepository {
     override suspend fun startSessionFromTemplate(templateId: String): Session {
         startFromTemplateCalls += templateId
         val id = "new-session-${++sessionIdCounter}"
-        val now = Instant.now()
+        val now = Clock.System.now()
         val session =
             Session(
                 id = id,

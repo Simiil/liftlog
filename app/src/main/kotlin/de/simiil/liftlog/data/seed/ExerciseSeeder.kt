@@ -10,7 +10,7 @@ import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
 import kotlinx.serialization.json.Json
-import java.time.Clock
+import kotlin.time.Clock
 
 /**
  * Version-gated built-in seeding (02-data-spec §7). When [SEED_VERSION] is newer than the
@@ -37,7 +37,7 @@ class ExerciseSeeder(
                 .bufferedReader()
                 .use { it.readText() }
         val exercises = json.decodeFromString<SeedFile>(text).exercises
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         transactor.immediate {
             val existingById = dao.findAllAny().associateBy { it.id }
             val toInsert = mutableListOf<ExerciseEntity>()

@@ -14,7 +14,7 @@ import de.simiil.liftlog.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.time.Clock
+import kotlin.time.Clock
 
 class BackupRepositoryImpl(
     private val backupDao: BackupDao,
@@ -38,7 +38,7 @@ class BackupRepositoryImpl(
                     weightUnit = settingsRepository.weightUnit.first(),
                     theme = settingsRepository.themePreference.first(),
                 )
-            BackupCodec.encode(snapshot, clock.instant(), appInfo)
+            BackupCodec.encode(snapshot, clock.now(), appInfo)
         }
 
     override suspend fun parseImport(json: String): ParseResult =
@@ -68,7 +68,7 @@ class BackupRepositoryImpl(
             defaultPlanEnsurer.ensure()
             // exportedAt here is apply-time; the UI shows the parseImport summary, so this field is informational only.
             ImportSummary(
-                exportedAt = clock.instant(),
+                exportedAt = clock.now(),
                 sessions = snapshot.sessions.count { it.deletedAt == null },
                 exercises = snapshot.exercises.count { it.deletedAt == null },
                 sets = snapshot.loggedSets.count { it.deletedAt == null },

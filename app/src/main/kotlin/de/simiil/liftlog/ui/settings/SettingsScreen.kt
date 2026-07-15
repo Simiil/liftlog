@@ -146,7 +146,7 @@ fun SettingsScreen(
         val date =
             remember(summary) {
                 formatters.mediumDate(
-                    kotlin.time.Instant.fromEpochMilliseconds(summary.exportedAt.toEpochMilli()),
+                    summary.exportedAt,
                     TimeZone.currentSystemDefault(),
                 )
             }

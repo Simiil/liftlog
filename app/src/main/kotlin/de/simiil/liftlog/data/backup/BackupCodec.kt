@@ -19,8 +19,7 @@ import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.time.DateTimeException
-import java.time.Instant
+import kotlin.time.Instant
 
 /** Pure JSON codec for the versioned backup (02-data-spec §6). No Android, no DB. */
 object BackupCodec {
@@ -84,7 +83,7 @@ object BackupCodec {
             exportedInstant = Instant.parse(file.exportedAt)
         } catch (e: UnknownEnumException) {
             return ParseResult.Invalid(InvalidReason.UNKNOWN_ENUM)
-        } catch (e: DateTimeException) {
+        } catch (e: IllegalArgumentException) {
             return ParseResult.Invalid(InvalidReason.BAD_TIMESTAMP)
         } catch (e: ArithmeticException) {
             return ParseResult.Invalid(InvalidReason.BAD_TIMESTAMP)
@@ -101,9 +100,24 @@ object BackupCodec {
     }
 
     // --- timestamp helpers ---
-    private fun Long.iso(): String = Instant.ofEpochMilli(this).toString()
+    private fun Long.iso(): String = Instant.fromEpochMilliseconds(this).toString()
 
-    private fun String.millis(): Long = Instant.parse(this).toEpochMilli() // throws DateTimeException / ArithmeticException
+    // kotlin.time.Instant.toEpochMilliseconds() saturates at Long.MAX/MIN on overflow instead of
+    // throwing (unlike java.time.Instant.toEpochMilli()), so an out-of-range timestamp like
+    // "+999999999-12-31T23:59:59Z" would silently succeed. Reimplement java.time's exact
+    // (overflow-checked) conversion so BAD_TIMESTAMP rejection still works.
+    private fun String.millis(): Long {
+        val instant = Instant.parse(this) // throws IllegalArgumentException
+        val seconds = instant.epochSeconds
+        val nanos = instant.nanosecondsOfSecond
+        return if (seconds < 0 && nanos > 0) {
+            val millis = Math.multiplyExact(seconds + 1, 1000L)
+            Math.addExact(millis, (nanos / 1_000_000 - 1000).toLong()) // throws ArithmeticException
+        } else {
+            val millis = Math.multiplyExact(seconds, 1000L)
+            Math.addExact(millis, (nanos / 1_000_000).toLong()) // throws ArithmeticException
+        }
+    }
 
     // --- strict entity-enum lookups ---
     private fun muscle(name: String): MuscleGroup = MuscleGroup.entries.firstOrNull { it.name == name } ?: throw UnknownEnumException()

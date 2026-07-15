@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import java.time.Clock
+import kotlin.time.Clock
 
 data class AnalyticsBrowserUiState(
     val week: WeekSummary? = null,
@@ -72,7 +72,7 @@ class AnalyticsBrowserViewModel(
     val balanceState: StateFlow<MuscleBalanceUiState> =
         combine(analyticsRepository.observeSetsWithExercise(), balanceRange) { rows, range ->
             MuscleBalanceUiState(
-                balance = muscleBalance(rows, range.days, clock.millis()),
+                balance = muscleBalance(rows, range.days, clock.now().toEpochMilliseconds()),
                 selectedRange = range,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MuscleBalanceUiState())

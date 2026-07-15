@@ -10,8 +10,8 @@ import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.time.Clock
 import java.util.UUID
+import kotlin.time.Clock
 
 class ExerciseRepositoryImpl(
     private val dao: ExerciseDao,
@@ -31,7 +31,7 @@ class ExerciseRepositoryImpl(
         require(trimmed.isNotEmpty()) { "Exercise name must not be blank" }
         return transactor.immediate {
             require(dao.findLiveByName(trimmed) == null) { "An exercise named \"$trimmed\" already exists" }
-            val now = clock.millis()
+            val now = clock.now().toEpochMilliseconds()
             val entity =
                 ExerciseEntity(
                     id = UUID.randomUUID().toString(),
@@ -54,7 +54,7 @@ class ExerciseRepositoryImpl(
         hidden: Boolean,
     ) {
         val current = dao.findById(id) ?: return
-        dao.update(current.copy(isHidden = hidden, updatedAt = clock.millis()))
+        dao.update(current.copy(isHidden = hidden, updatedAt = clock.now().toEpochMilliseconds()))
     }
 
     override fun observeRecentlyUsedIds(): Flow<List<String>> =

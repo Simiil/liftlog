@@ -17,15 +17,15 @@ import de.simiil.liftlog.domain.model.SessionExerciseWithSets
 import de.simiil.liftlog.domain.model.SessionWithDetails
 import de.simiil.liftlog.domain.model.TemplateExercise
 import de.simiil.liftlog.domain.model.WorkoutPlan
-import java.time.Instant
+import kotlin.time.Instant
 
-private fun Long.toInstant(): Instant = Instant.ofEpochMilli(this)
+private fun Long.toInstant(): Instant = Instant.fromEpochMilliseconds(this)
 
-private fun Long?.toInstantOrNull(): Instant? = this?.let(Instant::ofEpochMilli)
+private fun Long?.toInstantOrNull(): Instant? = this?.let(Instant::fromEpochMilliseconds)
 
-private fun Instant.toMillis(): Long = toEpochMilli()
+private fun Instant.toMillis(): Long = toEpochMilliseconds()
 
-private fun Instant?.toMillisOrNull(): Long? = this?.toEpochMilli()
+private fun Instant?.toMillisOrNull(): Long? = this?.toEpochMilliseconds()
 
 fun ExerciseEntity.toDomain() =
     Exercise(

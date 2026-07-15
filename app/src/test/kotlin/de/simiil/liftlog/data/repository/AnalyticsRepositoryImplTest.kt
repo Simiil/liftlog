@@ -8,22 +8,21 @@ import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
+import de.simiil.liftlog.testing.FixedClock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
+import kotlin.time.Instant
 
 class AnalyticsRepositoryImplTest {
     private val day = 86_400_000L
 
     // Fixed "now" = Thursday 2026-06-04 12:00 UTC (ISO week starts Monday 2026-06-01).
     private val now = Instant.parse("2026-06-04T12:00:00Z")
-    private val clock = Clock.fixed(now, ZoneOffset.UTC)
-    private val nowMs = now.toEpochMilli()
+    private val clock = FixedClock(now)
+    private val nowMs = now.toEpochMilliseconds()
 
     private fun ex(
         id: String,
@@ -35,8 +34,8 @@ class AnalyticsRepositoryImplTest {
         equipment = eq,
         isBuiltIn = true,
         isHidden = false,
-        createdAt = Instant.EPOCH,
-        updatedAt = Instant.EPOCH,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
         deletedAt = null,
     )
 

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import java.time.Instant
+import kotlin.time.Instant
 
 data class HistoryUiState(
     val sessions: List<HistorySessionUi> = emptyList(),

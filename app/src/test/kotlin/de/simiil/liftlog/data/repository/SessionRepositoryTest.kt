@@ -4,6 +4,7 @@ import de.simiil.liftlog.data.dao.SessionSetCount
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.data.entity.SessionEntity
 import de.simiil.liftlog.data.entity.SessionExerciseEntity
+import de.simiil.liftlog.testing.FixedClock
 import de.simiil.liftlog.testing.fakes.FakePlanDao
 import de.simiil.liftlog.testing.fakes.FakePrefillDao
 import de.simiil.liftlog.testing.fakes.FakeSessionDao
@@ -16,15 +17,13 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 import java.util.UUID
+import kotlin.time.Instant
 
 class SessionRepositoryTest {
     private val clockMillis = 5000L
-    private val clock = Clock.fixed(Instant.ofEpochMilli(clockMillis), ZoneOffset.UTC)
-    private val fixedInstant = Instant.ofEpochMilli(clockMillis)
+    private val clock = FixedClock(Instant.fromEpochMilliseconds(clockMillis))
+    private val fixedInstant = Instant.fromEpochMilliseconds(clockMillis)
 
     private lateinit var dao: FakeSessionDao
     private lateinit var prefillDao: FakePrefillDao
@@ -576,8 +575,8 @@ class SessionRepositoryTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionDetails(
                 "sess-1",
-                startedAt = Instant.ofEpochMilli(100L),
-                endedAt = Instant.ofEpochMilli(200L),
+                startedAt = Instant.fromEpochMilliseconds(100L),
+                endedAt = Instant.fromEpochMilliseconds(200L),
                 rpe = 9.0,
                 note = "  rough one  ",
             )
@@ -595,8 +594,8 @@ class SessionRepositoryTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionDetails(
                 "sess-1",
-                startedAt = Instant.ofEpochMilli(200L),
-                endedAt = Instant.ofEpochMilli(200L),
+                startedAt = Instant.fromEpochMilliseconds(200L),
+                endedAt = Instant.fromEpochMilliseconds(200L),
                 rpe = null,
                 note = null,
             )
@@ -615,8 +614,8 @@ class SessionRepositoryTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionDetails(
                 "sess-1",
-                startedAt = Instant.ofEpochMilli(100L),
-                endedAt = Instant.ofEpochMilli(200L),
+                startedAt = Instant.fromEpochMilliseconds(100L),
+                endedAt = Instant.fromEpochMilliseconds(200L),
                 rpe = 10.5,
                 note = null,
             )
@@ -641,8 +640,8 @@ class SessionRepositoryTest {
         runTest {
             repo.updateSessionDetails(
                 "ghost",
-                startedAt = Instant.ofEpochMilli(100L),
-                endedAt = Instant.ofEpochMilli(200L),
+                startedAt = Instant.fromEpochMilliseconds(100L),
+                endedAt = Instant.fromEpochMilliseconds(200L),
                 rpe = null,
                 note = null,
             )

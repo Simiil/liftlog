@@ -17,10 +17,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlin.time.Clock
 
 class AnalyticsRepositoryImpl(
     private val analyticsDao: AnalyticsDao,
@@ -28,8 +28,10 @@ class AnalyticsRepositoryImpl(
     private val clock: Clock,
 ) : AnalyticsRepository {
     override fun observeWeekSummary(): Flow<WeekSummary> {
-        val zone: ZoneId = clock.zone
-        val thisWeekStart = LocalDate.now(clock).with(DayOfWeek.MONDAY)
+        // Task 5 rewrites this block on kotlinx-datetime
+        val javaClock = java.time.Clock.fixed(java.time.Instant.ofEpochMilli(clock.now().toEpochMilliseconds()), java.time.ZoneOffset.UTC)
+        val zone: ZoneId = javaClock.zone
+        val thisWeekStart = LocalDate.now(javaClock).with(DayOfWeek.MONDAY)
         val thisWeekStartMs = thisWeekStart.atStartOfDay(zone).toInstant().toEpochMilli()
         val prevWeekStartMs =
             thisWeekStart
@@ -66,7 +68,7 @@ class AnalyticsRepositoryImpl(
             exerciseRepository.observeAll(),
         ) { rows, exercises ->
             val equipment = exercises.firstOrNull { it.id == exerciseId }?.equipment ?: return@combine null
-            summarize(equipment, rows.map { DatedSet(it.sessionId, it.startedAt, it.weightKg, it.reps) }, clock.millis())
+            summarize(equipment, rows.map { DatedSet(it.sessionId, it.startedAt, it.weightKg, it.reps) }, clock.now().toEpochMilliseconds())
         }
 
     override fun observePrSessionIds(): Flow<Set<String>> =
@@ -81,7 +83,7 @@ class AnalyticsRepositoryImpl(
                         { DatedSet(it.sessionId, it.startedAt, it.weightKg, it.reps) },
                     ),
                 equipmentById = exercises.associate { it.id to it.equipment },
-                nowMillis = clock.millis(),
+                nowMillis = clock.now().toEpochMilliseconds(),
             )
         }.flowOn(Dispatchers.Default)
 

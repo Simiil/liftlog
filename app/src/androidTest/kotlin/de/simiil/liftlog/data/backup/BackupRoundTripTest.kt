@@ -25,6 +25,7 @@ import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.plan.DefaultPlanEnsurer
 import de.simiil.liftlog.domain.repository.ParseResult
 import de.simiil.liftlog.domain.repository.SettingsRepository
+import de.simiil.liftlog.testing.FixedClock
 import de.simiil.liftlog.testing.newInMemoryDb
 import de.simiil.liftlog.ui.plans.ResourceDefaultPlanNameProvider
 import kotlinx.coroutines.flow.Flow
@@ -38,9 +39,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
+import kotlin.time.Instant
 
 @RunWith(AndroidJUnit4::class)
 class BackupRoundTripTest {
@@ -79,7 +78,7 @@ class BackupRoundTripTest {
     }
 
     private val appInfo = AppInfo("LiftLog", "0.1.0", 1)
-    private val clock = Clock.fixed(Instant.parse("2026-06-09T12:00:00Z"), ZoneOffset.UTC)
+    private val clock = FixedClock(Instant.parse("2026-06-09T12:00:00Z"))
 
     /** Wires a real [DefaultPlanEnsurer] over the test [db] so `applyImport` exercises the same
      *  seeding path production does. */

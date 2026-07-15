@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import java.time.Instant
 import java.util.UUID
+import kotlin.time.Instant
 
 /**
  * In-memory fake for [PlanRepository]. Backed by [MutableStateFlow] maps so
@@ -67,7 +67,7 @@ class FakePlanRepository : PlanRepository {
         templateExercisesFlow.value = _templateExercises.toMap()
     }
 
-    private fun nowInstant(): Instant = Instant.EPOCH
+    private fun nowInstant(): Instant = Instant.fromEpochMilliseconds(0)
 
     // ── observe methods ───────────────────────────────────────────────────
 

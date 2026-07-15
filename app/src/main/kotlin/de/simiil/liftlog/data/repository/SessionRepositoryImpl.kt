@@ -15,9 +15,9 @@ import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.units.Rpe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.time.Clock
-import java.time.Instant
 import java.util.UUID
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class SessionRepositoryImpl(
     private val dao: SessionDao,
@@ -35,7 +35,7 @@ class SessionRepositoryImpl(
     override suspend fun startEmptySession(): Session =
         transactor.immediate {
             check(dao.activeSessionId() == null) { "A session is already in progress" }
-            val now = clock.millis()
+            val now = clock.now().toEpochMilliseconds()
             val session =
                 SessionEntity(
                     id = UUID.randomUUID().toString(),
@@ -54,12 +54,12 @@ class SessionRepositoryImpl(
         }
 
     override suspend fun finishSession(id: String) {
-        dao.finishSession(id, clock.millis())
+        dao.finishSession(id, clock.now().toEpochMilliseconds())
     }
 
     override suspend fun softDeleteSession(id: String) =
         transactor.immediate {
-            val now = clock.millis()
+            val now = clock.now().toEpochMilliseconds()
             dao.softDeleteLoggedSetsForSession(id, now)
             dao.softDeleteSessionExercisesFor(id, now)
             dao.softDeleteSession(id, now)
@@ -69,7 +69,7 @@ class SessionRepositoryImpl(
         sessionId: String,
         exerciseId: String,
     ): SessionExercise {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         val entity =
             SessionExerciseEntity(
                 id = UUID.randomUUID().toString(),
@@ -94,7 +94,7 @@ class SessionRepositoryImpl(
     ): LoggedSet {
         require(weightKg >= 0.0) { "weightKg must be >= 0" }
         require(reps >= 1) { "reps must be >= 1" }
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         val entity =
             LoggedSetEntity(
                 id = UUID.randomUUID().toString(),
@@ -123,17 +123,17 @@ class SessionRepositoryImpl(
             existing.copy(
                 weightKg = weightKg,
                 reps = reps,
-                updatedAt = clock.millis(),
+                updatedAt = clock.now().toEpochMilliseconds(),
             ),
         )
     }
 
     override suspend fun deleteSet(setId: String) {
-        dao.softDeleteLoggedSet(setId, clock.millis())
+        dao.softDeleteLoggedSet(setId, clock.now().toEpochMilliseconds())
     }
 
     override suspend fun removeExercise(sessionExerciseId: String) {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         transactor.immediate {
             dao.softDeleteLoggedSetsForSessionExercise(sessionExerciseId, now)
             dao.softDeleteSessionExercise(sessionExerciseId, now)
@@ -144,7 +144,7 @@ class SessionRepositoryImpl(
         sessionExerciseId: String,
         newExerciseId: String,
     ): SessionExercise {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         return transactor.immediate {
             val old =
                 dao.findSessionExercise(sessionExerciseId)
@@ -182,14 +182,14 @@ class SessionRepositoryImpl(
         rpe: Double?,
     ) {
         require(rpe == null || rpe in Rpe.MIN..Rpe.MAX) { "rpe must be within ${Rpe.MIN}..${Rpe.MAX}" }
-        dao.updateSessionRpe(sessionId, rpe, clock.millis())
+        dao.updateSessionRpe(sessionId, rpe, clock.now().toEpochMilliseconds())
     }
 
     override suspend fun updateSessionNote(
         sessionId: String,
         note: String?,
     ) {
-        dao.updateSessionNote(sessionId, note?.trim()?.takeIf { it.isNotEmpty() }, clock.millis())
+        dao.updateSessionNote(sessionId, note?.trim()?.takeIf { it.isNotEmpty() }, clock.now().toEpochMilliseconds())
     }
 
     override suspend fun updateSessionDetails(
@@ -199,17 +199,17 @@ class SessionRepositoryImpl(
         rpe: Double?,
         note: String?,
     ) {
-        require(endedAt.isAfter(startedAt)) { "endedAt must be after startedAt" }
+        require(endedAt > startedAt) { "endedAt must be after startedAt" }
         require(rpe == null || rpe in Rpe.MIN..Rpe.MAX) { "rpe must be within ${Rpe.MIN}..${Rpe.MAX}" }
         transactor.immediate {
             val session = dao.findSession(sessionId) ?: return@immediate
             dao.updateSession(
                 session.copy(
-                    startedAt = startedAt.toEpochMilli(),
-                    endedAt = endedAt.toEpochMilli(),
+                    startedAt = startedAt.toEpochMilliseconds(),
+                    endedAt = endedAt.toEpochMilliseconds(),
                     rpe = rpe,
                     note = note?.trim()?.takeIf { it.isNotEmpty() },
-                    updatedAt = clock.millis(),
+                    updatedAt = clock.now().toEpochMilliseconds(),
                 ),
             )
         }
@@ -221,7 +221,7 @@ class SessionRepositoryImpl(
             val template =
                 planDao.findDayTemplate(templateId)
                     ?: error("day template not found: $templateId")
-            val now = clock.millis()
+            val now = clock.now().toEpochMilliseconds()
             val session =
                 SessionEntity(
                     id = UUID.randomUUID().toString(),

@@ -50,11 +50,10 @@ import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.LoggedSetRow
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import java.time.Duration
-import java.time.Instant
-import java.time.ZoneId
+import kotlin.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,7 +181,7 @@ fun SessionDetailScreen(
                                     stringResource(
                                         R.string.session_detail_foot,
                                         name,
-                                        formatters.relativeDate(startedAt.toEpochMilli()),
+                                        formatters.relativeDate(startedAt.toEpochMilliseconds()),
                                     ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -221,15 +220,14 @@ private fun DateStrip(
     formatters: LocaleFormatters,
 ) {
     val zone = TimeZone.currentSystemDefault()
-    val kInstant = kotlin.time.Instant.fromEpochMilliseconds(startedAt.toEpochMilli())
-    val year = startedAt.atZone(ZoneId.systemDefault()).year
+    val year = startedAt.toLocalDateTime(zone).year
     Text(
         text =
             stringResource(
                 R.string.session_detail_started,
-                formatters.weekdayDayMonth(kInstant, zone),
+                formatters.weekdayDayMonth(startedAt, zone),
                 year,
-                formatters.timeHm(kInstant, zone),
+                formatters.timeHm(startedAt, zone),
             ),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -249,7 +247,7 @@ private fun SummaryStrip(
 ) {
     val duration =
         if (startedAt != null && endedAt != null) {
-            val sec = Duration.between(startedAt, endedAt).seconds.coerceAtLeast(0)
+            val sec = (endedAt - startedAt).inWholeSeconds.coerceAtLeast(0)
             stringResource(R.string.session_duration_value, sec / 60, sec % 60)
         } else {
             "—"

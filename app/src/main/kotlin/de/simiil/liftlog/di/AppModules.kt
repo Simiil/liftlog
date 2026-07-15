@@ -62,7 +62,7 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import java.time.Clock
+import kotlin.time.Clock
 
 /** Qualifier for the app-lifetime CoroutineScope. */
 val AppScope = named("applicationScope")
@@ -85,7 +85,7 @@ val infraModule =
         single { get<AppDatabase>().seedStateDao() }
         single { AppInfo(name = "LiftLog", versionName = BuildConfig.VERSION_NAME, dbSchemaVersion = DB_SCHEMA_VERSION) }
         single<Transactor> { RoomTransactor(get()) }
-        single<Clock> { Clock.systemUTC() }
+        single<Clock> { Clock.System }
         single { Json { ignoreUnknownKeys = true } }
         single(AppScope) { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
         single<DataStore<Preferences>> {

@@ -14,7 +14,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.time.Instant
+import kotlin.time.Instant
 
 class ExercisePickerViewModelTest {
     @get:Rule
@@ -44,8 +44,8 @@ class ExercisePickerViewModelTest {
         equipment = equipment,
         isBuiltIn = true,
         isHidden = false,
-        createdAt = Instant.EPOCH,
-        updatedAt = Instant.EPOCH,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
         deletedAt = null,
     )
 

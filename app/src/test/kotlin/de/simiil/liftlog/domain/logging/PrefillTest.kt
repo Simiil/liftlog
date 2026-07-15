@@ -3,7 +3,7 @@ package de.simiil.liftlog.domain.logging
 import de.simiil.liftlog.domain.model.LoggedSet
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.time.Instant
+import kotlin.time.Instant
 
 private fun set(
     weightKg: Double,
@@ -15,9 +15,9 @@ private fun set(
     weightKg = weightKg,
     reps = reps,
     position = position,
-    completedAt = Instant.EPOCH,
-    createdAt = Instant.EPOCH,
-    updatedAt = Instant.EPOCH,
+    completedAt = Instant.fromEpochMilliseconds(0),
+    createdAt = Instant.fromEpochMilliseconds(0),
+    updatedAt = Instant.fromEpochMilliseconds(0),
     deletedAt = null,
 )
 

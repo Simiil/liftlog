@@ -57,7 +57,7 @@ import de.simiil.liftlog.ui.components.LoggedSetRow
 import de.simiil.liftlog.ui.components.RepsStepper
 import de.simiil.liftlog.ui.components.WeightStepper
 import de.simiil.liftlog.ui.theme.LiftLogTheme
-import java.time.Instant
+import kotlin.time.Instant
 
 private val CARD_SHAPE = RoundedCornerShape(22.dp)
 
@@ -469,7 +469,7 @@ private fun summaryOf(
 
 // ─── Previews ─────────────────────────────────────────────────────────────────
 
-private val fakeInstant = Instant.ofEpochSecond(0)
+private val fakeInstant = Instant.fromEpochSeconds(0)
 
 private fun fakeSet(
     id: String,

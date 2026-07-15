@@ -72,7 +72,7 @@ class SessionNotificationBuilder(
             .setContentText(body)
             .setUsesChronometer(true)
             .setShowWhen(true)
-            .setWhen(model.startedAt.toEpochMilli())
+            .setWhen(model.startedAt.toEpochMilliseconds())
             .setContentIntent(contentIntent(model.sessionId))
             .apply {
                 if (model.showLogSet) {

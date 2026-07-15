@@ -5,7 +5,7 @@ import de.simiil.liftlog.domain.repository.ImportSummary
 import de.simiil.liftlog.domain.repository.InvalidReason
 import de.simiil.liftlog.domain.repository.ParseResult
 import de.simiil.liftlog.domain.repository.ParsedBackup
-import java.time.Instant
+import kotlin.time.Instant
 
 class FakeBackupRepository : BackupRepository {
     var exportJson: String = "{}"

@@ -17,8 +17,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.Clock
-import java.time.ZoneOffset
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 enum class SettingsMessage { EXPORTED, EXPORT_FAILED, IMPORTED }
 
@@ -70,7 +71,7 @@ class SettingsViewModel(
         viewModelScope.launch { syntheticHistorySeeder.seed() }
     }
 
-    fun defaultExportFileName(): String = "liftlog-backup-${clock.instant().atZone(ZoneOffset.UTC).toLocalDate()}.json"
+    fun defaultExportFileName(): String = "liftlog-backup-${clock.now().toLocalDateTime(TimeZone.UTC).date}.json"
 
     fun export(uri: Uri) {
         viewModelScope.launch {

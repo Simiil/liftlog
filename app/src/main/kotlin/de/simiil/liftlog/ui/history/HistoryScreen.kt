@@ -112,7 +112,7 @@ private fun HistorySessionCard(
                     PrBadge()
                 }
             }
-            val relativeDate = formatters.relativeDate(session.startedAt.toEpochMilli())
+            val relativeDate = formatters.relativeDate(session.startedAt.toEpochMilliseconds())
             Text(
                 text = "$relativeDate · ${pluralStringResource(R.plurals.set_count, session.setCount, session.setCount)}",
                 style = MaterialTheme.typography.bodyMedium,

@@ -17,7 +17,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
-import java.time.Instant
+import kotlin.time.Instant
 
 /**
  * What the session notification shows and what its LOG SET action would log.
