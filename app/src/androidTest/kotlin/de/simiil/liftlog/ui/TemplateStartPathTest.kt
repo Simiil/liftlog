@@ -10,14 +10,13 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
+import de.simiil.liftlog.testing.FreshKoinRule
 import de.simiil.liftlog.ui.UiTestTags.ADD_EXERCISE
 import de.simiil.liftlog.ui.UiTestTags.HOME_TEMPLATE_CHIP
 import de.simiil.liftlog.ui.UiTestTags.LOGGED_SET_ROW
@@ -28,7 +27,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * M3 exit criterion: "Cold start → template chip → first set = 3 taps" (05-roadmap Task 11).
@@ -40,19 +40,18 @@ import javax.inject.Inject
  *
  * ### Harness
  * Same as [CriticalLoggingPathTest]: [createAndroidComposeRule] launches MainActivity sharing the
- * test's Hilt singleton DB; [@Before] seeds via the injected repos; assertions interact with
+ * test's Koin singleton DB; [@Before] seeds via the injected repos; assertions interact with
  * `onNodeWithTag` after [androidx.compose.ui.test.junit4.ComposeContentTestRule.waitForIdle].
- * The built-in seeder does NOT run under HiltTestApplication, so exercises are made via
+ * The built-in seeder does NOT run under KoinTestApplication, so exercises are made via
  * [ExerciseRepository.createCustom]. A prior **completed** session is seeded so Home shows
  * HomeContent (not FirstLaunch), where the template chip grid lives.
  *
  * Compose UI tests run in CI (API 34); locally they also run now that espresso is current.
  */
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
-class TemplateStartPathTest {
+class TemplateStartPathTest : KoinComponent {
     @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    val koinRule = FreshKoinRule()
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
@@ -63,17 +62,15 @@ class TemplateStartPathTest {
     val grantPermissionRule: GrantPermissionRule =
         GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
-    @Inject lateinit var sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository by inject()
 
-    @Inject lateinit var exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository by inject()
 
-    @Inject lateinit var planRepository: PlanRepository
+    private val planRepository: PlanRepository by inject()
 
     @Before
     fun seed() =
         runBlocking {
-            hiltRule.inject()
-
             // "Test Squat" is the template exercise; "Test Lunge" is the distinct ad-hoc add (test 2).
             val squat = exerciseRepository.createCustom("Test Squat", MuscleGroup.QUADS, Equipment.BARBELL)
             exerciseRepository.createCustom("Test Lunge", MuscleGroup.QUADS, Equipment.DUMBBELL)

@@ -21,7 +21,7 @@ android {
         targetSdk = 36
         versionCode = 5
         versionName = "0.5.0"
-        testInstrumentationRunner = "de.simiil.liftlog.HiltTestRunner"
+        testInstrumentationRunner = "de.simiil.liftlog.KoinTestRunner"
         androidResources.localeFilters += listOf("en", "de")
     }
 
@@ -147,6 +147,7 @@ dependencies {
     androidTestImplementation(libs.turbine)
     androidTestImplementation(libs.hilt.android.testing)
     kspAndroidTest(libs.hilt.compiler)
+    androidTestImplementation(platform(libs.koin.bom))
     androidTestImplementation(libs.koin.test)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -8,14 +8,13 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
+import de.simiil.liftlog.testing.FreshKoinRule
 import de.simiil.liftlog.ui.UiTestTags.PLAN_DELETE_CONFIRM
 import de.simiil.liftlog.ui.UiTestTags.PLAN_MENU_DELETE
 import de.simiil.liftlog.ui.UiTestTags.PLAN_OVERFLOW
@@ -28,7 +27,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Instrumented path test for the plan delete flow (single-plan Plan tab, issue #30 PR3b).
@@ -43,31 +43,28 @@ import javax.inject.Inject
  *
  * ### Harness
  * Same as [TemplateStartPathTest]: [createAndroidComposeRule] launches MainActivity sharing
- * the test's Hilt singleton DB; seeding happens via the injected repos (the built-in seeder
- * does NOT run under HiltTestApplication, so the exercise is made via
+ * the test's Koin singleton DB; seeding happens via the injected repos (the built-in seeder
+ * does NOT run under KoinTestApplication, so the exercise is made via
  * [ExerciseRepository.createCustom]). Only one plan is seeded — it's the fallback selection
  * the Plan tab shows automatically (no explicit `selectPlan` needed).
  */
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
-class PlanDeletePathTest {
+class PlanDeletePathTest : KoinComponent {
     @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    val koinRule = FreshKoinRule()
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
-    @Inject lateinit var planRepository: PlanRepository
+    private val planRepository: PlanRepository by inject()
 
-    @Inject lateinit var exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository by inject()
 
     private lateinit var planId: String
 
     @Before
     fun seed() =
         runBlocking {
-            hiltRule.inject()
-
             // One plan with one day template carrying one exercise (TemplateStartPathTest idiom).
             val squat = exerciseRepository.createCustom("Test Squat", MuscleGroup.QUADS, Equipment.BARBELL)
             val plan = planRepository.createPlan("Test Plan")
