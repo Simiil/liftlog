@@ -13,7 +13,7 @@ class SeedAssetTest {
     private val seed =
         Json { ignoreUnknownKeys = true }
             .decodeFromString<SeedFile>(
-                File("src/main/assets/seed/exercises.v${ExerciseSeeder.SEED_VERSION}.json").readText(),
+                File("src/androidMain/assets/seed/exercises.v${ExerciseSeeder.SEED_VERSION}.json").readText(),
             )
 
     @Test fun hasExactlyExpectedCount() = assertEquals(331, seed.exercises.size)

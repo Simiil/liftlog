@@ -4,3 +4,11 @@ root = true
 ktlint_code_style = ktlint_official
 # Compose: @Composable functions are PascalCase by convention.
 ktlint_function_naming_ignore_when_annotated_with = Composable
+
+# Compose Multiplatform's resource generator emits Res.kt / *ResourceCollectors.kt under
+# build/generated for the commonMain source set. Those files are generated (not ours to format)
+# and the KMP-layout ktlint tasks now pick them up. Disable the standard ruleset there.
+# (Done via .editorconfig rather than the ktlint `filter {}` DSL, which is not
+# Gradle-configuration-cache compatible — its closures serialize script object references.)
+[**/build/generated/**/*.{kt,kts}]
+ktlint_standard = disabled

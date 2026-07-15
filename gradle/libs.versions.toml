@@ -5,6 +5,13 @@ ktlintGradle = "14.2.0"
 ksp = "2.3.10"
 koinBom = "4.1.1"
 composeBom = "2025.09.00"
+composeMultiplatform = "1.11.1"
+# Compose Multiplatform ships Material3 and material-icons-extended on their own
+# release trains (see the ReplaceWith coordinates emitted by CMP 1.11.1's deprecated
+# `compose.*` accessors). These track composeMultiplatform but version independently.
+composeMultiplatformMaterial3 = "1.9.0"
+composeMultiplatformMaterialIcons = "1.7.3"
+sqlite = "2.7.0"
 activityCompose = "1.10.1"
 lifecycle = "2.9.2"
 navigationCompose = "2.9.3"
@@ -60,10 +67,27 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+androidx-sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqlite" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+
+# Compose Multiplatform artifacts. CMP 1.11.1 deprecated the `compose.*` DSL accessors at
+# DeprecationLevel.ERROR; these are the coordinates those accessors' ReplaceWith point to.
+# On the Android target the CMP plugin remaps them to the equivalent androidx.compose.* artifacts
+# (imports stay `androidx.compose.*`), so this is behaviorally identical to the previous BOM setup.
+compose-mp-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "composeMultiplatform" }
+compose-mp-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "composeMultiplatform" }
+compose-mp-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "composeMultiplatform" }
+compose-mp-ui-tooling = { group = "org.jetbrains.compose.ui", name = "ui-tooling", version.ref = "composeMultiplatform" }
+compose-mp-ui-tooling-preview = { group = "org.jetbrains.compose.ui", name = "ui-tooling-preview", version.ref = "composeMultiplatform" }
+compose-mp-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "composeMultiplatformMaterial3" }
+compose-mp-material-icons-extended = { group = "org.jetbrains.compose.material", name = "material-icons-extended", version.ref = "composeMultiplatformMaterialIcons" }
+compose-mp-components-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "composeMultiplatform" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
