@@ -113,6 +113,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.datastore.preferences)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
