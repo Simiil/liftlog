@@ -1,6 +1,5 @@
 package de.simiil.liftlog.ui.history
 
-import android.text.format.DateUtils
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +27,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.components.PrBadge
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,6 +40,7 @@ fun HistoryScreen(
     viewModel: HistoryViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val formatters = koinInject<LocaleFormatters>()
 
     Scaffold(
         modifier = modifier,
@@ -73,6 +75,7 @@ fun HistoryScreen(
                 items(uiState.sessions, key = { it.sessionId }) { session ->
                     HistorySessionCard(
                         session = session,
+                        formatters = formatters,
                         onClick = { onOpenSessionDetail(session.sessionId) },
                     )
                 }
@@ -85,6 +88,7 @@ fun HistoryScreen(
 @Composable
 private fun HistorySessionCard(
     session: HistorySessionUi,
+    formatters: LocaleFormatters,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -108,13 +112,7 @@ private fun HistorySessionCard(
                     PrBadge()
                 }
             }
-            val relativeDate =
-                DateUtils
-                    .getRelativeTimeSpanString(
-                        session.startedAt.toEpochMilli(),
-                        System.currentTimeMillis(),
-                        DateUtils.MINUTE_IN_MILLIS,
-                    ).toString()
+            val relativeDate = formatters.relativeDate(session.startedAt.toEpochMilli())
             Text(
                 text = "$relativeDate · ${pluralStringResource(R.plurals.set_count, session.setCount, session.setCount)}",
                 style = MaterialTheme.typography.bodyMedium,

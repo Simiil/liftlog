@@ -1,6 +1,5 @@
 package de.simiil.liftlog.ui.home
 
-import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +52,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.EmptyState
@@ -60,7 +60,9 @@ import de.simiil.liftlog.ui.components.EmptyStateAction
 import de.simiil.liftlog.ui.components.PrBadge
 import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
+import de.simiil.liftlog.ui.format.AndroidLocaleFormatters
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import java.time.Duration
 import java.time.Instant
@@ -75,6 +77,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val formatters = koinInject<LocaleFormatters>()
     // First-launch only when there's nothing to act on: no live/finished sessions AND no plan
     // content. Uses hasPlanContent (not "any plan exists"): issue #30 permanently seeds a default
     // plan on every install, so "any plan exists" would always be true and a fresh install would
@@ -108,6 +111,7 @@ fun HomeScreen(
         } else {
             HomeContent(
                 uiState = uiState,
+                formatters = formatters,
                 onResume = { id -> onOpenSession(id) },
                 onStartEmpty = { viewModel.startOrResume(onOpenSession) },
                 onStartFromTemplate = { templateId ->
@@ -126,6 +130,7 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     uiState: HomeUiState,
+    formatters: LocaleFormatters,
     onResume: (String) -> Unit,
     onStartEmpty: () -> Unit,
     onStartFromTemplate: (String) -> Unit,
@@ -179,6 +184,7 @@ private fun HomeContent(
             itemsIndexed(uiState.recent, key = { _, s -> s.sessionId }) { index, session ->
                 RecentSessionItem(
                     session = session,
+                    formatters = formatters,
                     showDivider = index < uiState.recent.lastIndex,
                     onClick = { onOpenSessionDetail(session.sessionId) },
                 )
@@ -430,18 +436,13 @@ private fun SectionHeader(
 @Composable
 private fun RecentSessionItem(
     session: RecentSessionUi,
+    formatters: LocaleFormatters,
     showDivider: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val name = session.name ?: stringResource(R.string.session_untitled)
-    val relativeDate =
-        DateUtils
-            .getRelativeTimeSpanString(
-                session.startedAt.toEpochMilli(),
-                Instant.now().toEpochMilli(),
-                DateUtils.DAY_IN_MILLIS,
-            ).toString()
+    val relativeDate = formatters.relativeDay(session.startedAt.toEpochMilli())
 
     Column(modifier = modifier) {
         Row(
@@ -525,6 +526,7 @@ private fun PreviewHomeWithChips() {
                         ),
                     recent = emptyList(),
                 ),
+            formatters = AndroidLocaleFormatters(context = null),
             onResume = {},
             onStartEmpty = {},
             onStartFromTemplate = {},
@@ -544,6 +546,7 @@ private fun PreviewHomeNoPlans() {
                     templates = emptyList(),
                     recent = emptyList(),
                 ),
+            formatters = AndroidLocaleFormatters(context = null),
             onResume = {},
             onStartEmpty = {},
             onStartFromTemplate = {},

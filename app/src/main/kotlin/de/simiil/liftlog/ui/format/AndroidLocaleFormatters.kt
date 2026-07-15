@@ -56,6 +56,14 @@ class AndroidLocaleFormatters(
                 DateUtils.MINUTE_IN_MILLIS,
             ).toString()
 
+    override fun relativeDay(thenMillis: Long): String =
+        DateUtils
+            .getRelativeTimeSpanString(
+                thenMillis,
+                System.currentTimeMillis(),
+                DateUtils.DAY_IN_MILLIS,
+            ).toString()
+
     override fun prefers24HourTime(): Boolean = context?.let(DateFormat::is24HourFormat) ?: true
 
     override fun oneDecimal(value: Double) = String.format(Locale.getDefault(), "%.1f", value)

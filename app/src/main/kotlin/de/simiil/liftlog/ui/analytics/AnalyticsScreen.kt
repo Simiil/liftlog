@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.TrendDirection
 import de.simiil.liftlog.domain.analytics.TrendResult
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.TrainedExercise
 import de.simiil.liftlog.domain.repository.WeekSummary
@@ -44,6 +45,7 @@ import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.charts.Sparkline
 import de.simiil.liftlog.ui.exercises.exerciseDisplayName
 import de.simiil.liftlog.ui.theme.LocalLiftLogColors
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -54,6 +56,7 @@ fun AnalyticsScreen(
 ) {
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
     val balance by viewModel.balanceState.collectAsStateWithLifecycle()
+    val formatters = koinInject<LocaleFormatters>()
     Column(modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
         Text(
             stringResource(R.string.analytics_title),
@@ -64,7 +67,7 @@ fun AnalyticsScreen(
         LazyColumn {
             ui.week?.let { week ->
                 item(key = "week") {
-                    WeekCard(week, ui.unit)
+                    WeekCard(week, ui.unit, formatters)
                     Spacer(Modifier.height(12.dp))
                 }
             }
@@ -101,6 +104,7 @@ fun AnalyticsScreen(
 private fun WeekCard(
     week: WeekSummary,
     unit: WeightUnit,
+    formatters: LocaleFormatters,
 ) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(22.dp)) {
         Column(Modifier.fillMaxWidth().padding(18.dp)) {
@@ -120,7 +124,7 @@ private fun WeekCard(
                 Stat(
                     stringResource(
                         R.string.analytics_stat_volume_value,
-                        String.format(java.util.Locale.getDefault(), "%.1f", week.volumeKg / 1000),
+                        formatters.oneDecimal(week.volumeKg / 1000),
                     ),
                     stringResource(R.string.analytics_stat_volume),
                     Modifier.weight(1f),

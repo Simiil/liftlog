@@ -1,6 +1,5 @@
 package de.simiil.liftlog.ui.session
 
-import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,17 +43,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.SetEntry
 import de.simiil.liftlog.domain.analytics.volumeKg
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.LoggedSetRow
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
+import kotlinx.datetime.TimeZone
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +64,7 @@ fun SessionDetailScreen(
     viewModel: SessionDetailViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val formatters = koinInject<LocaleFormatters>()
     val name = uiState.name ?: stringResource(R.string.session_untitled)
     var showEditSheet by rememberSaveable { mutableStateOf(false) }
 
@@ -126,7 +127,7 @@ fun SessionDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     uiState.startedAt?.let { startedAt ->
-                        item(key = "datestrip") { DateStrip(startedAt) }
+                        item(key = "datestrip") { DateStrip(startedAt, formatters) }
                     }
                     item(key = "summary") {
                         SummaryStrip(
@@ -135,6 +136,7 @@ fun SessionDetailScreen(
                             totalSets = totalSets,
                             volumeKg = totalVolumeKg,
                             rpe = uiState.rpe,
+                            formatters = formatters,
                         )
                     }
                     uiState.note?.let { note ->
@@ -180,7 +182,7 @@ fun SessionDetailScreen(
                                     stringResource(
                                         R.string.session_detail_foot,
                                         name,
-                                        relativeDate(startedAt),
+                                        formatters.relativeDate(startedAt.toEpochMilli()),
                                     ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -213,19 +215,21 @@ fun SessionDetailScreen(
 }
 
 // ── Date strip: "Mon 2 Jun · 2026 · started 18:30" ────────────────────────────
-private val DATE_FMT = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
-private val TIME_FMT = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
-
 @Composable
-private fun DateStrip(startedAt: Instant) {
-    val ldt = startedAt.atZone(ZoneId.systemDefault())
+private fun DateStrip(
+    startedAt: Instant,
+    formatters: LocaleFormatters,
+) {
+    val zone = TimeZone.currentSystemDefault()
+    val kInstant = kotlin.time.Instant.fromEpochMilliseconds(startedAt.toEpochMilli())
+    val year = startedAt.atZone(ZoneId.systemDefault()).year
     Text(
         text =
             stringResource(
                 R.string.session_detail_started,
-                DATE_FMT.format(ldt),
-                ldt.year,
-                TIME_FMT.format(ldt),
+                formatters.weekdayDayMonth(kInstant, zone),
+                year,
+                formatters.timeHm(kInstant, zone),
             ),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -240,6 +244,7 @@ private fun SummaryStrip(
     endedAt: Instant?,
     totalSets: Int,
     volumeKg: Double,
+    formatters: LocaleFormatters,
     rpe: Double? = null,
 ) {
     val duration =
@@ -252,7 +257,7 @@ private fun SummaryStrip(
     val volume =
         stringResource(
             R.string.session_stat_volume_value,
-            String.format(Locale.getDefault(), "%.1f", volumeKg / 1000.0),
+            formatters.oneDecimal(volumeKg / 1000.0),
         )
     Surface(
         shape = RoundedCornerShape(22.dp),
@@ -366,12 +371,3 @@ private fun exerciseSubtitle(
     val sets = pluralStringResource(R.plurals.set_count, exercise.sets.size, exercise.sets.size)
     return stringResource(R.string.session_detail_ex_sub, lead, sets, muscleGroupLabel(exercise.muscleGroup))
 }
-
-@Composable
-private fun relativeDate(startedAt: Instant): String =
-    DateUtils
-        .getRelativeTimeSpanString(
-            startedAt.toEpochMilli(),
-            System.currentTimeMillis(),
-            DateUtils.MINUTE_IN_MILLIS,
-        ).toString()

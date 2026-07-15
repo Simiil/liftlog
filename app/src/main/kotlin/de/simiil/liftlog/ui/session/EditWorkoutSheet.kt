@@ -1,6 +1,5 @@
 package de.simiil.liftlog.ui.session
 
-import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +33,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -42,15 +40,16 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.RpeStepper
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import org.koin.compose.koinInject
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 private enum class PickField { START, END }
 
@@ -93,6 +92,7 @@ fun EditWorkoutSheet(
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val formatters = koinInject<LocaleFormatters>()
     val zone = ZoneId.systemDefault()
     var startMillis by remember { mutableLongStateOf(startedAt.toEpochMilli()) }
     var endMillis by remember { mutableLongStateOf(endedAt.toEpochMilli()) }
@@ -127,7 +127,7 @@ fun EditWorkoutSheet(
             DateTimeField(
                 label = stringResource(R.string.session_edit_start),
                 instant = Instant.ofEpochMilli(startMillis),
-                zone = zone,
+                formatters = formatters,
                 onClick = {
                     pickField = PickField.START
                     pickStage = PickStage.DATE
@@ -136,7 +136,7 @@ fun EditWorkoutSheet(
             DateTimeField(
                 label = stringResource(R.string.session_edit_end),
                 instant = Instant.ofEpochMilli(endMillis),
-                zone = zone,
+                formatters = formatters,
                 onClick = {
                     pickField = PickField.END
                     pickStage = PickStage.DATE
@@ -240,7 +240,7 @@ fun EditWorkoutSheet(
             rememberTimePickerState(
                 initialHour = current.hour,
                 initialMinute = current.minute,
-                is24Hour = DateFormat.is24HourFormat(LocalContext.current),
+                is24Hour = formatters.prefers24HourTime(),
             )
         AlertDialog(
             onDismissRequest = {
@@ -299,14 +299,15 @@ fun EditWorkoutSheet(
 private fun DateTimeField(
     label: String,
     instant: Instant,
-    zone: ZoneId,
+    formatters: LocaleFormatters,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val text =
-        DateTimeFormatter
-            .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-            .format(instant.atZone(zone))
+        formatters.mediumDateShortTime(
+            kotlin.time.Instant.fromEpochMilliseconds(instant.toEpochMilli()),
+            TimeZone.currentSystemDefault(),
+        )
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),

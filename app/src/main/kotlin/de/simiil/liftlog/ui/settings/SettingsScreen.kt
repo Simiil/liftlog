@@ -42,12 +42,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.domain.repository.InvalidReason
+import kotlinx.datetime.TimeZone
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,6 +57,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val formatters = koinInject<LocaleFormatters>()
     val snackbarHostState = remember { SnackbarHostState() }
 
     val exportLauncher =
@@ -144,10 +145,10 @@ fun SettingsScreen(
     uiState.pendingImport?.let { summary ->
         val date =
             remember(summary) {
-                DateTimeFormatter
-                    .ofLocalizedDate(FormatStyle.MEDIUM)
-                    .withZone(ZoneId.systemDefault())
-                    .format(summary.exportedAt)
+                formatters.mediumDate(
+                    kotlin.time.Instant.fromEpochMilliseconds(summary.exportedAt.toEpochMilli()),
+                    TimeZone.currentSystemDefault(),
+                )
             }
         AlertDialog(
             onDismissRequest = viewModel::dismissImport,

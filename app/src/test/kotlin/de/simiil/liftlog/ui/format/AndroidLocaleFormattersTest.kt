@@ -51,4 +51,16 @@ class AndroidLocaleFormattersTest {
         val sorted = withLocale(Locale.GERMANY) { listOf("Übung", "Anfang").sortedWith(fmt.nameComparator()) }
         assertEquals(listOf("Anfang", "Übung"), sorted) // Collator puts Ü after A, before Z-region
     }
+
+    // relativeDay delegates to android.text.format.DateUtils, which is an unmocked android.jar
+    // stub on the JVM (it throws "not mocked" if actually invoked outside Robolectric/an
+    // instrumented test). So this can't assert DateUtils' runtime output like the other tests
+    // do — instead it asserts the seam contract itself (method exists, correct signature),
+    // and leaves DAY_IN_MILLIS-bucketing correctness ("Today"/"Yesterday") to be verified
+    // on-device (HomeScreen's recent-session rows).
+    @Test
+    fun relativeDay_isPartOfTheSeamContract() {
+        val method = AndroidLocaleFormatters::class.java.getDeclaredMethod("relativeDay", Long::class.javaPrimitiveType)
+        assertEquals(String::class.java, method.returnType)
+    }
 }

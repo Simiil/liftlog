@@ -30,6 +30,9 @@ interface LocaleFormatters {
 
     fun relativeDate(thenMillis: Long): String // was DateUtils.getRelativeTimeSpanString
 
+    /** Day-resolution relative date — "Today"/"Yesterday"-style bucketing (minResolution = a day). */
+    fun relativeDay(thenMillis: Long): String
+
     fun prefers24HourTime(): Boolean // was DateFormat.is24HourFormat(context)
 
     fun oneDecimal(value: Double): String // was String.format("%.1f", …)

@@ -6,6 +6,7 @@ import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.testing.FakeExerciseRepository
 import de.simiil.liftlog.testing.MainDispatcherRule
+import de.simiil.liftlog.ui.format.AndroidLocaleFormatters
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -24,6 +25,10 @@ class ExercisePickerViewModelTest {
         ExerciseNameResolver { id, fallback ->
             if (id == "1") "Bankdrücken" else fallback
         }
+
+    // JVM unit test: context = null (see AndroidLocaleFormatters KDoc — DateUtils/DateFormat
+    // paths aren't exercised here; nameComparator() below is pure java.text.Collator).
+    private val formatters = AndroidLocaleFormatters(context = null)
 
     // ---- helpers ----
 
@@ -57,7 +62,7 @@ class ExercisePickerViewModelTest {
                     makeExercise("3", "bench row"),
                 )
 
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             vm.uiState.test {
                 awaitItem() // initial (empty or settled)
@@ -84,7 +89,7 @@ class ExercisePickerViewModelTest {
                     makeExercise("3", "Incline Press", muscle = MuscleGroup.CHEST),
                 )
 
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             vm.uiState.test {
                 awaitItem()
@@ -111,7 +116,7 @@ class ExercisePickerViewModelTest {
                     makeExercise("3", "Cable Curl", equipment = Equipment.CABLE),
                 )
 
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             vm.uiState.test {
                 awaitItem()
@@ -137,7 +142,7 @@ class ExercisePickerViewModelTest {
             // recentIds order = most recently used first
             repo.recentIds.value = listOf("ex-3", "ex-1")
 
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             vm.uiState.test {
                 val state = awaitItem()
@@ -159,7 +164,7 @@ class ExercisePickerViewModelTest {
             repo.visible.value = listOf(ex1)
             repo.recentIds.value = listOf("ex-1")
 
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             vm.uiState.test {
                 awaitItem() // settled with recent non-empty
@@ -180,7 +185,7 @@ class ExercisePickerViewModelTest {
             repo.visible.value = listOf(ex1)
             repo.recentIds.value = listOf("ex-1")
 
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             vm.uiState.test {
                 awaitItem()
@@ -197,7 +202,7 @@ class ExercisePickerViewModelTest {
     fun `createCustom happy path invokes onCreated with new exercise id`() =
         runTest {
             val repo = FakeExerciseRepository()
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             var createdId: String? = null
             vm.createCustom("Push-Up", MuscleGroup.CHEST, Equipment.BODYWEIGHT) { id ->
@@ -220,7 +225,7 @@ class ExercisePickerViewModelTest {
     fun `createCustom blank name sets createError to BLANK_NAME and does not call onCreated`() =
         runTest {
             val repo = FakeExerciseRepository()
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             var onCreatedCalled = false
             vm.createCustom("   ", MuscleGroup.CHEST, Equipment.BARBELL) {
@@ -242,7 +247,7 @@ class ExercisePickerViewModelTest {
             val repo = FakeExerciseRepository()
             repo.duplicateNames.add("bench press")
 
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             var onCreatedCalled = false
             vm.createCustom("Bench Press", MuscleGroup.CHEST, Equipment.BARBELL) {
@@ -262,7 +267,7 @@ class ExercisePickerViewModelTest {
     fun `createError is cleared when onQueryChange is called`() =
         runTest {
             val repo = FakeExerciseRepository()
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             vm.uiState.test {
                 awaitItem() // initial state (no error)
@@ -293,7 +298,7 @@ class ExercisePickerViewModelTest {
             // Only ex-c is recently used
             repo.recentIds.value = listOf("ex-c")
 
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             vm.uiState.test {
                 val state = awaitItem()
@@ -320,7 +325,7 @@ class ExercisePickerViewModelTest {
                     makeExercise("m", "Mmm Press"),
                     makeExercise("z", "Zzz Press"),
                 )
-            val vm = ExercisePickerViewModel(repo, invertingResolver)
+            val vm = ExercisePickerViewModel(repo, invertingResolver, formatters)
             vm.uiState.test {
                 val state = awaitItem()
                 // "z" resolves to "Aaa Press" which sorts before "Mmm Press"
@@ -339,7 +344,7 @@ class ExercisePickerViewModelTest {
                     makeExercise("1", "Barbell Bench Press"), // localized -> "Bankdrücken"
                     makeExercise("2", "Squat"),
                 )
-            val vm = ExercisePickerViewModel(repo, resolver)
+            val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
             vm.uiState.test {
                 awaitItem()
