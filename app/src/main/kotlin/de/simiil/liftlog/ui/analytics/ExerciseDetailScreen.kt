@@ -34,12 +34,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.ui.components.PrBadge
 import de.simiil.liftlog.ui.components.charts.ProgressLineChart
+import org.koin.compose.viewmodel.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,7 +50,7 @@ fun ExerciseDetailScreen(
     onBack: () -> Unit,
     onOpenSession: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ExerciseDetailViewModel = hiltViewModel(),
+    viewModel: ExerciseDetailViewModel = koinViewModel(),
 ) {
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
     val fmt = rememberDateFormat()

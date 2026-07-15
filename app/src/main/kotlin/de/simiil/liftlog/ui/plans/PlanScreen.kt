@@ -56,7 +56,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.MuscleGroup
@@ -64,6 +63,7 @@ import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import org.koin.compose.viewmodel.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -74,7 +74,7 @@ fun PlanScreen(
     onOpenDay: (String, Boolean) -> Unit,
     onOpenSession: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PlanViewModel = hiltViewModel(),
+    viewModel: PlanViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     PlanContent(

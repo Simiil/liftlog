@@ -33,7 +33,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.TrendDirection
@@ -45,12 +44,13 @@ import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.charts.Sparkline
 import de.simiil.liftlog.ui.exercises.exerciseDisplayName
 import de.simiil.liftlog.ui.theme.LocalLiftLogColors
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AnalyticsScreen(
     onOpenExercise: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AnalyticsBrowserViewModel = hiltViewModel(),
+    viewModel: AnalyticsBrowserViewModel = koinViewModel(),
 ) {
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
     val balance by viewModel.balanceState.collectAsStateWithLifecycle()

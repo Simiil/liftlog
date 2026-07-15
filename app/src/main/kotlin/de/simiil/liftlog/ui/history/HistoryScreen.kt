@@ -26,17 +26,17 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.ui.components.PrBadge
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     onOpenSessionDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: HistoryViewModel = hiltViewModel(),
+    viewModel: HistoryViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
