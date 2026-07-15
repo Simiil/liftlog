@@ -235,7 +235,7 @@ val viewModelModule = module {
 val appModules = listOf(infraModule, dataModule, uiModule, androidPlatformModule, viewModelModule)
 ```
 
-Also in this step: delete `DayEditorViewModel`'s secondary `@Inject constructor` (it existed only because Dagger can't skip `debounceMs`; Koin's lambda uses the primary constructor's default). Argument order in every `get()` call must match the constructor inventory in the replaced Hilt modules — cross-check each against the class's primary constructor.
+`DayEditorViewModel` keeps its `@HiltViewModel` and secondary `@Inject constructor` in this task — Koin's lambda resolves the secondary constructor (same `debounceMs` default), and Hilt must stay fully functional until Task 4 rewires the call sites; the deletion happens in Task 6. *(Amended 2026-07-15 during execution: deleting it here forces `@HiltViewModel` off the class and breaks the Day Editor screen until Task 4.)* Argument order in every `get()` call must match the constructor inventory in the replaced Hilt modules — cross-check each against the class's primary constructor.
 
 - [ ] **Step 4: Run the test** — PASS. Then `./gradlew testDebugUnitTest` — all green (Hilt still active; Koin modules are inert data until Task 3).
 
@@ -300,7 +300,7 @@ class SessionNotificationService : Service(), KoinComponent {
 
 (`org.koin.core.component.KoinComponent` / `org.koin.core.component.inject`.)
 
-- [ ] **Step 4: Build + install-smoke** — `./gradlew assembleDebug` then `./gradlew installDebug`, launch on `emulator-5554`: app opens, Home shows seeded state, start/finish a session, notification appears. (Hilt annotations elsewhere are now dead weight but harmless.)
+- [ ] **Step 4: Build + install-smoke** — `./gradlew assembleDebug` then `./gradlew installDebug`, launch on `emulator-5554`: app opens, Home shows seeded state, start/finish a session, notification appears. *(Amended 2026-07-15: this smoke test only passes once Task 4's call sites are swapped — removing `@HiltAndroidApp` breaks every remaining `hiltViewModel()` call at runtime. Execute Tasks 3+4 together and smoke-test at the end.)*
 
 - [ ] **Step 5: Commit** — `git commit -m "refactor(di): boot Koin from Application; Activity+Service off Hilt (#NN)"`
 
@@ -396,7 +396,7 @@ class CriticalLoggingPathTest : KoinComponent {
 - Modify: the 17 `@Inject`-constructor classes + 11 ViewModels (strip `@Inject`/`@Singleton`/`@HiltViewModel`/`@ApplicationContext`/`@ApplicationScope` annotations and their imports; constructors themselves stay)
 - Modify: `app/build.gradle.kts`, `build.gradle.kts`, `gradle/libs.versions.toml`
 
-- [ ] **Step 1: Strip annotations.** `grep -rln 'javax.inject\|dagger' app/src` gives the authoritative list; expected ≈ 30 files. Remove annotation lines + imports only — no signature changes. `ResourceExerciseNameResolver`-style nested-indent classes flatten back to normal class declarations where the annotation forced the indented form (ktlintFormat will settle formatting).
+- [ ] **Step 1: Strip annotations.** `grep -rln 'javax.inject\|dagger' app/src` gives the authoritative list; expected ≈ 30 files. Remove annotation lines + imports only — no signature changes, with one exception: in `DayEditorViewModel`, also delete the secondary constructor (deferred from Task 2) and the stale "Not `@HiltViewModel`…" KDoc paragraph above the class. `ResourceExerciseNameResolver`-style nested-indent classes flatten back to normal class declarations where the annotation forced the indented form (ktlintFormat will settle formatting).
 
 - [ ] **Step 2: Build files.** Remove from `app/build.gradle.kts`: `alias(libs.plugins.hilt)`, `implementation(libs.hilt.android)`, `ksp(libs.hilt.compiler)`, `implementation(libs.androidx.hilt.navigation.compose)`, `androidTestImplementation(libs.hilt.android.testing)`, `kspAndroidTest(libs.hilt.compiler)`. **Keep `alias(libs.plugins.ksp)`** — Room needs it. Remove the hilt line from root `build.gradle.kts` plugins. Remove `hilt`, `hiltNavigationCompose` versions + the 4 hilt library entries + hilt plugin from the catalog.
 
