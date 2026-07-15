@@ -62,7 +62,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.time.Clock
 
-/** Qualifier for the app-lifetime CoroutineScope (was Hilt's @ApplicationScope). */
+/** Qualifier for the app-lifetime CoroutineScope. */
 val AppScope = named("applicationScope")
 
 /** Infra singletons — DB, DAOs, Clock, Json, app scope. (PR4: DB/DataStore providers move to platformModule.) */
@@ -99,7 +99,7 @@ val dataModule =
         single<PlanRepository> { PlanRepositoryImpl(get(), get(), get(), get()) }
         single<SessionRepository> { SessionRepositoryImpl(get(), get(), get(), get(), get()) }
         single<AnalyticsRepository> { AnalyticsRepositoryImpl(get(), get(), get()) }
-        factory<BackupRepository> { BackupRepositoryImpl(get(), get(), get(), get(), get(), get()) } // Hilt-unscoped
+        factory<BackupRepository> { BackupRepositoryImpl(get(), get(), get(), get(), get(), get()) } // unscoped
         single { ExerciseSeeder(androidContext(), get(), get(), get(), get(), get()) }
         single { SyntheticHistorySeeder(get(), get()) }
         single { DefaultPlanEnsurer(get(), get()) }
@@ -109,7 +109,7 @@ val dataModule =
 /** UI-adjacent bindings. */
 val uiModule =
     module {
-        factory<DocumentIo> { AndroidDocumentIo(androidContext()) } // Hilt-unscoped
+        factory<DocumentIo> { AndroidDocumentIo(androidContext()) } // unscoped
         single<ExerciseNameResolver> { ResourceExerciseNameResolver(androidContext()) }
         single<DefaultPlanNameProvider> { ResourceDefaultPlanNameProvider(androidContext()) }
     }

@@ -9,40 +9,35 @@ import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class SettingsRepositoryImpl
-    @Inject
-    constructor(
-        private val dataStore: DataStore<Preferences>,
-    ) : SettingsRepository {
-        override val themePreference: Flow<ThemePreference> =
-            dataStore.data.map { preferences ->
-                ThemePreference.fromStorageValue(preferences[KEY_THEME])
-            }
-
-        override val weightUnit: Flow<WeightUnit> =
-            dataStore.data.map { preferences ->
-                WeightUnit.fromStorageValue(preferences[KEY_WEIGHT_UNIT])
-            }
-
-        override suspend fun setThemePreference(preference: ThemePreference) {
-            dataStore.edit { preferences ->
-                preferences[KEY_THEME] = preference.name
-            }
+class SettingsRepositoryImpl(
+    private val dataStore: DataStore<Preferences>,
+) : SettingsRepository {
+    override val themePreference: Flow<ThemePreference> =
+        dataStore.data.map { preferences ->
+            ThemePreference.fromStorageValue(preferences[KEY_THEME])
         }
 
-        override suspend fun setWeightUnit(unit: WeightUnit) {
-            dataStore.edit { preferences ->
-                preferences[KEY_WEIGHT_UNIT] = unit.name
-            }
+    override val weightUnit: Flow<WeightUnit> =
+        dataStore.data.map { preferences ->
+            WeightUnit.fromStorageValue(preferences[KEY_WEIGHT_UNIT])
         }
 
-        private companion object {
-            // Key name mirrors the export format's settings object (02-data-spec §6)
-            val KEY_THEME = stringPreferencesKey("theme")
-            val KEY_WEIGHT_UNIT = stringPreferencesKey("weight_unit")
+    override suspend fun setThemePreference(preference: ThemePreference) {
+        dataStore.edit { preferences ->
+            preferences[KEY_THEME] = preference.name
         }
     }
+
+    override suspend fun setWeightUnit(unit: WeightUnit) {
+        dataStore.edit { preferences ->
+            preferences[KEY_WEIGHT_UNIT] = unit.name
+        }
+    }
+
+    private companion object {
+        // Key name mirrors the export format's settings object (02-data-spec §6)
+        val KEY_THEME = stringPreferencesKey("theme")
+        val KEY_WEIGHT_UNIT = stringPreferencesKey("weight_unit")
+    }
+}

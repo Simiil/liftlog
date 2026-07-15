@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
 }
 
@@ -115,9 +114,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.androidx.datastore.preferences)
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)
@@ -145,8 +141,6 @@ dependencies {
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.turbine)
-    androidTestImplementation(libs.hilt.android.testing)
-    kspAndroidTest(libs.hilt.compiler)
     androidTestImplementation(platform(libs.koin.bom))
     androidTestImplementation(libs.koin.test)
     androidTestImplementation(platform(libs.compose.bom))
