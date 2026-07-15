@@ -1,11 +1,14 @@
 package de.simiil.liftlog.ui.session
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
+import kotlin.time.Instant
 
 class CombineDateAndTimeTest {
     // ---- helpers ----
@@ -14,7 +17,7 @@ class CombineDateAndTimeTest {
     private fun instant(s: String): Instant = Instant.parse(s)
 
     /** Berlin zone (CEST = +02:00 in summer, CET = +01:00 in winter). */
-    private val berlin = ZoneId.of("Europe/Berlin")
+    private val berlin = TimeZone.of("Europe/Berlin")
 
     /**
      * Encode a picked calendar date as the M3 DatePicker contract:
@@ -24,12 +27,7 @@ class CombineDateAndTimeTest {
         year: Int,
         month: Int,
         day: Int,
-    ): Long =
-        java.time.LocalDate
-            .of(year, month, day)
-            .atStartOfDay(ZoneOffset.UTC)
-            .toInstant()
-            .toEpochMilli()
+    ): Long = LocalDate(year, month, day).atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
 
     // ---- tests ----
 
@@ -40,10 +38,10 @@ class CombineDateAndTimeTest {
      */
     @Test
     fun normalCombine_pickedDateAndTime_returnsCorrectInstant() {
-        val current = ZonedDateTime.of(2026, 6, 11, 8, 0, 0, 0, berlin)
+        val current = LocalDateTime(2026, 6, 11, 8, 0).toInstant(berlin)
         val picked = utcMidnightMillis(2026, 6, 10)
 
-        val result = combineDateAndTime(picked, 14, 30, current)
+        val result = combineDateAndTime(picked, 14, 30, current, berlin)
 
         assertEquals(instant("2026-06-10T12:30:00Z"), result)
     }
@@ -59,14 +57,14 @@ class CombineDateAndTimeTest {
     @Test
     fun nullFallback_usesLocalDate_notUtcDate() {
         // 00:30 CEST is 22:30 UTC the previous day → UTC date = 2026-06-10
-        val current = ZonedDateTime.of(2026, 6, 11, 0, 30, 0, 0, berlin)
+        val current = LocalDateTime(2026, 6, 11, 0, 30).toInstant(berlin)
 
-        val result = combineDateAndTime(null, 1, 0, current)
+        val result = combineDateAndTime(null, 1, 0, current, berlin)
 
-        val resultedLocalDate = result.atZone(berlin).toLocalDate()
+        val resultedLocalDate = result.toLocalDateTime(berlin).date
         assertEquals(
             "Fallback must resolve to the LOCAL date of current (2026-06-11), not the UTC date (2026-06-10)",
-            java.time.LocalDate.of(2026, 6, 11),
+            LocalDate(2026, 6, 11),
             resultedLocalDate,
         )
         // Extra: also verify the time component
@@ -80,13 +78,13 @@ class CombineDateAndTimeTest {
      */
     @Test
     fun dstGap_springForward_shiftedToPostGapTime() {
-        // current can be any arbitrary ZonedDateTime in Berlin
-        val current = ZonedDateTime.of(2026, 3, 28, 12, 0, 0, 0, berlin)
+        // current can be any arbitrary date-time in Berlin
+        val current = LocalDateTime(2026, 3, 28, 12, 0).toInstant(berlin)
         val picked = utcMidnightMillis(2026, 3, 29)
 
-        val result = combineDateAndTime(picked, 2, 30, current)
+        val result = combineDateAndTime(picked, 2, 30, current, berlin)
 
-        // The SMART resolver shifts the gap time to 03:30+02:00
+        // kotlinx's toInstant(zone) shifts the gap time forward, same as java's SMART resolver
         assertEquals(instant("2026-03-29T01:30:00Z"), result)
     }
 
@@ -98,10 +96,10 @@ class CombineDateAndTimeTest {
      */
     @Test
     fun winterOffset_pickedDateInWinter_appliesWinterZoneRules() {
-        val current = ZonedDateTime.of(2026, 6, 15, 10, 0, 0, 0, berlin) // CEST (+02:00)
+        val current = LocalDateTime(2026, 6, 15, 10, 0).toInstant(berlin) // CEST (+02:00)
         val picked = utcMidnightMillis(2026, 1, 15)
 
-        val result = combineDateAndTime(picked, 23, 45, current)
+        val result = combineDateAndTime(picked, 23, 45, current, berlin)
 
         assertEquals(instant("2026-01-15T22:45:00Z"), result)
     }

@@ -44,13 +44,14 @@ import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.RpeStepper
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.koinInject
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import kotlin.time.Instant as KotlinInstant
+import kotlin.time.Instant
 
 private enum class PickField { START, END }
 
@@ -61,20 +62,22 @@ private enum class PickStage { DATE, TIME }
  *
  * [pickedUtcDateMillis] follows the DatePicker contract (UTC midnight of the picked calendar
  * day; null when the text-input mode cleared the field) — null falls back to [current]'s
- * LOCAL calendar date. The combination applies [current]'s zone rules of the picked date;
- * DST-gap times are shifted forward by java.time's resolver (02:30 → 03:30 on spring-forward).
+ * LOCAL calendar date in [zone]. The combination applies [zone]'s rules of the picked date;
+ * DST-gap times are shifted forward by kotlinx-datetime's `toInstant` (02:30 → 03:30 on
+ * spring-forward), matching java.time's SMART resolver semantics.
  */
 internal fun combineDateAndTime(
     pickedUtcDateMillis: Long?,
     hour: Int,
     minute: Int,
-    current: ZonedDateTime,
+    current: Instant,
+    zone: TimeZone = TimeZone.currentSystemDefault(),
 ): Instant {
     val date =
         pickedUtcDateMillis
-            ?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }
-            ?: current.toLocalDate()
-    return date.atTime(hour, minute).atZone(current.zone).toInstant()
+            ?.let { Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.UTC).date }
+            ?: current.toLocalDateTime(zone).date
+    return LocalDateTime(date, LocalTime(hour, minute)).toInstant(zone)
 }
 
 /**
@@ -85,18 +88,16 @@ internal fun combineDateAndTime(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditWorkoutSheet(
-    startedAt: KotlinInstant,
-    endedAt: KotlinInstant,
+    startedAt: Instant,
+    endedAt: Instant,
     rpe: Double?,
     note: String?,
-    onSave: (KotlinInstant, KotlinInstant, Double?, String?) -> Unit,
+    onSave: (Instant, Instant, Double?, String?) -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val formatters = koinInject<LocaleFormatters>()
-    val zone = ZoneId.systemDefault()
-    // Boundary bridge: callers now hand us kotlin.time.Instant; everything below this line
-    // (combineDateAndTime, picker logic) stays on java.time.Instant, untouched (Task 7 ports it).
+    val zone = TimeZone.currentSystemDefault()
     var startMillis by remember { mutableLongStateOf(startedAt.toEpochMilliseconds()) }
     var endMillis by remember { mutableLongStateOf(endedAt.toEpochMilliseconds()) }
     var editRpe by remember { mutableStateOf(rpe) }
@@ -129,7 +130,7 @@ fun EditWorkoutSheet(
             )
             DateTimeField(
                 label = stringResource(R.string.session_edit_start),
-                instant = Instant.ofEpochMilli(startMillis),
+                instant = Instant.fromEpochMilliseconds(startMillis),
                 formatters = formatters,
                 onClick = {
                     pickField = PickField.START
@@ -138,7 +139,7 @@ fun EditWorkoutSheet(
             )
             DateTimeField(
                 label = stringResource(R.string.session_edit_end),
-                instant = Instant.ofEpochMilli(endMillis),
+                instant = Instant.fromEpochMilliseconds(endMillis),
                 formatters = formatters,
                 onClick = {
                     pickField = PickField.END
@@ -186,8 +187,8 @@ fun EditWorkoutSheet(
                     enabled = valid,
                     onClick = {
                         onSave(
-                            KotlinInstant.fromEpochMilliseconds(startMillis),
-                            KotlinInstant.fromEpochMilliseconds(endMillis),
+                            Instant.fromEpochMilliseconds(startMillis),
+                            Instant.fromEpochMilliseconds(endMillis),
                             editRpe,
                             noteDraft.trim().takeIf { it.isNotEmpty() },
                         )
@@ -204,17 +205,17 @@ fun EditWorkoutSheet(
     val editingField = pickField
     if (editingField != null && pickStage == PickStage.DATE) {
         val current =
-            Instant
-                .ofEpochMilli(if (editingField == PickField.START) startMillis else endMillis)
-                .atZone(zone)
+            Instant.fromEpochMilliseconds(
+                if (editingField == PickField.START) startMillis else endMillis,
+            )
         val datePickerState =
             rememberDatePickerState(
                 initialSelectedDateMillis =
                     current
-                        .toLocalDate()
-                        .atStartOfDay(ZoneOffset.UTC)
-                        .toInstant()
-                        .toEpochMilli(),
+                        .toLocalDateTime(zone)
+                        .date
+                        .atStartOfDayIn(TimeZone.UTC)
+                        .toEpochMilliseconds(),
             )
         DatePickerDialog(
             onDismissRequest = { pickField = null },
@@ -236,13 +237,14 @@ fun EditWorkoutSheet(
     }
     if (editingField != null && pickStage == PickStage.TIME) {
         val current =
-            Instant
-                .ofEpochMilli(if (editingField == PickField.START) startMillis else endMillis)
-                .atZone(zone)
+            Instant.fromEpochMilliseconds(
+                if (editingField == PickField.START) startMillis else endMillis,
+            )
+        val currentLocal = current.toLocalDateTime(zone)
         val timeState =
             rememberTimePickerState(
-                initialHour = current.hour,
-                initialMinute = current.minute,
+                initialHour = currentLocal.hour,
+                initialMinute = currentLocal.minute,
                 is24Hour = formatters.prefers24HourTime(),
             )
         AlertDialog(
@@ -253,8 +255,8 @@ fun EditWorkoutSheet(
             confirmButton = {
                 TextButton(onClick = {
                     val combined =
-                        combineDateAndTime(pendingDateMillis, timeState.hour, timeState.minute, current)
-                            .toEpochMilli()
+                        combineDateAndTime(pendingDateMillis, timeState.hour, timeState.minute, current, zone)
+                            .toEpochMilliseconds()
                     if (editingField == PickField.START) startMillis = combined else endMillis = combined
                     pickField = null
                     pickStage = PickStage.DATE
@@ -308,7 +310,7 @@ private fun DateTimeField(
 ) {
     val text =
         formatters.mediumDateShortTime(
-            kotlin.time.Instant.fromEpochMilliseconds(instant.toEpochMilli()),
+            instant,
             TimeZone.currentSystemDefault(),
         )
     Surface(
