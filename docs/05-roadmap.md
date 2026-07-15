@@ -1,7 +1,7 @@
 # 05 — Roadmap
 
 > **Status:** Draft for review · 2026-06-07 (M6 added 2026-06-11)
-> Seven milestones, each independently reviewable and ending in a working state. Logging lands at **M2** — earliest possible dogfooding; everything after improves an already-usable app. Implementation starts only after this doc set is approved ([HANDOFF.md](../HANDOFF.md) §0).
+> Nine milestones (M7/M8 iPhone port added 2026-07-15), each independently reviewable and ending in a working state. Logging lands at **M2** — earliest possible dogfooding; everything after improves an already-usable app. Implementation starts only after this doc set is approved ([HANDOFF.md](../HANDOFF.md) §0).
 
 ## M0 — Scaffold
 
@@ -58,6 +58,22 @@
 **Deliverables:** Per [08-i18n-spec](08-i18n-spec.md) — externalize remaining hardcoded strings + lint gates, locale-aware number/weight formatting and numpad entry (§5); `values-de/` translations for all UI strings and the muscle/equipment labels; built-in exercise names localized by **stable-UUID → string-resource lookup** with the DB untouched (`ExerciseNameResolver`, drift-guard test), incl. picker **search/sort on localized names** (§3); `locales_config.xml` + `android:localeConfig` for the OS per-app language picker (no in-app picker, no new dependency, §4). Three-PR series: foundations/formatting → built-in name localization → German translation.
 
 **Exit criteria:** App renders fully in German under a German locale with no hardcoded UI text (`lint HardcodedText` clean); all ≈70 built-ins show localized names while custom exercises render verbatim; picker search/sort use localized names (UI test); weights/volume/RPE use the locale decimal separator and numpad entry accepts it; `lint` (incl. `MissingTranslation`) + unit tests + assemble green; export round-trip re-localizes built-ins.
+
+## M7 — Multiplatform-ready (added 2026-07-15, issue #47)
+
+**Goal:** The codebase compiles as a KMP module (Android + iOS targets) with the Android app behaviorally unchanged; iOS is compile-only.
+
+**Deliverables:** Per [ios-port spec](superpowers/specs/2026-07-15-ios-port-design.md) and [M7 plan](superpowers/plans/2026-07-15-m7-multiplatform-ready.md) — Hilt → Koin (with `verify()` graph gate); java.time → kotlinx-datetime behind a DI-bound `LocaleFormatters` seam; Vico replaced by a hand-rolled Canvas line chart; `:app` converted to a KMP module with `domain`/`data`/`ui` in `commonMain`, Room 2.8 + BundledSQLiteDriver, DataStore core; strings → Compose Multiplatform resources (en+de) with a parity-test gate; JetBrains navigation fork. Five-PR series.
+
+**Exit criteria:** Android app unchanged in behavior (full manual regression sweep + existing suites green); common tests pass on JVM **and** `iosSimulatorArm64`; iOS framework links.
+
+## M8 — iOS app (planned at the M7 review gate, issue #47)
+
+**Goal:** LiftLog runs on real iPhones via TestFlight.
+
+**Deliverables:** `iosApp/` Xcode shell; iOS actuals verified (document picker, formatters); idiom polish (back-swipe, safe areas, keyboard types, launch screen, icon); CI macOS job (framework build + common tests on simulator); signing + TestFlight upload with documented manual steps.
+
+**Exit criteria:** TestFlight build on a physical iPhone; manual pass of core flows (log workout end-to-end, plans, history, analytics, export/import, both locales).
 
 ## Sequencing notes
 
