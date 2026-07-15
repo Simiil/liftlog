@@ -3,7 +3,6 @@ package de.simiil.liftlog.ui.plans
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 data class DayEditorUiState(
     val loading: Boolean = true,
@@ -53,8 +51,14 @@ private data class TargetsOverlay(
  * for everything else). A small in-memory overlay masks the round-trip latency so the name field
  * never loses the cursor and rapid stepper taps never compute from a stale value; the overlay is
  * purely internal — the UI and the repository know nothing about it.
+ *
+ * Not `@HiltViewModel`: its `debounceMs` default can't be expressed as a Dagger-injectable
+ * constructor, so it was previously reached via a narrower `@Inject` secondary constructor.
+ * Koin's `viewModel { }` lambda (di/AppModules.kt) can call the primary constructor and use
+ * the default directly, so that workaround is gone (#47 PR1.2) — this leaves the Day Editor
+ * screen's `hiltViewModel()` call unable to resolve this class until PR1.4 moves that call
+ * site to `koinViewModel()`.
  */
-@HiltViewModel
 class DayEditorViewModel(
     savedStateHandle: SavedStateHandle,
     private val planRepository: PlanRepository,
@@ -62,17 +66,6 @@ class DayEditorViewModel(
     private val names: ExerciseNameResolver,
     private val debounceMs: Long = DEFAULT_DEBOUNCE_MS,
 ) : ViewModel() {
-    // Dagger can't fall back to a Kotlin default for an unqualified Long, so production DI
-    // goes through this narrower @Inject constructor (Hilt never sees debounceMs) while tests
-    // construct the primary constructor directly and may override the debounce duration.
-    @Inject
-    constructor(
-        savedStateHandle: SavedStateHandle,
-        planRepository: PlanRepository,
-        exerciseRepository: ExerciseRepository,
-        names: ExerciseNameResolver,
-    ) : this(savedStateHandle, planRepository, exerciseRepository, names, debounceMs = DEFAULT_DEBOUNCE_MS)
-
     // Type-safe route fields land in the handle under their field name; every day is a real,
     // already-created row by the time this screen opens (mirrors ActiveSessionViewModel's
     // required sessionId), so the id is non-nullable.
