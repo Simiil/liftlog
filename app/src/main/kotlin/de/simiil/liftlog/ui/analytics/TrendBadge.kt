@@ -13,15 +13,14 @@ import de.simiil.liftlog.domain.analytics.TrendDirection
 import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.theme.LocalLiftLogColors
-import org.koin.compose.koinInject
 
 @Composable
 fun TrendBadge(
     trend: TrendResult,
+    formatters: LocaleFormatters,
     modifier: Modifier = Modifier,
     large: Boolean = false,
 ) {
-    val formatters = koinInject<LocaleFormatters>()
     val success = LocalLiftLogColors.current.success
     val size: TextUnit = if (large) 15.sp else 13.sp
     val (text, color, weight) =

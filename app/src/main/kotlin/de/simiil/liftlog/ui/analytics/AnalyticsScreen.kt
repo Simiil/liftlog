@@ -92,7 +92,7 @@ fun AnalyticsScreen(
                 }
             } else {
                 items(ui.exercises, key = { it.id }) { ex ->
-                    ExerciseRow(ex, ui.unit, viewModel, onOpenExercise)
+                    ExerciseRow(ex, ui.unit, viewModel, onOpenExercise, formatters)
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
@@ -199,6 +199,7 @@ private fun ExerciseRow(
     unit: WeightUnit,
     viewModel: AnalyticsBrowserViewModel,
     onOpen: (String) -> Unit,
+    formatters: LocaleFormatters,
 ) {
     val summary by viewModel.summary(ex.id).collectAsStateWithLifecycle(initialValue = null)
     Row(
@@ -232,7 +233,7 @@ private fun ExerciseRow(
                 }
                 // In the overview, an insufficient-data row shows just the name + metric —
                 // no "need N sessions" badge and (below) no sparkline. (Stale/Ok badges still show.)
-                if (s != null && s.trend !is TrendResult.Insufficient) TrendBadge(s.trend)
+                if (s != null && s.trend !is TrendResult.Insufficient) TrendBadge(s.trend, formatters)
             }
         }
         val s = summary

@@ -142,7 +142,7 @@ fun ExerciseDetailScreen(
                     // Insufficient "need N sessions" badge is suppressed here — the chart slot
                     // already says "need 2+ sessions", so showing it twice is redundant.
                     if (ui.summary?.bodyweight == false) {
-                        ui.trend?.takeIf { it !is TrendResult.Insufficient }?.let { TrendBadge(it, large = true) }
+                        ui.trend?.takeIf { it !is TrendResult.Insufficient }?.let { TrendBadge(it, formatters, large = true) }
                     }
                 }
             }
