@@ -1,5 +1,6 @@
 package de.simiil.liftlog.ui.components.charts
 
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.log10
@@ -31,7 +32,12 @@ fun niceTicks(
     return generateSequence(start) { it + step }.takeWhile { it < end + step }.toList()
 }
 
-fun tickLabel(v: Double): String {
+/** Whole ticks render as plain integers; fractional ticks are user-visible weight/volume
+ *  values and go through the locale seam (82.5 vs 82,5 — 08-i18n-spec §5). */
+fun tickLabel(
+    v: Double,
+    formatters: LocaleFormatters,
+): String {
     val rounded = v.roundToLong()
-    return if (abs(v - rounded) < 1e-9) rounded.toString() else ((v * 10).roundToLong() / 10.0).toString()
+    return if (abs(v - rounded) < 1e-9) rounded.toString() else formatters.oneDecimal(v)
 }
