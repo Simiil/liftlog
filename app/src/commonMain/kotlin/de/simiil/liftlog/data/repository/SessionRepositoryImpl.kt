@@ -15,9 +15,9 @@ import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.units.Rpe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 class SessionRepositoryImpl(
     private val dao: SessionDao,
@@ -38,7 +38,7 @@ class SessionRepositoryImpl(
             val now = clock.now().toEpochMilliseconds()
             val session =
                 SessionEntity(
-                    id = UUID.randomUUID().toString(),
+                    id = Uuid.random().toString(),
                     templateId = null,
                     templateNameSnapshot = null,
                     startedAt = now,
@@ -72,7 +72,7 @@ class SessionRepositoryImpl(
         val now = clock.now().toEpochMilliseconds()
         val entity =
             SessionExerciseEntity(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 sessionId = sessionId,
                 exerciseId = exerciseId,
                 position = (dao.maxExercisePosition(sessionId) ?: 0) + 1,
@@ -97,7 +97,7 @@ class SessionRepositoryImpl(
         val now = clock.now().toEpochMilliseconds()
         val entity =
             LoggedSetEntity(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 sessionExerciseId = sessionExerciseId,
                 weightKg = weightKg,
                 reps = reps,
@@ -153,7 +153,7 @@ class SessionRepositoryImpl(
             dao.softDeleteSessionExercise(sessionExerciseId, now)
             val replacement =
                 SessionExerciseEntity(
-                    id = UUID.randomUUID().toString(),
+                    id = Uuid.random().toString(),
                     sessionId = old.sessionId,
                     exerciseId = newExerciseId,
                     position = old.position,
@@ -224,7 +224,7 @@ class SessionRepositoryImpl(
             val now = clock.now().toEpochMilliseconds()
             val session =
                 SessionEntity(
-                    id = UUID.randomUUID().toString(),
+                    id = Uuid.random().toString(),
                     templateId = templateId,
                     templateNameSnapshot = template.name,
                     startedAt = now,
@@ -240,7 +240,7 @@ class SessionRepositoryImpl(
                 // live, ordered by position
                 dao.insertSessionExercise(
                     SessionExerciseEntity(
-                        id = UUID.randomUUID().toString(),
+                        id = Uuid.random().toString(),
                         sessionId = session.id,
                         exerciseId = te.exerciseId,
                         position = te.position,

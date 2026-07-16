@@ -3,9 +3,9 @@ package de.simiil.liftlog.data.db
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class ConvertersTest {
     private val c = Converters()

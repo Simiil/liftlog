@@ -1,7 +1,9 @@
 package de.simiil.liftlog.data.db
 
+import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.RoomDatabaseConstructor
 import androidx.room.TypeConverters
 import de.simiil.liftlog.data.dao.AnalyticsDao
 import de.simiil.liftlog.data.dao.BackupDao
@@ -32,6 +34,7 @@ const val DB_SCHEMA_VERSION = 3
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
+@ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
 
@@ -46,4 +49,12 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun backupDao(): BackupDao
 
     abstract fun seedStateDao(): SeedStateDao
+}
+
+// Room's KSP processor generates the per-target `actual object AppDatabaseConstructor` (the
+// initialize() that news up the generated AppDatabase_Impl). @Suppress silences the IDE/compiler
+// "expect declaration has no actual" warning since the actual is code-generated, not hand-written.
+@Suppress("KotlinNoActualForExpect")
+expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
+    override fun initialize(): AppDatabase
 }

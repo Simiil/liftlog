@@ -5,9 +5,9 @@ import de.simiil.liftlog.data.dao.SessionWithDetailsRelation
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.data.entity.SessionEntity
 import de.simiil.liftlog.data.entity.SessionExerciseEntity
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class SessionWithDetailsMapperTest {
     // ── fixture helpers ──────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ class SessionWithDetailsMapperTest {
      * The session id field is mapped through correctly.
      */
     @Test
-    fun `session id is mapped correctly`() {
+    fun session_id_is_mapped_correctly() {
         val relation =
             SessionWithDetailsRelation(
                 session = session("s1"),
@@ -81,7 +81,7 @@ class SessionWithDetailsMapperTest {
      * A session-exercise with deletedAt != null must not appear in the result.
      */
     @Test
-    fun `tombstoned session-exercise is excluded`() {
+    fun tombstoned_session_exercise_is_excluded() {
         val liveEx = exercise("live-ex", position = 1, deletedAt = null)
         val deadEx = exercise("dead-ex", position = 3, deletedAt = 99L)
 
@@ -107,7 +107,7 @@ class SessionWithDetailsMapperTest {
      * insertion order.
      */
     @Test
-    fun `session-exercises are sorted ascending by position`() {
+    fun session_exercises_are_sorted_ascending_by_position() {
         // inserted in NON-ascending order: position 2, 1, 3-tombstoned
         val exPos2 = exercise("ex-pos2", position = 2, deletedAt = null)
         val exPos1 = exercise("ex-pos1", position = 1, deletedAt = null)
@@ -133,7 +133,7 @@ class SessionWithDetailsMapperTest {
      * parent session-exercise.
      */
     @Test
-    fun `tombstoned logged-set is excluded`() {
+    fun tombstoned_logged_set_is_excluded() {
         val ex = exercise("ex1", position = 1, deletedAt = null)
         val liveSet = loggedSet("set-live", sessionExerciseId = "ex1", position = 1, deletedAt = null)
         val deadSet = loggedSet("set-dead", sessionExerciseId = "ex1", position = 3, deletedAt = 99L)
@@ -162,7 +162,7 @@ class SessionWithDetailsMapperTest {
      * regardless of insertion order, and tombstoned sets are excluded.
      */
     @Test
-    fun `logged-sets are sorted ascending by position with tombstones excluded`() {
+    fun logged_sets_are_sorted_ascending_by_position_with_tombstones_excluded() {
         val ex = exercise("ex1", position = 1, deletedAt = null)
         // inserted as: position 2 (live), position 1 (live), position 3 (tombstoned)
         val setPos2 = loggedSet("set-pos2", sessionExerciseId = "ex1", position = 2, deletedAt = null)
@@ -191,7 +191,7 @@ class SessionWithDetailsMapperTest {
      * Asserts both filter+sort constraints simultaneously.
      */
     @Test
-    fun `combined - filters and sorts exercises and sets correctly`() {
+    fun combined_filters_and_sorts_exercises_and_sets_correctly() {
         val exPos2 = exercise("ex-pos2", position = 2, deletedAt = null)
         val exPos1 = exercise("ex-pos1", position = 1, deletedAt = null)
         val exPos3Dead = exercise("ex-pos3-dead", position = 3, deletedAt = 99L)

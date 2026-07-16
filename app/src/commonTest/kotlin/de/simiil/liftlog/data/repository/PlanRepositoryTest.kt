@@ -9,15 +9,15 @@ import de.simiil.liftlog.testing.InMemoryPreferencesDataStore
 import de.simiil.liftlog.testing.fakes.FakePlanDao
 import de.simiil.liftlog.testing.fakes.FakeTransactor
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
-import java.util.UUID
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 class PlanRepositoryTest {
     private val clockMillis = 5000L
@@ -28,7 +28,7 @@ class PlanRepositoryTest {
     private lateinit var dataStore: InMemoryPreferencesDataStore
     private lateinit var repo: PlanRepositoryImpl
 
-    @Before
+    @BeforeTest
     fun setUp() {
         dao = FakePlanDao()
         dataStore = InMemoryPreferencesDataStore()
@@ -36,7 +36,7 @@ class PlanRepositoryTest {
     }
 
     @Test
-    fun `createPlan returns WorkoutPlan with trimmed name, UUID id, clock timestamps, position 0`() =
+    fun createPlan_returns_WorkoutPlan_with_trimmed_name_UUID_id_clock_timestamps_position_0() =
         runTest {
             val result = repo.createPlan("  PPL  ")
 
@@ -45,14 +45,14 @@ class PlanRepositoryTest {
             assertEquals(fixedInstant, result.createdAt)
             assertEquals(fixedInstant, result.updatedAt)
             assertNull(result.deletedAt)
-            assertNotNull(UUID.fromString(result.id))
+            assertNotNull(Uuid.parse(result.id))
 
             assertEquals(1, dao.plans.size)
             assertEquals("PPL", dao.plans[result.id]!!.name)
         }
 
     @Test
-    fun `softDeletePlan tombstones plan, its day templates, and their template exercises`() =
+    fun softDeletePlan_tombstones_plan_its_day_templates_and_their_template_exercises() =
         runTest {
             val oldTs = 1L
 
@@ -108,7 +108,7 @@ class PlanRepositoryTest {
     // ── NEW TESTS (Task 2) ────────────────────────────────────────────────
 
     @Test
-    fun `createPlan second plan gets position 1`() =
+    fun createPlan_second_plan_gets_position_1() =
         runTest {
             val first = repo.createPlan("PPL")
             val second = repo.createPlan("Upper Lower")
@@ -118,7 +118,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `createDayTemplate appends at max+1 within its plan, independent counters per plan`() =
+    fun createDayTemplate_appends_at_max_1_within_its_plan_independent_counters_per_plan() =
         runTest {
             val p1 = repo.createPlan("Plan A")
             val p2 = repo.createPlan("Plan B")
@@ -138,11 +138,11 @@ class PlanRepositoryTest {
             assertEquals(fixedInstant, dayA1.createdAt)
             assertEquals(fixedInstant, dayA1.updatedAt)
             assertNull(dayA1.deletedAt)
-            assertNotNull(UUID.fromString(dayA1.id))
+            assertNotNull(Uuid.parse(dayA1.id))
         }
 
     @Test
-    fun `addExerciseToTemplate appends at max+1, starts at 0, null targets, UUID`() =
+    fun addExerciseToTemplate_appends_at_max_1_starts_at_0_null_targets_UUID() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -160,11 +160,11 @@ class PlanRepositoryTest {
             assertEquals(fixedInstant, te1.createdAt)
             assertEquals(fixedInstant, te1.updatedAt)
             assertNull(te1.deletedAt)
-            assertNotNull(UUID.fromString(te1.id))
+            assertNotNull(Uuid.parse(te1.id))
         }
 
     @Test
-    fun `renamePlan trims name and bumps updatedAt, leaves other fields intact`() =
+    fun renamePlan_trims_name_and_bumps_updatedAt_leaves_other_fields_intact() =
         runTest {
             val plan = repo.createPlan("Old Name")
             repo.renamePlan(plan.id, "  New Name  ")
@@ -177,7 +177,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `renamePlan is a no-op when id is absent`() =
+    fun renamePlan_is_a_no_op_when_id_is_absent() =
         runTest {
             repo.renamePlan("nonexistent-id", "Name")
             // Should not throw; dao remains empty
@@ -185,7 +185,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `renameDayTemplate trims name and bumps updatedAt, leaves other fields intact`() =
+    fun renameDayTemplate_trims_name_and_bumps_updatedAt_leaves_other_fields_intact() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Old Day")
@@ -200,14 +200,14 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `renameDayTemplate is a no-op when id is absent`() =
+    fun renameDayTemplate_is_a_no_op_when_id_is_absent() =
         runTest {
             repo.renameDayTemplate("nonexistent-id", "Name")
             assertTrue(dao.dayTemplates.isEmpty())
         }
 
     @Test
-    fun `updateTemplateExerciseTargets writes three target fields and updatedAt, preserves other fields`() =
+    fun updateTemplateExerciseTargets_writes_three_target_fields_and_updatedAt_preserves_other_fields() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -228,7 +228,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `updateTemplateExerciseTargets can clear targets back to null`() =
+    fun updateTemplateExerciseTargets_can_clear_targets_back_to_null() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -246,7 +246,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `removeTemplateExercise tombstones exactly that row`() =
+    fun removeTemplateExercise_tombstones_exactly_that_row() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -260,7 +260,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `softDeleteDayTemplate tombstones day and its exercises, leaves sibling day exercises live`() =
+    fun softDeleteDayTemplate_tombstones_day_and_its_exercises_leaves_sibling_day_exercises_live() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day1 = repo.createDayTemplate(plan.id, "Day 1")
@@ -284,7 +284,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `reorderTemplateExercises reassigns positions 0,1,2 with bumped updatedAt`() =
+    fun reorderTemplateExercises_reassigns_positions_0_1_2_with_bumped_updatedAt() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -314,7 +314,7 @@ class PlanRepositoryTest {
     // ── reorderDayTemplates (Task 30/PR2) ──────────────────────────────────
 
     @Test
-    fun `reorderDayTemplates reassigns positions 0,1,2 with bumped updatedAt`() =
+    fun reorderDayTemplates_reassigns_positions_0_1_2_with_bumped_updatedAt() =
         runTest {
             val plan = repo.createPlan("Plan")
 
@@ -342,7 +342,7 @@ class PlanRepositoryTest {
     // ── addExercisesToTemplate (Task 30/PR2) ───────────────────────────────
 
     @Test
-    fun `addExercisesToTemplate appends after current max position preserving input order`() =
+    fun addExercisesToTemplate_appends_after_current_max_position_preserving_input_order() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -359,7 +359,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `addExercisesToTemplate dedupes ids already live in the template`() =
+    fun addExercisesToTemplate_dedupes_ids_already_live_in_the_template() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -375,7 +375,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `addExercisesToTemplate dedupes duplicates within the input list`() =
+    fun addExercisesToTemplate_dedupes_duplicates_within_the_input_list() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -389,7 +389,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `addExercisesToTemplate re-adds an exercise whose earlier row was soft-deleted`() =
+    fun addExercisesToTemplate_re_adds_an_exercise_whose_earlier_row_was_soft_deleted() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -407,7 +407,7 @@ class PlanRepositoryTest {
     // ── observeDayTemplate (Task 30/PR2) ───────────────────────────────────
 
     @Test
-    fun `observeDayTemplate emits the row then null after soft-delete`() =
+    fun observeDayTemplate_emits_the_row_then_null_after_soft_delete() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -419,7 +419,7 @@ class PlanRepositoryTest {
 
                 repo.softDeleteDayTemplate(day.id)
                 val afterDelete = awaitItem()
-                assertNull("observeDayTemplate should emit null after soft-delete", afterDelete)
+                assertNull(afterDelete, "observeDayTemplate should emit null after soft-delete")
 
                 cancelAndIgnoreRemainingEvents()
             }
@@ -428,7 +428,7 @@ class PlanRepositoryTest {
     // ── ensureDefaultPlan (Task 30/PR1) ────────────────────────────────────
 
     @Test
-    fun `ensureDefaultPlan creates a plan with trimmed name, UUID, timestamps when none live`() =
+    fun ensureDefaultPlan_creates_a_plan_with_trimmed_name_UUID_timestamps_when_none_live() =
         runTest {
             repo.ensureDefaultPlan("  Default  ")
 
@@ -439,11 +439,11 @@ class PlanRepositoryTest {
             assertEquals(clockMillis, created.createdAt)
             assertEquals(clockMillis, created.updatedAt)
             assertNull(created.deletedAt)
-            assertNotNull(UUID.fromString(created.id))
+            assertNotNull(Uuid.parse(created.id))
         }
 
     @Test
-    fun `ensureDefaultPlan is a no-op when a live plan exists`() =
+    fun ensureDefaultPlan_is_a_no_op_when_a_live_plan_exists() =
         runTest {
             val existing = repo.createPlan("Existing")
 
@@ -465,7 +465,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `ensureDefaultPlan after deleting all plans creates a fresh plan with a new UUID`() =
+    fun ensureDefaultPlan_after_deleting_all_plans_creates_a_fresh_plan_with_a_new_UUID() =
         runTest {
             val first = repo.createPlan("First")
             repo.softDeletePlan(first.id)
@@ -481,7 +481,7 @@ class PlanRepositoryTest {
     // ── softDeletePlanAndEnsureDefault (Task 30/PR1) ────────────────────────
 
     @Test
-    fun `softDeletePlanAndEnsureDefault tombstones plan, days, exercises and seeds a default when it was the only plan`() =
+    fun softDeletePlanAndEnsureDefault_tombstones_plan_days_exercises_and_seeds_a_default_when_it_was_the_only_plan() =
         runTest {
             val plan = repo.createPlan("Solo")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -500,7 +500,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `softDeletePlanAndEnsureDefault does not seed when another live plan remains`() =
+    fun softDeletePlanAndEnsureDefault_does_not_seed_when_another_live_plan_remains() =
         runTest {
             val toDelete = repo.createPlan("A")
             val remaining = repo.createPlan("B")
@@ -515,7 +515,7 @@ class PlanRepositoryTest {
     // ── selectPlan / observeSelectedOrFallbackPlanId (Task 30/PR1) ─────────
 
     @Test
-    fun `selectPlan persists and observeSelectedOrFallbackPlanId emits the selected live plan`() =
+    fun selectPlan_persists_and_observeSelectedOrFallbackPlanId_emits_the_selected_live_plan() =
         runTest {
             repo.createPlan("Plan A")
             val planB = repo.createPlan("Plan B")
@@ -529,7 +529,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `observeSelectedOrFallbackPlanId falls back to mostUsedOrFirst when unset`() =
+    fun observeSelectedOrFallbackPlanId_falls_back_to_mostUsedOrFirst_when_unset() =
         runTest {
             val planA = repo.createPlan("Plan A")
             repo.createPlan("Plan B")
@@ -542,7 +542,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `observeSelectedOrFallbackPlanId falls back when the selected plan is soft-deleted`() =
+    fun observeSelectedOrFallbackPlanId_falls_back_when_the_selected_plan_is_soft_deleted() =
         runTest {
             val planA = repo.createPlan("Plan A")
             val planB = repo.createPlan("Plan B")
@@ -559,7 +559,7 @@ class PlanRepositoryTest {
         }
 
     @Test
-    fun `observeSelectedOrFallbackPlanId recovers when the stored id reappears (import round-trip)`() =
+    fun observeSelectedOrFallbackPlanId_recovers_when_the_stored_id_reappears_import_round_trip() =
         runTest {
             val planA = repo.createPlan("Plan A")
             val planB = repo.createPlan("Plan B")

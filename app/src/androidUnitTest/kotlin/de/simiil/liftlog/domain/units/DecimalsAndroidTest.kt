@@ -5,7 +5,9 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import java.util.Locale
 
-class DecimalsTest {
+/** Android actual specifics: the `Locale`-parameter overloads. The locale-agnostic common contract
+ *  lives in `commonTest`'s `DecimalsTest`. */
+class DecimalsAndroidTest {
     @Test fun separator_isLocaleSpecific() {
         assertEquals('.', Decimals.separator(Locale.US))
         assertEquals(',', Decimals.separator(Locale.GERMANY))

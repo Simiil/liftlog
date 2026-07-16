@@ -3,12 +3,12 @@ package de.simiil.liftlog.testing
 import de.simiil.liftlog.domain.repository.PlanRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Behavioral contract for [PlanRepository], run against both [FakePlanRepository] (see
@@ -42,7 +42,7 @@ abstract class PlanRepositoryContract {
 
     abstract fun createRepository(): PlanRepository
 
-    @Before
+    @BeforeTest
     fun setUpContract() {
         repo = createRepository()
     }
@@ -50,7 +50,7 @@ abstract class PlanRepositoryContract {
     // ── plan CRUD / observation ─────────────────────────────────────────────
 
     @Test
-    fun `createPlan trims the name and appends by position, in observePlans order`() =
+    fun createPlan_trims_the_name_and_appends_by_position_in_observePlans_order() =
         runTest {
             val first = repo.createPlan("  Push Pull Legs  ")
             val second = repo.createPlan("Upper Lower")
@@ -65,7 +65,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `renamePlan changes the observed name`() =
+    fun renamePlan_changes_the_observed_name() =
         runTest {
             val plan = repo.createPlan("Old Name")
 
@@ -75,7 +75,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `softDeletePlan removes the plan and its days from observePlans and observePlansWithDays`() =
+    fun softDeletePlan_removes_the_plan_and_its_days_from_observePlans_and_observePlansWithDays() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -91,7 +91,7 @@ abstract class PlanRepositoryContract {
     // ── day template CRUD / observation ─────────────────────────────────────
 
     @Test
-    fun `createDayTemplate appends a day, observable via observeDayTemplates and observePlansWithDays with exerciseCount 0`() =
+    fun createDayTemplate_appends_a_day_observable_via_observeDayTemplates_and_observePlansWithDays_with_exerciseCount_0() =
         runTest {
             val plan = repo.createPlan("Plan")
 
@@ -108,7 +108,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `renameDayTemplate changes the observed day name`() =
+    fun renameDayTemplate_changes_the_observed_day_name() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Old Day")
@@ -120,7 +120,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `softDeleteDayTemplate removes the day from observation`() =
+    fun softDeleteDayTemplate_removes_the_day_from_observation() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -133,7 +133,7 @@ abstract class PlanRepositoryContract {
     // ── template exercise CRUD / observation ────────────────────────────────
 
     @Test
-    fun `addExerciseToTemplate appends, order preserved across multiple adds, reflected in DaySummary exerciseCount`() =
+    fun addExerciseToTemplate_appends_order_preserved_across_multiple_adds_reflected_in_DaySummary_exerciseCount() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -157,7 +157,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `updateTemplateExerciseTargets round-trips via observeTemplateExercises, including clearing back to null`() =
+    fun updateTemplateExerciseTargets_round_trips_via_observeTemplateExercises_including_clearing_back_to_null() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -179,7 +179,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `removeTemplateExercise removes the row from observation`() =
+    fun removeTemplateExercise_removes_the_row_from_observation() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -192,7 +192,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `reorderTemplateExercises reorders observeTemplateExercises to match the given id order`() =
+    fun reorderTemplateExercises_reorders_observeTemplateExercises_to_match_the_given_id_order() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -209,7 +209,7 @@ abstract class PlanRepositoryContract {
     // ── Home quick-start fallback ───────────────────────────────────────────
 
     @Test
-    fun `observeMostUsedOrFirstPlanId falls back to the first live plan by position, null when no plans`() =
+    fun observeMostUsedOrFirstPlanId_falls_back_to_the_first_live_plan_by_position_null_when_no_plans() =
         runTest {
             assertNull(repo.observeMostUsedOrFirstPlanId().first())
 
@@ -222,7 +222,7 @@ abstract class PlanRepositoryContract {
     // ── ensureDefaultPlan (issue #30 PR1) ────────────────────────────────────
 
     @Test
-    fun `ensureDefaultPlan creates a single plan with the trimmed name when none live`() =
+    fun ensureDefaultPlan_creates_a_single_plan_with_the_trimmed_name_when_none_live() =
         runTest {
             repo.ensureDefaultPlan("  Default  ")
 
@@ -232,7 +232,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `ensureDefaultPlan is a no-op when a live plan exists`() =
+    fun ensureDefaultPlan_is_a_no_op_when_a_live_plan_exists() =
         runTest {
             val existing = repo.createPlan("Existing")
 
@@ -246,7 +246,7 @@ abstract class PlanRepositoryContract {
     // ── softDeletePlanAndEnsureDefault (issue #30 PR1) ───────────────────────
 
     @Test
-    fun `softDeletePlanAndEnsureDefault on the last plan tombstones it and seeds a fresh default`() =
+    fun softDeletePlanAndEnsureDefault_on_the_last_plan_tombstones_it_and_seeds_a_fresh_default() =
         runTest {
             val plan = repo.createPlan("Solo")
 
@@ -260,7 +260,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `softDeletePlanAndEnsureDefault does not seed a default when another live plan remains`() =
+    fun softDeletePlanAndEnsureDefault_does_not_seed_a_default_when_another_live_plan_remains() =
         runTest {
             val toDelete = repo.createPlan("A")
             val remaining = repo.createPlan("B")
@@ -273,7 +273,7 @@ abstract class PlanRepositoryContract {
     // ── selectPlan / observeSelectedOrFallbackPlanId (issue #30 PR1) ────────
 
     @Test
-    fun `selectPlan makes observeSelectedOrFallbackPlanId emit the selected live plan's id`() =
+    fun selectPlan_makes_observeSelectedOrFallbackPlanId_emit_the_selected_live_plan_s_id() =
         runTest {
             repo.createPlan("Plan A")
             val planB = repo.createPlan("Plan B")
@@ -284,7 +284,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `observeSelectedOrFallbackPlanId falls back to the first plan by position when selection is unset`() =
+    fun observeSelectedOrFallbackPlanId_falls_back_to_the_first_plan_by_position_when_selection_is_unset() =
         runTest {
             val planA = repo.createPlan("Plan A")
             repo.createPlan("Plan B")
@@ -294,7 +294,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `observeSelectedOrFallbackPlanId falls back when the selected plan is soft-deleted`() =
+    fun observeSelectedOrFallbackPlanId_falls_back_when_the_selected_plan_is_soft_deleted() =
         runTest {
             val planA = repo.createPlan("Plan A")
             val planB = repo.createPlan("Plan B")
@@ -316,7 +316,7 @@ abstract class PlanRepositoryContract {
      * further mutations, rather than sticking to whichever id it first fell back to.
      */
     @Test
-    fun `observeSelectedOrFallbackPlanId recomputes the fallback across a chain of deletions`() =
+    fun observeSelectedOrFallbackPlanId_recomputes_the_fallback_across_a_chain_of_deletions() =
         runTest {
             val planA = repo.createPlan("Plan A")
             val planB = repo.createPlan("Plan B")
@@ -334,7 +334,7 @@ abstract class PlanRepositoryContract {
     // ── day reorder / multi-add / single-day observe (issue #30 PR2) ────────
 
     @Test
-    fun `reorderDayTemplates reorders observeDayTemplates to match the given id order`() =
+    fun reorderDayTemplates_reorders_observeDayTemplates_to_match_the_given_id_order() =
         runTest {
             val plan = repo.createPlan("Plan")
             val dayA = repo.createDayTemplate(plan.id, "Day A")
@@ -348,7 +348,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `addExercisesToTemplate appends in input order after existing rows`() =
+    fun addExercisesToTemplate_appends_in_input_order_after_existing_rows() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -362,7 +362,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `addExercisesToTemplate dedupes against live rows and within the input`() =
+    fun addExercisesToTemplate_dedupes_against_live_rows_and_within_the_input() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -377,7 +377,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `addExercisesToTemplate re-adds an exercise whose earlier row was soft-deleted, as a fresh row`() =
+    fun addExercisesToTemplate_re_adds_an_exercise_whose_earlier_row_was_soft_deleted_as_a_fresh_row() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")
@@ -393,7 +393,7 @@ abstract class PlanRepositoryContract {
         }
 
     @Test
-    fun `observeDayTemplate emits the day, then null after softDeleteDayTemplate`() =
+    fun observeDayTemplate_emits_the_day_then_null_after_softDeleteDayTemplate() =
         runTest {
             val plan = repo.createPlan("Plan")
             val day = repo.createDayTemplate(plan.id, "Day")

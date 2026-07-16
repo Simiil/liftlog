@@ -4,10 +4,10 @@ import de.simiil.liftlog.data.dao.SessionDao
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.data.entity.SessionEntity
 import de.simiil.liftlog.data.entity.SessionExerciseEntity
-import java.util.UUID
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 /**
  * DEBUG-ONLY perf fixture: ~1 year of completed sessions for a few seed exercises, so the
@@ -34,7 +34,7 @@ class SyntheticHistorySeeder(
             for (i in 0 until p.sessions) {
                 val daysAgo = (p.sessions - 1 - i).toLong() * 7 + 1
                 val startedAt = now - daysAgo * day
-                val sessionId = UUID.randomUUID().toString()
+                val sessionId = Uuid.random().toString()
                 sessionDao.insertSession(
                     SessionEntity(
                         id = sessionId,
@@ -49,7 +49,7 @@ class SyntheticHistorySeeder(
                         deletedAt = null,
                     ),
                 )
-                val seId = UUID.randomUUID().toString()
+                val seId = Uuid.random().toString()
                 sessionDao.insertSessionExercise(
                     SessionExerciseEntity(
                         id = seId,
@@ -69,7 +69,7 @@ class SyntheticHistorySeeder(
                 p.reps.forEachIndexed { k, r ->
                     sessionDao.insertLoggedSet(
                         LoggedSetEntity(
-                            id = UUID.randomUUID().toString(),
+                            id = Uuid.random().toString(),
                             sessionExerciseId = seId,
                             weightKg = max(20.0, top - 2.5 * k),
                             reps = r,

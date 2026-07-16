@@ -5,8 +5,8 @@ import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class MapperRoundTripTest {
     @Test fun exercise_entity_to_domain_to_entity_isIdentity() {

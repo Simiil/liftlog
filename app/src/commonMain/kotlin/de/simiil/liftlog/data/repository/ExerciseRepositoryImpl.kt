@@ -10,8 +10,8 @@ import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 class ExerciseRepositoryImpl(
     private val dao: ExerciseDao,
@@ -34,7 +34,7 @@ class ExerciseRepositoryImpl(
             val now = clock.now().toEpochMilliseconds()
             val entity =
                 ExerciseEntity(
-                    id = UUID.randomUUID().toString(),
+                    id = Uuid.random().toString(),
                     name = trimmed,
                     muscleGroup = muscleGroup,
                     equipment = equipment,

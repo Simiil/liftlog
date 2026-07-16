@@ -13,26 +13,11 @@ import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.DB_SCHEMA_VERSION
 import de.simiil.liftlog.data.db.MIGRATION_1_2
 import de.simiil.liftlog.data.db.MIGRATION_2_3
-import de.simiil.liftlog.data.db.RoomTransactor
-import de.simiil.liftlog.data.db.Transactor
-import de.simiil.liftlog.data.repository.AnalyticsRepositoryImpl
 import de.simiil.liftlog.data.repository.BackupRepositoryImpl
-import de.simiil.liftlog.data.repository.ExerciseRepositoryImpl
-import de.simiil.liftlog.data.repository.PlanRepositoryImpl
-import de.simiil.liftlog.data.repository.SessionRepositoryImpl
-import de.simiil.liftlog.data.repository.SettingsRepositoryImpl
 import de.simiil.liftlog.data.seed.ExerciseSeeder
-import de.simiil.liftlog.data.seed.SyntheticHistorySeeder
 import de.simiil.liftlog.domain.format.LocaleFormatters
-import de.simiil.liftlog.domain.logging.ActiveEntryTracker
-import de.simiil.liftlog.domain.plan.DefaultPlanEnsurer
 import de.simiil.liftlog.domain.plan.DefaultPlanNameProvider
-import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.BackupRepository
-import de.simiil.liftlog.domain.repository.ExerciseRepository
-import de.simiil.liftlog.domain.repository.PlanRepository
-import de.simiil.liftlog.domain.repository.SessionRepository
-import de.simiil.liftlog.domain.repository.SettingsRepository
 import de.simiil.liftlog.notification.NotificationPermissionTick
 import de.simiil.liftlog.notification.SessionNotificationBuilder
 import de.simiil.liftlog.notification.SessionNotificationCoordinator
@@ -53,24 +38,23 @@ import de.simiil.liftlog.ui.session.SessionDetailViewModel
 import de.simiil.liftlog.ui.settings.AndroidDocumentIo
 import de.simiil.liftlog.ui.settings.DocumentIo
 import de.simiil.liftlog.ui.settings.SettingsViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import kotlin.time.Clock
 
-/** Qualifier for the app-lifetime CoroutineScope. */
-val AppScope = named("applicationScope")
-
-/** Infra singletons — DB, DAOs, Clock, Json, app scope. (PR4: DB/DataStore providers move to platformModule.) */
-val infraModule =
+/**
+ * Android platform leaf. Beyond the mandated DB/DataStore/AppInfo triple this also (temporarily)
+ * hosts everything that still references androidMain-only types: `ExerciseSeeder` (reads
+ * `context.assets`), the UI bindings (DocumentIo, name resolvers, LocaleFormatters), the
+ * notification services, and all ViewModels. PR5 moves the UI/VM/seeder definitions back into a
+ * common module once their types become common-visible.
+ */
+actual val platformModule: Module =
     module {
+        // ── DB / DataStore / AppInfo (the KMP platform triple) ──────────────────
         single {
             Room
                 .databaseBuilder(androidContext(), AppDatabase::class.java, "liftlog.db")
@@ -79,58 +63,28 @@ val infraModule =
                 .setQueryCoroutineContext(Dispatchers.IO)
                 .build()
         }
-        single { get<AppDatabase>().exerciseDao() }
-        single { get<AppDatabase>().planDao() }
-        single { get<AppDatabase>().sessionDao() }
-        single { get<AppDatabase>().analyticsDao() }
-        single { get<AppDatabase>().prefillDao() }
-        single { get<AppDatabase>().backupDao() }
-        single { get<AppDatabase>().seedStateDao() }
-        single { AppInfo(name = "LiftLog", versionName = BuildConfig.VERSION_NAME, dbSchemaVersion = DB_SCHEMA_VERSION) }
-        single<Transactor> { RoomTransactor(get()) }
-        single<Clock> { Clock.System }
-        single { Json { ignoreUnknownKeys = true } }
-        single(AppScope) { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
         single<DataStore<Preferences>> {
             PreferenceDataStoreFactory.create { androidContext().preferencesDataStoreFile("settings") }
         }
-    }
+        single { AppInfo(name = "LiftLog", versionName = BuildConfig.VERSION_NAME, dbSchemaVersion = DB_SCHEMA_VERSION) }
 
-/** Repositories, seeders, domain services. */
-val dataModule =
-    module {
-        single<SettingsRepository> { SettingsRepositoryImpl(get()) }
-        single<ExerciseRepository> { ExerciseRepositoryImpl(get(), get(), get()) }
-        single<PlanRepository> { PlanRepositoryImpl(get(), get(), get(), get()) }
-        single<SessionRepository> { SessionRepositoryImpl(get(), get(), get(), get(), get()) }
-        single<AnalyticsRepository> { AnalyticsRepositoryImpl(get(), get(), get()) }
-        factory<BackupRepository> { BackupRepositoryImpl(get(), get(), get(), get(), get(), get()) } // unscoped
+        // ── Asset-backed seeder + backup repo that depends on it (PR5 → common) ──
         single { ExerciseSeeder(androidContext(), get(), get(), get(), get(), get()) }
-        single { SyntheticHistorySeeder(get(), get()) }
-        single { DefaultPlanEnsurer(get(), get()) }
-        single { ActiveEntryTracker() }
-    }
+        factory<BackupRepository> { BackupRepositoryImpl(get(), get(), get(), get(), get(), get()) } // unscoped
 
-/** UI-adjacent bindings. */
-val uiModule =
-    module {
+        // ── UI-adjacent bindings (former uiModule; PR5 unparks to common) ───────
         factory<DocumentIo> { AndroidDocumentIo(androidContext()) } // unscoped
         single<ExerciseNameResolver> { ResourceExerciseNameResolver(androidContext()) }
         single<DefaultPlanNameProvider> { ResourceDefaultPlanNameProvider(androidContext()) }
         single<LocaleFormatters> { AndroidLocaleFormatters(androidContext()) }
-    }
 
-/** Android-only services (stays androidMain forever). */
-val androidPlatformModule =
-    module {
+        // ── Android-only notification services (stay androidMain forever) ───────
         single { SessionNotificationCoordinator(androidContext(), get(), get(), get(), get(AppScope)) }
         single { SessionNotificationBuilder(androidContext()) }
         single { NotificationPermissionTick() }
         single { SessionNotificationModelProducer(get(), get(), get(), get(), get()) }
-    }
 
-val viewModelModule =
-    module {
+        // ── ViewModels (former viewModelModule; PR5 unparks to common) ──────────
         viewModelOf(::MainViewModel)
         viewModelOf(::SettingsViewModel)
         viewModelOf(::HomeViewModel)
@@ -144,5 +98,3 @@ val viewModelModule =
         viewModel { ActiveSessionViewModel(get(), get(), get(), get(), get(), get(), get()) }
         viewModel { SessionDetailViewModel(get(), get(), get(), get(), get()) }
     }
-
-val appModules: List<Module> = listOf(infraModule, dataModule, uiModule, androidPlatformModule, viewModelModule)

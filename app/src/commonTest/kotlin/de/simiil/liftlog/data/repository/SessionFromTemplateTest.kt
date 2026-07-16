@@ -10,15 +10,15 @@ import de.simiil.liftlog.testing.fakes.FakePrefillDao
 import de.simiil.liftlog.testing.fakes.FakeSessionDao
 import de.simiil.liftlog.testing.fakes.FakeTransactor
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
-import java.util.UUID
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 class SessionFromTemplateTest {
     // Shared FakePlanDao so both planRepo and sessionRepo read from the same store
@@ -34,7 +34,7 @@ class SessionFromTemplateTest {
     private val exId1 = "ex-1"
     private val exId2 = "ex-2"
 
-    @Before
+    @BeforeTest
     fun setUp() {
         // Seed a plan and day template into the shared planDao
         planDao.plans[planId] =
@@ -61,10 +61,10 @@ class SessionFromTemplateTest {
     // ─── snapshot copy ────────────────────────────────────────────────────────
 
     @Test
-    fun `startSessionFromTemplate copies template exercises into session_exercises`() =
+    fun startSessionFromTemplate_copies_template_exercises_into_session_exercises() =
         runTest {
-            val te1Id = UUID.randomUUID().toString()
-            val te2Id = UUID.randomUUID().toString()
+            val te1Id = Uuid.random().toString()
+            val te2Id = Uuid.random().toString()
 
             // Two template exercises: one with targets, one with nulls
             planDao.templateExercises[te1Id] =
@@ -129,7 +129,7 @@ class SessionFromTemplateTest {
             assertNull(se1.deletedAt)
             // Fresh UUID — different from the template exercise id
             assertNotEquals(te1Id, se1.id)
-            assertNotNull(UUID.fromString(se1.id))
+            assertNotNull(Uuid.parse(se1.id))
 
             // Second exercise: exId2 with null targets
             val se2 = seList[1]
@@ -146,10 +146,10 @@ class SessionFromTemplateTest {
     // ─── isolation ───────────────────────────────────────────────────────────
 
     @Test
-    fun `session_exercises are unaffected when template is mutated or deleted after snapshot`() =
+    fun session_exercises_are_unaffected_when_template_is_mutated_or_deleted_after_snapshot() =
         runTest {
-            val te1Id = UUID.randomUUID().toString()
-            val te2Id = UUID.randomUUID().toString()
+            val te1Id = Uuid.random().toString()
+            val te2Id = Uuid.random().toString()
 
             planDao.templateExercises[te1Id] =
                 TemplateExerciseEntity(
@@ -198,7 +198,7 @@ class SessionFromTemplateTest {
 
             // Still two rows (both live — not tombstoned)
             assertEquals(2, seAfter.size)
-            seAfter.forEach { assertNull("session_exercise must still be live: ${it.id}", it.deletedAt) }
+            seAfter.forEach { assertNull(it.deletedAt, "session_exercise must still be live: ${it.id}") }
 
             // First exercise: still has original targets (3/8/12), not the mutated ones (5/6/10)
             val se1 = seAfter[0]
@@ -216,7 +216,7 @@ class SessionFromTemplateTest {
     // ─── active-session guard ─────────────────────────────────────────────────
 
     @Test(expected = IllegalStateException::class)
-    fun `startSessionFromTemplate throws when a session is already active`() =
+    fun startSessionFromTemplate_throws_when_a_session_is_already_active() =
         runTest {
             // Start an active session first
             sessionRepo.startEmptySession()
@@ -228,7 +228,7 @@ class SessionFromTemplateTest {
     // ─── empty template ───────────────────────────────────────────────────────
 
     @Test
-    fun `startSessionFromTemplate with empty template creates session with zero session_exercises`() =
+    fun startSessionFromTemplate_with_empty_template_creates_session_with_zero_session_exercises() =
         runTest {
             // No template exercises seeded — dayId template is empty
 

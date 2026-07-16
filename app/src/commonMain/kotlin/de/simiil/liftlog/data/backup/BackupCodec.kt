@@ -19,6 +19,7 @@ import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.math.abs
 import kotlin.time.Instant
 
 /** Pure JSON codec for the versioned backup (02-data-spec §6). No Android, no DB. */
@@ -111,12 +112,40 @@ object BackupCodec {
         val seconds = instant.epochSeconds
         val nanos = instant.nanosecondsOfSecond
         return if (seconds < 0 && nanos > 0) {
-            val millis = Math.multiplyExact(seconds + 1, 1000L)
-            Math.addExact(millis, (nanos / 1_000_000 - 1000).toLong()) // throws ArithmeticException
+            val millis = multiplyExact(seconds + 1, 1000L)
+            addExact(millis, (nanos / 1_000_000 - 1000).toLong()) // throws ArithmeticException
         } else {
-            val millis = Math.multiplyExact(seconds, 1000L)
-            Math.addExact(millis, (nanos / 1_000_000).toLong()) // throws ArithmeticException
+            val millis = multiplyExact(seconds, 1000L)
+            addExact(millis, (nanos / 1_000_000).toLong()) // throws ArithmeticException
         }
+    }
+
+    // java.lang.Math.multiplyExact / addExact aren't in the common stdlib; these reimplement the
+    // JDK's overflow-checked arithmetic verbatim (throwing kotlin.ArithmeticException, caught in
+    // decode() → BAD_TIMESTAMP) so out-of-range timestamps are rejected on every target, not the
+    // JVM only.
+    private fun multiplyExact(
+        x: Long,
+        y: Long,
+    ): Long {
+        val r = x * y
+        val ax = abs(x)
+        val ay = abs(y)
+        if ((ax or ay) ushr 31 != 0L) {
+            if ((y != 0L && r / y != x) || (x == Long.MIN_VALUE && y == -1L)) {
+                throw ArithmeticException("long overflow")
+            }
+        }
+        return r
+    }
+
+    private fun addExact(
+        x: Long,
+        y: Long,
+    ): Long {
+        val r = x + y
+        if ((x xor r) and (y xor r) < 0L) throw ArithmeticException("long overflow")
+        return r
     }
 
     // --- strict entity-enum lookups ---

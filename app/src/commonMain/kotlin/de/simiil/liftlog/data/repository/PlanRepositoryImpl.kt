@@ -20,8 +20,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 class PlanRepositoryImpl(
     private val dao: PlanDao,
@@ -74,7 +74,7 @@ class PlanRepositoryImpl(
         val now = clock.now().toEpochMilliseconds()
         val entity =
             WorkoutPlanEntity(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 name = name.trim(),
                 position = (dao.maxPlanPosition() ?: -1) + 1,
                 createdAt = now,
@@ -132,7 +132,7 @@ class PlanRepositoryImpl(
     ) {
         val plan =
             WorkoutPlanEntity(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 name = name.trim(),
                 position = (dao.maxPlanPosition() ?: -1) + 1,
                 createdAt = now,
@@ -151,7 +151,7 @@ class PlanRepositoryImpl(
         val now = clock.now().toEpochMilliseconds()
         val entity =
             PlanDayTemplateEntity(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 planId = planId,
                 name = name.trim(),
                 position = (dao.maxDayTemplatePosition(planId) ?: -1) + 1,
@@ -185,7 +185,7 @@ class PlanRepositoryImpl(
         val now = clock.now().toEpochMilliseconds()
         val entity =
             TemplateExerciseEntity(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 templateId = templateId,
                 exerciseId = exerciseId,
                 position = (dao.maxTemplateExercisePosition(templateId) ?: -1) + 1,
@@ -252,7 +252,7 @@ class PlanRepositoryImpl(
                 if (exerciseId in liveExerciseIds || !seen.add(exerciseId)) return@forEach
                 dao.insertTemplateExercise(
                     TemplateExerciseEntity(
-                        id = UUID.randomUUID().toString(),
+                        id = Uuid.random().toString(),
                         templateId = templateId,
                         exerciseId = exerciseId,
                         position = nextPosition,

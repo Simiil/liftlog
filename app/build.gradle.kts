@@ -20,6 +20,10 @@ kotlin {
 
     compilerOptions {
         optIn.add("kotlin.time.ExperimentalTime")
+        // Production repositories + SyntheticHistorySeeder mint RFC-4122 ids via kotlin.uuid.Uuid
+        // (java.util.UUID is JVM-only). Four commonMain files need it, so opt in module-wide here
+        // rather than annotating each (PR4 Task 5 reviewer guidance).
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
 
     sourceSets {
@@ -39,6 +43,16 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.koin.core)
             implementation(libs.koin.compose.viewmodel)
+            // Data layer (Room DB, DAOs, entities, repositories) is common as of PR4 Task 5.
+            implementation(libs.androidx.room.runtime)
+            // datastore-preferences-core carries the KMP DataStore<Preferences> API used by the
+            // settings/plan repositories; the android-only `preferencesDataStoreFile` helper (used
+            // only by the Android platformModule) stays in androidMain via datastore-preferences.
+            implementation(libs.androidx.datastore.preferences.core)
+            // BundledSQLiteDriver: Room reads/writes via SQLite compiled from source rather than the
+            // OS's framework SQLite, so behavior is identical across platforms. The DB builder that
+            // installs the driver lives in each platform's platformModule.
+            implementation(libs.androidx.sqlite.bundled)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -57,14 +71,11 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.androidx.lifecycle.process)
             implementation(libs.androidx.navigation.compose)
+            // datastore-preferences (not -core): the android platformModule uses the
+            // `preferencesDataStoreFile` helper to locate the on-disk settings file.
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.koin.android)
             implementation(libs.reorderable)
-            implementation(libs.androidx.room.runtime)
-            // BundledSQLiteDriver: Room reads/writes via SQLite compiled from source rather than the
-            // OS's framework SQLite, so behavior is identical across Android versions. Moves to
-            // commonMain in PR4 Task 5 once the DB builder lives behind a platform module.
-            implementation(libs.androidx.sqlite.bundled)
         }
         androidUnitTest.dependencies {
             implementation(libs.junit)
@@ -175,7 +186,11 @@ room {
 }
 
 dependencies {
+    // Room's KSP compiler must run per-target: the Android APT plus each iOS klib target, so the
+    // @ConstructedBy actuals + DAO/query implementations are generated for iOS too (PR4 Task 5).
     add("kspAndroid", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     // BOM platforms live here (not in the KMP source-set DSL) because Kotlin 2.3 removed
     // platform() from KotlinDependencyHandler (KT-58759). platform() below is the standard
     // Gradle DependencyHandler.platform, which is unaffected.

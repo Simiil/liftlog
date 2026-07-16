@@ -11,14 +11,14 @@ import de.simiil.liftlog.testing.fakes.FakeSessionDao
 import de.simiil.liftlog.testing.fakes.FakeTransactor
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
-import java.util.UUID
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 class SessionRepositoryTest {
     private val clockMillis = 5000L
@@ -29,7 +29,7 @@ class SessionRepositoryTest {
     private lateinit var prefillDao: FakePrefillDao
     private lateinit var repo: SessionRepositoryImpl
 
-    @Before
+    @BeforeTest
     fun setUp() {
         dao = FakeSessionDao()
         prefillDao = FakePrefillDao()
@@ -37,7 +37,7 @@ class SessionRepositoryTest {
     }
 
     @Test
-    fun `startEmptySession inserts session with endedAt null and correct timestamps`() =
+    fun startEmptySession_inserts_session_with_endedAt_null_and_correct_timestamps() =
         runTest {
             val result = repo.startEmptySession()
 
@@ -46,21 +46,21 @@ class SessionRepositoryTest {
             assertEquals(fixedInstant, result.createdAt)
             assertEquals(fixedInstant, result.updatedAt)
             assertNull(result.deletedAt)
-            assertNotNull(UUID.fromString(result.id))
+            assertNotNull(Uuid.parse(result.id))
 
             assertEquals(1, dao.sessions.size)
             assertNull(dao.sessions[result.id]!!.endedAt)
         }
 
     @Test(expected = IllegalStateException::class)
-    fun `startEmptySession throws when a session is already active`() =
+    fun startEmptySession_throws_when_a_session_is_already_active() =
         runTest {
             repo.startEmptySession()
             repo.startEmptySession() // must throw
         }
 
     @Test
-    fun `startEmptySession succeeds after finishing the active session`() =
+    fun startEmptySession_succeeds_after_finishing_the_active_session() =
         runTest {
             val first = repo.startEmptySession()
             repo.finishSession(first.id)
@@ -70,7 +70,7 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `finishSession sets endedAt and bumps updatedAt`() =
+    fun finishSession_sets_endedAt_and_bumps_updatedAt() =
         runTest {
             // Insert a session with old updatedAt to make assertion discriminating
             val oldTs = 1L
@@ -97,14 +97,14 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `finishSession with missing id is a no-op`() =
+    fun finishSession_with_missing_id_is_a_no_op() =
         runTest {
             repo.finishSession("non-existent")
             assertEquals(0, dao.sessions.size)
         }
 
     @Test
-    fun `finishSession is a no-op when session is already ended`() =
+    fun finishSession_is_a_no_op_when_session_is_already_ended() =
         runTest {
             val oldTs = 1L
             val sessionId = "sess-1"
@@ -132,7 +132,7 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `finishSession sets endedAt when session is live`() =
+    fun finishSession_sets_endedAt_when_session_is_live() =
         runTest {
             val oldTs = 1L
             val sessionId = "sess-live"
@@ -158,7 +158,7 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `softDeleteSession tombstones session, its session-exercises, and their logged-sets`() =
+    fun softDeleteSession_tombstones_session_its_session_exercises_and_their_logged_sets() =
         runTest {
             val oldTs = 1L
 
@@ -206,7 +206,7 @@ class SessionRepositoryTest {
     // ─── addExerciseToSession ──────────────────────────────────────────────────
 
     @Test
-    fun `addExerciseToSession inserts with correct position and null targets`() =
+    fun addExerciseToSession_inserts_with_correct_position_and_null_targets() =
         runTest {
             val sessionId = "sess-1"
             dao.sessions[sessionId] = SessionEntity(sessionId, null, null, 1L, null, null, null, 1L, 1L, null)
@@ -238,7 +238,7 @@ class SessionRepositoryTest {
             assertEquals(fixedInstant, result.createdAt)
             assertEquals(fixedInstant, result.updatedAt)
             assertNull(result.deletedAt)
-            assertNotNull(UUID.fromString(result.id))
+            assertNotNull(Uuid.parse(result.id))
 
             // Verify it was stored in the fake
             val stored = dao.sessionExercises[result.id]!!
@@ -246,7 +246,7 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `addExerciseToSession with no existing exercises starts at position 1`() =
+    fun addExerciseToSession_with_no_existing_exercises_starts_at_position_1() =
         runTest {
             val sessionId = "sess-empty"
             dao.sessions[sessionId] = SessionEntity(sessionId, null, null, 1L, null, null, null, 1L, 1L, null)
@@ -259,7 +259,7 @@ class SessionRepositoryTest {
     // ─── logSet ───────────────────────────────────────────────────────────────
 
     @Test
-    fun `logSet inserts set with correct position and timestamps`() =
+    fun logSet_inserts_set_with_correct_position_and_timestamps() =
         runTest {
             val seId = "se-1"
 
@@ -287,7 +287,7 @@ class SessionRepositoryTest {
             assertEquals(fixedInstant, result.createdAt)
             assertEquals(fixedInstant, result.updatedAt)
             assertNull(result.deletedAt)
-            assertNotNull(UUID.fromString(result.id))
+            assertNotNull(Uuid.parse(result.id))
 
             val stored = dao.loggedSets[result.id]!!
             assertEquals(2, stored.position)
@@ -297,26 +297,26 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `logSet with no existing sets starts at position 1`() =
+    fun logSet_with_no_existing_sets_starts_at_position_1() =
         runTest {
             val result = repo.logSet("se-1", 60.0, 10)
             assertEquals(1, result.position)
         }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `logSet rejects negative weightKg`() =
+    fun logSet_rejects_negative_weightKg() =
         runTest {
             repo.logSet("se-1", -1.0, 5)
         }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `logSet rejects zero reps`() =
+    fun logSet_rejects_zero_reps() =
         runTest {
             repo.logSet("se-1", 100.0, 0)
         }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `logSet rejects negative reps`() =
+    fun logSet_rejects_negative_reps() =
         runTest {
             repo.logSet("se-1", 100.0, -1)
         }
@@ -324,7 +324,7 @@ class SessionRepositoryTest {
     // ─── updateSet ────────────────────────────────────────────────────────────
 
     @Test
-    fun `updateSet writes new weight and reps, bumps updatedAt`() =
+    fun updateSet_writes_new_weight_and_reps_bumps_updatedAt() =
         runTest {
             val setId = "ls-1"
             val seId = "se-1"
@@ -355,20 +355,20 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `updateSet is a no-op when set does not exist`() =
+    fun updateSet_is_a_no_op_when_set_does_not_exist() =
         runTest {
             repo.updateSet("non-existent", 90.0, 6)
             assertEquals(0, dao.loggedSets.size)
         }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `updateSet rejects negative weightKg`() =
+    fun updateSet_rejects_negative_weightKg() =
         runTest {
             repo.updateSet("ls-1", -1.0, 5)
         }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `updateSet rejects zero reps`() =
+    fun updateSet_rejects_zero_reps() =
         runTest {
             repo.updateSet("ls-1", 100.0, 0)
         }
@@ -376,7 +376,7 @@ class SessionRepositoryTest {
     // ─── deleteSet ────────────────────────────────────────────────────────────
 
     @Test
-    fun `deleteSet soft-deletes the set`() =
+    fun deleteSet_soft_deletes_the_set() =
         runTest {
             val setId = "ls-1"
             val seId = "se-1"
@@ -404,7 +404,7 @@ class SessionRepositoryTest {
     // ─── removeExercise ───────────────────────────────────────────────────────
 
     @Test
-    fun `removeExercise soft-deletes session exercise and all its logged sets`() =
+    fun removeExercise_soft_deletes_session_exercise_and_all_its_logged_sets() =
         runTest {
             val seId = "se-1"
             val ls1Id = "ls-1"
@@ -437,7 +437,7 @@ class SessionRepositoryTest {
     // ─── replaceExercise ──────────────────────────────────────────────────────
 
     @Test
-    fun `replaceExercise soft-deletes old exercise and sets, inserts new one at same position`() =
+    fun replaceExercise_soft_deletes_old_exercise_and_sets_inserts_new_one_at_same_position() =
         runTest {
             val seId = "se-1"
             val ls1Id = "ls-1"
@@ -473,7 +473,7 @@ class SessionRepositoryTest {
             assertNull(result.deletedAt)
             assertEquals(fixedInstant, result.createdAt)
             assertEquals(fixedInstant, result.updatedAt)
-            assertNotNull(UUID.fromString(result.id))
+            assertNotNull(Uuid.parse(result.id))
 
             // Stored in fake
             val stored = dao.sessionExercises[result.id]!!
@@ -483,7 +483,7 @@ class SessionRepositoryTest {
         }
 
     @Test(expected = IllegalStateException::class)
-    fun `replaceExercise throws when session exercise not found`() =
+    fun replaceExercise_throws_when_session_exercise_not_found() =
         runTest {
             repo.replaceExercise("non-existent", "ex-new")
         }
@@ -491,7 +491,7 @@ class SessionRepositoryTest {
     // ─── lastPerformance ──────────────────────────────────────────────────────
 
     @Test
-    fun `lastPerformance returns emptyList when no completed session exists`() =
+    fun lastPerformance_returns_emptyList_when_no_completed_session_exists() =
         runTest {
             prefillDao.lastCompletedSessionId = null
 
@@ -501,7 +501,7 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `lastPerformance returns mapped sets from last completed session`() =
+    fun lastPerformance_returns_mapped_sets_from_last_completed_session() =
         runTest {
             val sessionId = "sess-completed"
             val exerciseId = "ex-1"
@@ -541,7 +541,7 @@ class SessionRepositoryTest {
         )
 
     @Test
-    fun `updateSessionRpe sets rpe and bumps updatedAt`() =
+    fun updateSessionRpe_sets_rpe_and_bumps_updatedAt() =
         runTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionRpe("sess-1", 8.5)
@@ -551,7 +551,7 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `updateSessionRpe null clears the rating`() =
+    fun updateSessionRpe_null_clears_the_rating() =
         runTest {
             dao.sessions["sess-1"] = storedSession().copy(rpe = 7.0)
             repo.updateSessionRpe("sess-1", null)
@@ -559,7 +559,7 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `updateSessionNote trims and stores blank as null`() =
+    fun updateSessionNote_trims_and_stores_blank_as_null() =
         runTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionNote("sess-1", "  felt strong  ")
@@ -570,7 +570,7 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `updateSessionDetails updates times rpe note atomically and bumps updatedAt`() =
+    fun updateSessionDetails_updates_times_rpe_note_atomically_and_bumps_updatedAt() =
         runTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionDetails(
@@ -589,7 +589,7 @@ class SessionRepositoryTest {
         }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `updateSessionDetails rejects end not after start`() =
+    fun updateSessionDetails_rejects_end_not_after_start() =
         runTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionDetails(
@@ -602,14 +602,14 @@ class SessionRepositoryTest {
         }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `updateSessionRpe rejects out-of-range rpe`() =
+    fun updateSessionRpe_rejects_out_of_range_rpe() =
         runTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionRpe("sess-1", 5.5)
         }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `updateSessionDetails rejects out-of-range rpe`() =
+    fun updateSessionDetails_rejects_out_of_range_rpe() =
         runTest {
             dao.sessions["sess-1"] = storedSession()
             repo.updateSessionDetails(
@@ -622,21 +622,21 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `updateSessionRpe with missing id is a no-op`() =
+    fun updateSessionRpe_with_missing_id_is_a_no_op() =
         runTest {
             repo.updateSessionRpe("ghost", 8.0)
             assertTrue(dao.sessions.isEmpty())
         }
 
     @Test
-    fun `updateSessionNote with missing id is a no-op`() =
+    fun updateSessionNote_with_missing_id_is_a_no_op() =
         runTest {
             repo.updateSessionNote("ghost", "some note")
             assertTrue(dao.sessions.isEmpty())
         }
 
     @Test
-    fun `updateSessionDetails with missing id is a no-op`() =
+    fun updateSessionDetails_with_missing_id_is_a_no_op() =
         runTest {
             repo.updateSessionDetails(
                 "ghost",
@@ -651,7 +651,7 @@ class SessionRepositoryTest {
     // ─── observeSetCountsBySession ────────────────────────────────────────────
 
     @Test
-    fun `observeSetCountsBySession maps rows to sessionId-to-setCount map`() =
+    fun observeSetCountsBySession_maps_rows_to_sessionId_to_setCount_map() =
         runTest {
             dao.setCounts.value =
                 listOf(
@@ -665,7 +665,7 @@ class SessionRepositoryTest {
         }
 
     @Test
-    fun `observeSetCountsBySession returns empty map when no rows exist`() =
+    fun observeSetCountsBySession_returns_empty_map_when_no_rows_exist() =
         runTest {
             dao.setCounts.value = emptyList()
 
