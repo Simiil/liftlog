@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import de.simiil.liftlog.domain.logging.ActiveEntry
 import de.simiil.liftlog.domain.logging.ActiveEntryTracker
+import de.simiil.liftlog.domain.logging.NotificationPermissionTick
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.LoggedSet
@@ -13,7 +14,6 @@ import de.simiil.liftlog.domain.model.SessionExercise
 import de.simiil.liftlog.domain.model.SessionExerciseWithSets
 import de.simiil.liftlog.domain.model.SessionWithDetails
 import de.simiil.liftlog.domain.model.WeightUnit
-import de.simiil.liftlog.notification.NotificationPermissionTick
 import de.simiil.liftlog.testing.FakeExerciseRepository
 import de.simiil.liftlog.testing.FakeSessionRepository
 import de.simiil.liftlog.testing.FakeSettingsRepository

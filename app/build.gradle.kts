@@ -59,6 +59,10 @@ kotlin {
             // OS's framework SQLite, so behavior is identical across platforms. The DB builder that
             // installs the driver lives in each platform's platformModule.
             implementation(libs.androidx.sqlite.bundled)
+            // Drag-to-reorder for the plan/day-editor lists (ui/plans/**, common as of PR5 Task 4).
+            // reorderable 3.x is a Compose Multiplatform library (publishes iosArm64/iosSimulatorArm64
+            // variants), so those screens compile for iOS too.
+            implementation(libs.reorderable)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -66,10 +70,12 @@ kotlin {
             implementation(libs.turbine)
         }
         androidMain.dependencies {
-            // @Preview functions live in androidMain and import
-            // androidx.compose.ui.tooling.preview.Preview, which is compiled into ALL
-            // Android variants (not just debug). On the Android target this CMP artifact
-            // maps to androidx.compose.ui:ui-tooling-preview, so the imports are unchanged.
+            // @Preview functions live in androidMain (ui/**/*Previews.kt) and import
+            // androidx.compose.ui.tooling.preview.Preview. The composable screens/components they
+            // preview are in commonMain (PR5 Task 4); previews stay Android-only because the CMP
+            // @Preview annotation is platform-split (this artifact resolves to androidx's
+            // ui-tooling-preview on Android). On the Android target this CMP artifact maps to
+            // androidx.compose.ui:ui-tooling-preview, so the imports are unchanged.
             implementation(libs.compose.mp.ui.tooling.preview)
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.activity.compose)
@@ -85,7 +91,6 @@ kotlin {
             // `preferencesDataStoreFile` helper to locate the on-disk settings file.
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.koin.android)
-            implementation(libs.reorderable)
         }
         androidUnitTest.dependencies {
             implementation(libs.junit)

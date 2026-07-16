@@ -23,13 +23,11 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
-import de.simiil.liftlog.ui.theme.LiftLogTheme
 import liftlog.app.generated.resources.Res
 import liftlog.app.generated.resources.cd_decrease_weight
 import liftlog.app.generated.resources.cd_increase_weight
@@ -201,53 +199,6 @@ private fun StepSideButton(
             text = glyph,
             fontSize = 28.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.38f),
-        )
-    }
-}
-
-// ─── Previews ────────────────────────────────────────────────────────────────
-
-@Preview(name = "WeightStepper – KG with value", showBackground = true)
-@Composable
-private fun PreviewWeightStepperKgValue() {
-    LiftLogTheme {
-        WeightStepper(
-            valueKg = 82.5,
-            unit = WeightUnit.KG,
-            onDecrement = {},
-            onIncrement = {},
-            onValueClick = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
-}
-
-@Preview(name = "WeightStepper – empty (null)", showBackground = true)
-@Composable
-private fun PreviewWeightStepperEmpty() {
-    LiftLogTheme {
-        WeightStepper(
-            valueKg = null,
-            unit = WeightUnit.KG,
-            onDecrement = {},
-            onIncrement = {},
-            onValueClick = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
-}
-
-@Preview(name = "WeightStepper – LB with value", showBackground = true)
-@Composable
-private fun PreviewWeightStepperLbValue() {
-    LiftLogTheme {
-        WeightStepper(
-            valueKg = 82.5,
-            unit = WeightUnit.LB,
-            onDecrement = {},
-            onIncrement = {},
-            onValueClick = {},
-            modifier = Modifier.padding(16.dp),
         )
     }
 }

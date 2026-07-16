@@ -1,5 +1,6 @@
 package de.simiil.liftlog.di
 
+import de.simiil.liftlog.MainViewModel
 import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.RoomTransactor
 import de.simiil.liftlog.data.db.Transactor
@@ -20,14 +21,26 @@ import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
+import de.simiil.liftlog.ui.analytics.AnalyticsBrowserViewModel
+import de.simiil.liftlog.ui.analytics.ExerciseDetailViewModel
 import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
+import de.simiil.liftlog.ui.exercises.ExercisePickerViewModel
 import de.simiil.liftlog.ui.exercises.ResourceExerciseNameResolver
+import de.simiil.liftlog.ui.history.HistoryViewModel
+import de.simiil.liftlog.ui.home.HomeViewModel
+import de.simiil.liftlog.ui.plans.DayEditorViewModel
+import de.simiil.liftlog.ui.plans.PlanViewModel
 import de.simiil.liftlog.ui.plans.ResourceDefaultPlanNameProvider
+import de.simiil.liftlog.ui.session.ActiveSessionViewModel
+import de.simiil.liftlog.ui.session.SessionDetailViewModel
+import de.simiil.liftlog.ui.settings.SettingsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModel
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.time.Clock
@@ -82,10 +95,33 @@ val uiModule =
     }
 
 /**
+ * All 11 ViewModels. Common as of PR5 Task 4 (the UI + ViewModels moved to commonMain), unparked
+ * from the Android platformModule. `viewModelOf`/`viewModel` come from koin-core's multiplatform
+ * DSL, and `androidx.lifecycle.ViewModel` is a KMP type. The SavedStateHandle-backed VMs resolve
+ * their handle via `get()` from the ViewModel factory extras (KoinGraphTest passes it as an
+ * extraType).
+ */
+val viewModelModule =
+    module {
+        viewModelOf(::MainViewModel)
+        viewModelOf(::SettingsViewModel)
+        viewModelOf(::HomeViewModel)
+        viewModelOf(::PlanViewModel)
+        viewModelOf(::ExercisePickerViewModel)
+        viewModelOf(::HistoryViewModel)
+        viewModelOf(::AnalyticsBrowserViewModel)
+        // SavedStateHandle VMs: resolve the handle from the ViewModel factory extras via get().
+        viewModel { DayEditorViewModel(get(), get(), get(), get()) } // debounceMs uses its default
+        viewModel { ExerciseDetailViewModel(get(), get(), get(), get(), get()) }
+        viewModel { ActiveSessionViewModel(get(), get(), get(), get(), get(), get(), get()) }
+        viewModel { SessionDetailViewModel(get(), get(), get(), get(), get()) }
+    }
+
+/**
  * Platform leaf: the `AppDatabase` builder + `DataStore` + `AppInfo`, plus (temporarily, on
  * Android) the UI/notification/ViewModel bindings that still reference androidMain-only types.
  * PR5 moves the UI/VM definitions back into a common module once their types are common-visible.
  */
 expect val platformModule: Module
 
-val appModules: List<Module> = listOf(infraModule, dataModule, uiModule, platformModule)
+val appModules: List<Module> = listOf(infraModule, dataModule, uiModule, viewModelModule, platformModule)

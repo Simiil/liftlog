@@ -33,11 +33,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.simiil.liftlog.domain.units.Decimals
-import de.simiil.liftlog.ui.theme.LiftLogTheme
 import liftlog.app.generated.resources.Res
 import liftlog.app.generated.resources.cd_backspace
 import liftlog.app.generated.resources.cd_confirm
@@ -285,44 +283,4 @@ private fun NumKeyText(
         fontSize = 22.sp,
         color = color,
     )
-}
-
-// ─── Previews ────────────────────────────────────────────────────────────────
-
-@Preview(name = "InlineNumpad – weight mode (decimal + chips)", showBackground = true)
-@Composable
-private fun PreviewInlineNumpadWeight() {
-    LiftLogTheme {
-        InlineNumpad(
-            initialText = "82.5",
-            allowDecimal = true,
-            quickChips = listOf(10.0, 5.0, 2.5, -2.5),
-            onConfirm = {},
-            onDismiss = {},
-            unitLabel = "kg",
-            modifier =
-                Modifier
-                    .width(360.dp)
-                    .padding(8.dp),
-        )
-    }
-}
-
-@Preview(name = "InlineNumpad – reps mode (no decimal, no chips)", showBackground = true)
-@Composable
-private fun PreviewInlineNumpadReps() {
-    LiftLogTheme {
-        InlineNumpad(
-            initialText = "8",
-            allowDecimal = false,
-            quickChips = emptyList(),
-            onConfirm = {},
-            onDismiss = {},
-            unitLabel = "reps",
-            modifier =
-                Modifier
-                    .width(360.dp)
-                    .padding(8.dp),
-        )
-    }
 }

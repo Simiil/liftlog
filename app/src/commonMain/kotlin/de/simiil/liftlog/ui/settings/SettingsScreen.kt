@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.domain.repository.InvalidReason
+import de.simiil.liftlog.platform.isDebugBuild
 import kotlinx.datetime.TimeZone
 import liftlog.app.generated.resources.Res
 import liftlog.app.generated.resources.backup_cancel
@@ -151,7 +152,7 @@ fun SettingsScreen(
                 onClick = { launchImport() },
             )
 
-            if (de.simiil.liftlog.BuildConfig.DEBUG) {
+            if (isDebugBuild) {
                 TextButton(
                     onClick = viewModel::seedDemoData,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

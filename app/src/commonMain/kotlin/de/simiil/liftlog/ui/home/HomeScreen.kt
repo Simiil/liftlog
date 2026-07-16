@@ -46,19 +46,15 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.domain.format.LocaleFormatters
-import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.EmptyState
 import de.simiil.liftlog.ui.components.EmptyStateAction
 import de.simiil.liftlog.ui.components.PrBadge
 import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
-import de.simiil.liftlog.ui.format.AndroidLocaleFormatters
-import de.simiil.liftlog.ui.theme.LiftLogTheme
 import liftlog.app.generated.resources.Res
 import liftlog.app.generated.resources.app_name
 import liftlog.app.generated.resources.exercise_count
@@ -145,7 +141,8 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeContent(
+// internal (not private) so the androidMain @Preview file (HomeScreenPreviews) can drive it.
+internal fun HomeContent(
     uiState: HomeUiState,
     formatters: LocaleFormatters,
     onResume: (String) -> Unit,
@@ -525,50 +522,3 @@ private fun FirstLaunch(
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Previews
-// ──────────────────────────────────────────────────────────────────────────────
-
-@Preview(name = "Home – chips + empty card (light)", showBackground = true)
-@Composable
-private fun PreviewHomeWithChips() {
-    LiftLogTheme {
-        HomeContent(
-            uiState =
-                HomeUiState(
-                    templates =
-                        listOf(
-                            TemplateChipUi("t1", "Push", 5, listOf(MuscleGroup.CHEST, MuscleGroup.SHOULDERS, MuscleGroup.TRICEPS)),
-                            TemplateChipUi("t2", "Pull", 5, listOf(MuscleGroup.BACK, MuscleGroup.BICEPS)),
-                            TemplateChipUi("t3", "Legs", 4, listOf(MuscleGroup.QUADS, MuscleGroup.HAMSTRINGS, MuscleGroup.GLUTES)),
-                        ),
-                    recent = emptyList(),
-                ),
-            formatters = AndroidLocaleFormatters(context = null),
-            onResume = {},
-            onStartEmpty = {},
-            onStartFromTemplate = {},
-            onOpenSessionDetail = {},
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}
-
-@Preview(name = "Home – no plans, empty card only (light)", showBackground = true)
-@Composable
-private fun PreviewHomeNoPlans() {
-    LiftLogTheme {
-        HomeContent(
-            uiState =
-                HomeUiState(
-                    templates = emptyList(),
-                    recent = emptyList(),
-                ),
-            formatters = AndroidLocaleFormatters(context = null),
-            onResume = {},
-            onStartEmpty = {},
-            onStartFromTemplate = {},
-            onOpenSessionDetail = {},
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}

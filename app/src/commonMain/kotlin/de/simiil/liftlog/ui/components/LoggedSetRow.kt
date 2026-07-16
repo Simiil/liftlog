@@ -37,12 +37,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.units.Weights
-import de.simiil.liftlog.ui.theme.LiftLogTheme
 import liftlog.app.generated.resources.Res
 import liftlog.app.generated.resources.cd_edit_set
 import liftlog.app.generated.resources.cd_set_logged
@@ -52,7 +50,6 @@ import liftlog.app.generated.resources.set_save
 import liftlog.app.generated.resources.weight_kilograms
 import liftlog.app.generated.resources.weight_pounds
 import org.jetbrains.compose.resources.stringResource
-import kotlin.time.Instant
 
 /**
  * A single logged-set row that supports inline editing (long-press to expand).
@@ -259,56 +256,5 @@ private fun ExpandedSetRow(
                 }
             }
         }
-    }
-}
-
-// ─── Previews ─────────────────────────────────────────────────────────────────
-
-private val previewSet =
-    LoggedSet(
-        id = "s1",
-        sessionExerciseId = "se1",
-        weightKg = 85.0,
-        reps = 8,
-        position = 0,
-        completedAt = Instant.fromEpochSeconds(0),
-        createdAt = Instant.fromEpochSeconds(0),
-        updatedAt = Instant.fromEpochSeconds(0),
-        deletedAt = null,
-    )
-
-@Preview(name = "LoggedSetRow – collapsed", showBackground = true)
-@Composable
-private fun PreviewLoggedSetRowCollapsed() {
-    LiftLogTheme {
-        LoggedSetRow(
-            index = 1,
-            set = previewSet,
-            unit = WeightUnit.KG,
-            expanded = false,
-            onLongPress = {},
-            onSave = { _, _ -> },
-            onDelete = {},
-            onCollapse = {},
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-        )
-    }
-}
-
-@Preview(name = "LoggedSetRow – expanded", showBackground = true)
-@Composable
-private fun PreviewLoggedSetRowExpanded() {
-    LiftLogTheme {
-        LoggedSetRow(
-            index = 1,
-            set = previewSet,
-            unit = WeightUnit.KG,
-            expanded = true,
-            onLongPress = {},
-            onSave = { _, _ -> },
-            onDelete = {},
-            onCollapse = {},
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
     }
 }

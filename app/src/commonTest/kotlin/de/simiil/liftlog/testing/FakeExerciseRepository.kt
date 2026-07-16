@@ -7,7 +7,6 @@ import de.simiil.liftlog.domain.repository.ExerciseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 class FakeExerciseRepository : ExerciseRepository {
@@ -30,7 +29,6 @@ class FakeExerciseRepository : ExerciseRepository {
 
     override fun observeRecentlyUsedIds(): Flow<List<String>> = recentIds
 
-    @OptIn(ExperimentalUuidApi::class)
     override suspend fun createCustom(
         name: String,
         muscleGroup: MuscleGroup,

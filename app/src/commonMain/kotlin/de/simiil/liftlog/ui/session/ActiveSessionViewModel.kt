@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import de.simiil.liftlog.domain.logging.ActiveEntry
 import de.simiil.liftlog.domain.logging.ActiveEntryTracker
 import de.simiil.liftlog.domain.logging.ActiveExerciseDefaults
+import de.simiil.liftlog.domain.logging.NotificationPermissionTick
 import de.simiil.liftlog.domain.logging.Prefill
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
@@ -18,7 +19,6 @@ import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
-import de.simiil.liftlog.notification.NotificationPermissionTick
 import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.concurrent.Volatile
 import kotlin.time.Instant
 
 enum class CardState { COMPLETED, ACTIVE, UPCOMING }

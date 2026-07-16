@@ -23,11 +23,16 @@ import platform.Foundation.NSUserDomainMask
 /**
  * iOS platform leaf — compile-only in M7 (no Xcode toolchain here; the gate is the klib compile,
  * not a simulator run). Every line below is exercised/verified on-device in M8. The mandated
- * DB/DataStore/AppInfo triple plus `DocumentIo` (PR5 Task 3) are bound; `LocaleFormatters` is
- * still androidMain-only, so PR5 Task 5 adds its iOS binding when that type is common-visible.
+ * DB/DataStore/AppInfo triple plus `DocumentIo` (PR5 Task 3) are bound. The common
+ * [viewModelModule] (PR5 Task 4) now depends on `LocaleFormatters` (ExercisePickerViewModel) and
+ * `NotificationPermissionTick` (ActiveSessionViewModel), so the iOS Koin graph is intentionally
+ * incomplete until PR5 Task 5 adds those bindings — see the marker below. KoinGraphTest runs on
+ * Android (graph complete there); the iOS gate here is the klib compile, not graph resolution.
  */
 actual val platformModule: Module =
     module {
+        // TODO(PR5 Task 5): bind IosLocaleFormatters (single<LocaleFormatters>) and the
+        // NotificationPermissionTick single so the iOS graph resolves the common viewModelModule.
         single {
             val dbPath =
                 NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true)

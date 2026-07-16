@@ -12,11 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Rpe
-import de.simiil.liftlog.ui.theme.LiftLogTheme
 import liftlog.app.generated.resources.Res
 import liftlog.app.generated.resources.cd_decrease_rpe
 import liftlog.app.generated.resources.cd_increase_rpe
@@ -131,23 +129,3 @@ private fun rpeDetail(whole: Int): String =
             else -> Res.string.rpe_detail_10
         },
     )
-
-// ─── Previews ────────────────────────────────────────────────────────────────
-
-@Preview(name = "RpeStepper – unset", showBackground = true)
-@Composable
-private fun PreviewRpeStepperUnset() {
-    LiftLogTheme { RpeStepper(value = null, onValueChange = {}, modifier = Modifier.padding(16.dp)) }
-}
-
-@Preview(name = "RpeStepper – whole value", showBackground = true)
-@Composable
-private fun PreviewRpeStepperWhole() {
-    LiftLogTheme { RpeStepper(value = 8.0, onValueChange = {}, modifier = Modifier.padding(16.dp)) }
-}
-
-@Preview(name = "RpeStepper – half value", showBackground = true)
-@Composable
-private fun PreviewRpeStepperHalf() {
-    LiftLogTheme { RpeStepper(value = 8.5, onValueChange = {}, modifier = Modifier.padding(16.dp)) }
-}

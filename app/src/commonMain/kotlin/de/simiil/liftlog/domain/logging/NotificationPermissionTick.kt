@@ -1,4 +1,4 @@
-package de.simiil.liftlog.notification
+package de.simiil.liftlog.domain.logging
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -25,12 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.RpeStepper
-import de.simiil.liftlog.ui.theme.LiftLogTheme
 import liftlog.app.generated.resources.Res
 import liftlog.app.generated.resources.common_done
 import liftlog.app.generated.resources.rpe_value
@@ -143,24 +141,5 @@ fun SessionMetaRow(
                 }
             }
         }
-    }
-}
-
-// ─── Previews ────────────────────────────────────────────────────────────────
-
-@Preview(name = "SessionMetaRow – empty collapsed", showBackground = true)
-@Composable
-private fun PreviewSessionMetaRowEmpty() {
-    LiftLogTheme {
-        SessionMetaRow(rpe = null, note = null, onRpeChange = {}, onNoteChange = {}, onNoteFlush = {}, modifier = Modifier.padding(16.dp))
-    }
-}
-
-@Preview(name = "SessionMetaRow – with values collapsed", showBackground = true)
-@Composable
-private fun PreviewSessionMetaRowValues() {
-    LiftLogTheme {
-        SessionMetaRow(rpe = 8.0, note = "Felt strong today", onRpeChange = {
-        }, onNoteChange = {}, onNoteFlush = {}, modifier = Modifier.padding(16.dp))
     }
 }
