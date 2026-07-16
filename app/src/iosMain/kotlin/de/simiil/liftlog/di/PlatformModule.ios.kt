@@ -10,6 +10,9 @@ import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.DB_SCHEMA_VERSION
 import de.simiil.liftlog.data.db.MIGRATION_1_2
 import de.simiil.liftlog.data.db.MIGRATION_2_3
+import de.simiil.liftlog.domain.format.LocaleFormatters
+import de.simiil.liftlog.domain.logging.NotificationPermissionTick
+import de.simiil.liftlog.ui.format.IosLocaleFormatters
 import de.simiil.liftlog.ui.settings.DocumentIo
 import de.simiil.liftlog.ui.settings.IosDocumentIo
 import kotlinx.coroutines.Dispatchers
@@ -23,16 +26,19 @@ import platform.Foundation.NSUserDomainMask
 /**
  * iOS platform leaf — compile-only in M7 (no Xcode toolchain here; the gate is the klib compile,
  * not a simulator run). Every line below is exercised/verified on-device in M8. The mandated
- * DB/DataStore/AppInfo triple plus `DocumentIo` (PR5 Task 3) are bound. The common
- * [viewModelModule] (PR5 Task 4) now depends on `LocaleFormatters` (ExercisePickerViewModel) and
- * `NotificationPermissionTick` (ActiveSessionViewModel), so the iOS Koin graph is intentionally
- * incomplete until PR5 Task 5 adds those bindings — see the marker below. KoinGraphTest runs on
- * Android (graph complete there); the iOS gate here is the klib compile, not graph resolution.
+ * DB/DataStore/AppInfo triple plus `DocumentIo` (PR5 Task 3) and `LocaleFormatters`/
+ * `NotificationPermissionTick` (PR5 Task 5) are bound, completing the common [viewModelModule]'s
+ * (PR5 Task 4) dependency graph: `LocaleFormatters` feeds `ExercisePickerViewModel`,
+ * `NotificationPermissionTick` feeds `ActiveSessionViewModel`. [NotificationPermissionTick] is a
+ * pure common class (like on Android) but its single stays per-platform since there is no
+ * Android-style notification coordinator to share it with here — no session notification ships on
+ * iOS in v1 (see `DeepLinkEffect.ios.kt`/`NotificationPermissionEffect.ios.kt`), so this binding
+ * exists solely to satisfy `ActiveSessionViewModel`'s constructor. KoinGraphTest runs on Android
+ * (graph complete there); the iOS gate here is the klib compile, not graph resolution — there is
+ * no runtime verify() on iOS yet (M8 revisits).
  */
 actual val platformModule: Module =
     module {
-        // TODO(PR5 Task 5): bind IosLocaleFormatters (single<LocaleFormatters>) and the
-        // NotificationPermissionTick single so the iOS graph resolves the common viewModelModule.
         single {
             val dbPath =
                 NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true)
@@ -59,4 +65,6 @@ actual val platformModule: Module =
         // M8: read the real version from the app bundle (CFBundleShortVersionString).
         single { AppInfo(name = "LiftLog", versionName = "0.5.0", dbSchemaVersion = DB_SCHEMA_VERSION) }
         factory<DocumentIo> { IosDocumentIo() } // unscoped, mirrors the Android binding
+        single<LocaleFormatters> { IosLocaleFormatters() }
+        single { NotificationPermissionTick() }
     }

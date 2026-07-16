@@ -118,9 +118,14 @@ val viewModelModule =
     }
 
 /**
- * Platform leaf: the `AppDatabase` builder + `DataStore` + `AppInfo`, plus (temporarily, on
- * Android) the UI/notification/ViewModel bindings that still reference androidMain-only types.
- * PR5 moves the UI/VM definitions back into a common module once their types are common-visible.
+ * Platform leaf: the mandated `AppDatabase` builder + `DataStore<Preferences>` + `AppInfo` triple,
+ * plus each platform's implementations of the two platform-backed interfaces `LocaleFormatters`
+ * and `DocumentIo`. Android additionally binds its notification stack here (`SessionNotification*`,
+ * `NotificationPermissionTick`) since nothing else needs to share it; iOS binds a bare
+ * `NotificationPermissionTick` single purely to satisfy `ActiveSessionViewModel`'s constructor (no
+ * session notification ships on iOS in v1). Everything portable — repositories, seeders, name
+ * resolvers, and all 11 ViewModels — lives in the common modules below ([infraModule]/
+ * [dataModule]/[uiModule]/[viewModelModule]) as of PR5.
  */
 expect val platformModule: Module
 
