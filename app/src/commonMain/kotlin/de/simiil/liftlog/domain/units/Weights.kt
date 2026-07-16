@@ -1,9 +1,8 @@
 package de.simiil.liftlog.domain.units
 
 import de.simiil.liftlog.domain.model.WeightUnit
-import java.util.Locale
 
-/** kg<->display conversion + formatting (02-data-spec §5). Pure; no Android deps. */
+/** kg<->display conversion + formatting (02-data-spec §5). Pure; no platform UI deps. */
 object Weights {
     /** Exact factor: 1 lb = 0.45359237 kg. */
     const val KG_PER_LB: Double = 0.45359237
@@ -43,6 +42,5 @@ object Weights {
     fun format(
         weightKg: Double,
         unit: WeightUnit,
-        locale: Locale = Locale.getDefault(),
-    ): String = Decimals.format(kgToDisplay(weightKg, unit), locale)
+    ): String = Decimals.format(kgToDisplay(weightKg, unit))
 }

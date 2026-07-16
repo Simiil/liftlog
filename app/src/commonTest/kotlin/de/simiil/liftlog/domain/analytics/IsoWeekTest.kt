@@ -1,8 +1,8 @@
 package de.simiil.liftlog.domain.analytics
 
 import kotlinx.datetime.LocalDate
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class IsoWeekTest {
     @Test fun midYear() {

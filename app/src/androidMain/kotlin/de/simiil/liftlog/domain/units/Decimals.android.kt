@@ -5,18 +5,30 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
-/** Locale-aware decimal entry/format helpers (08-i18n-spec §5.2). Pure; no Android deps. */
-object Decimals {
-    fun separator(locale: Locale = Locale.getDefault()): Char = DecimalFormatSymbols.getInstance(locale).decimalSeparator
+/**
+ * Locale-aware decimal entry/format helpers (08-i18n-spec §5.2). Pure; no Android deps.
+ *
+ * The `actual` members read the platform default locale, matching the common `expect` API.
+ * The extra `Locale`-param overloads below are kept for tests (`DecimalsTest`) that pin a
+ * specific locale rather than mutating the JVM-wide default.
+ */
+actual object Decimals {
+    actual fun separator(): Char = separator(Locale.getDefault())
+
+    fun separator(locale: Locale): Char = DecimalFormatSymbols.getInstance(locale).decimalSeparator
+
+    actual fun format(value: Double): String = format(value, Locale.getDefault())
 
     /** Up to 2 decimals, trailing zeros stripped, locale decimal separator. */
     fun format(
         value: Double,
-        locale: Locale = Locale.getDefault(),
+        locale: Locale,
     ): String =
         DecimalFormat("0.##", DecimalFormatSymbols.getInstance(locale))
             .apply { roundingMode = RoundingMode.HALF_UP }
             .format(value)
+
+    actual fun parse(text: String): Double? = parse(text, Locale.getDefault())
 
     /**
      * Parse user-entered text that may use the locale decimal separator.
@@ -27,6 +39,6 @@ object Decimals {
      */
     fun parse(
         text: String,
-        locale: Locale = Locale.getDefault(),
+        locale: Locale,
     ): Double? = text.replace(separator(locale), '.').replace(',', '.').toDoubleOrNull()
 }

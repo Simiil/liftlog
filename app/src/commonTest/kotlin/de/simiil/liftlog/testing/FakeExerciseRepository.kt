@@ -6,8 +6,9 @@ import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.util.UUID
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class FakeExerciseRepository : ExerciseRepository {
     val all: MutableStateFlow<List<Exercise>> = MutableStateFlow(emptyList())
@@ -29,6 +30,7 @@ class FakeExerciseRepository : ExerciseRepository {
 
     override fun observeRecentlyUsedIds(): Flow<List<String>> = recentIds
 
+    @OptIn(ExperimentalUuidApi::class)
     override suspend fun createCustom(
         name: String,
         muscleGroup: MuscleGroup,
@@ -41,7 +43,7 @@ class FakeExerciseRepository : ExerciseRepository {
         val now = Instant.fromEpochMilliseconds(0)
         val exercise =
             Exercise(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 name = name.trim(),
                 muscleGroup = muscleGroup,
                 equipment = equipment,

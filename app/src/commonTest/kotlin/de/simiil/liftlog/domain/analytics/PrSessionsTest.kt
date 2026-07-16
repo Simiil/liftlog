@@ -1,8 +1,8 @@
 package de.simiil.liftlog.domain.analytics
 
 import de.simiil.liftlog.domain.model.Equipment
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class PrSessionsTest {
     private val day = 86_400_000L

@@ -2,7 +2,6 @@ package de.simiil.liftlog.domain.analytics
 
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.units.Weights
-import java.util.Locale
 
 /**
  * Compact, accurate set-summary line — the single source for the analytics recent-sessions
@@ -20,14 +19,13 @@ import java.util.Locale
 fun formatSetSummary(
     sets: List<SetEntry>,
     unit: WeightUnit,
-    locale: Locale = Locale.getDefault(),
 ): String {
     if (sets.isEmpty()) return ""
     if (sets.all { it.weightKg == 0.0 }) return sets.joinToString("·") { it.reps.toString() }
     val label = Weights.label(unit)
     val runs = mutableListOf<Pair<String, MutableList<Int>>>()
     for (set in sets) {
-        val weight = Weights.format(set.weightKg, unit, locale)
+        val weight = Weights.format(set.weightKg, unit)
         val last = runs.lastOrNull()
         if (last != null && last.first == weight) {
             last.second.add(set.reps)

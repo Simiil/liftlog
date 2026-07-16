@@ -1,8 +1,8 @@
 package de.simiil.liftlog.domain.analytics
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class TrendTest {
     private val day = 86_400_000L
@@ -21,7 +21,7 @@ class TrendTest {
         val pts = pointsEndingNow(listOf(100.0, 101.0, 102.0, 103.0, 104.0), everyDays = 7)
         val r = trend(pts, now) as TrendResult.Ok
         assertEquals(TrendDirection.UP, r.direction)
-        assertEquals(4.0, r.percent, 0.001)
+        assertEquals(4.0, r.percent, absoluteTolerance = 0.001)
     }
 
     @Test fun flatNoisySeries_isFlat() {

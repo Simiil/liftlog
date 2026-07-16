@@ -1,8 +1,8 @@
 package de.simiil.liftlog.domain.analytics
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class DownsampleTest {
     private val day = 86_400_000L
@@ -24,7 +24,7 @@ class DownsampleTest {
             )
         val out = downsample(pts, Aggregation.MAX, maxPoints = 2)
         assertEquals(1, out.size)
-        assertEquals(9.0, out.first().value, 0.0)
+        assertEquals(9.0, out.first().value, absoluteTolerance = 0.0)
     }
 
     @Test fun overThreshold_sumAggregation_sumsBucket() {
@@ -32,7 +32,7 @@ class DownsampleTest {
         val pts = listOf(TrendPoint(base, 5.0), TrendPoint(base + day, 9.0), TrendPoint(base + 2 * day, 7.0))
         val out = downsample(pts, Aggregation.SUM, maxPoints = 2)
         assertEquals(1, out.size)
-        assertEquals(21.0, out.first().value, 0.0)
+        assertEquals(21.0, out.first().value, absoluteTolerance = 0.0)
     }
 
     @Test fun bucketsAreChronological() {

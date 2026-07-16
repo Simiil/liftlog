@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package de.simiil.liftlog.testing
 
 import de.simiil.liftlog.domain.model.PlanDayTemplate
@@ -11,8 +13,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * In-memory fake for [PlanRepository]. Backed by [MutableStateFlow] maps so
@@ -153,7 +156,7 @@ class FakePlanRepository : PlanRepository {
         val now = nowInstant()
         val plan =
             WorkoutPlan(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 name = name.trim(),
                 position = maxPos + 1,
                 createdAt = now,
@@ -220,7 +223,7 @@ class FakePlanRepository : PlanRepository {
         val maxPos = _plans.values.filter { it.deletedAt == null }.maxOfOrNull { it.position } ?: -1
         val plan =
             WorkoutPlan(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 name = name.trim(),
                 position = maxPos + 1,
                 createdAt = now,
@@ -246,7 +249,7 @@ class FakePlanRepository : PlanRepository {
         val now = nowInstant()
         val template =
             PlanDayTemplate(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 planId = planId,
                 name = name.trim(),
                 position = maxPos + 1,
@@ -295,7 +298,7 @@ class FakePlanRepository : PlanRepository {
         val now = nowInstant()
         val te =
             TemplateExercise(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 templateId = templateId,
                 exerciseId = exerciseId,
                 position = maxPos + 1,
@@ -377,7 +380,7 @@ class FakePlanRepository : PlanRepository {
             if (exerciseId in liveExerciseIds || !seen.add(exerciseId)) return@forEach
             val te =
                 TemplateExercise(
-                    id = UUID.randomUUID().toString(),
+                    id = Uuid.random().toString(),
                     templateId = templateId,
                     exerciseId = exerciseId,
                     position = nextPosition,

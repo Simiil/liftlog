@@ -2,11 +2,11 @@ package de.simiil.liftlog.domain.analytics
 
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class MuscleBalanceTest {
     private val now = 1_000_000_000_000L
@@ -46,10 +46,10 @@ class MuscleBalanceTest {
             }
         val b = muscleBalance(rows, rangeDays = 30, nowMillis = now)
         val chest = b.groups.first { it.group == RadarGroup.CHEST }
-        assertEquals(2.0, chest.setsPerWeek, 1e-9)
-        assertEquals(10.0, b.rimSetsPerWeek, 1e-9) // rim floors at the target
-        assertEquals(0.2, chest.fraction, 1e-9)
-        assertEquals(1.0, b.targetFraction, 1e-9)
+        assertEquals(2.0, chest.setsPerWeek, absoluteTolerance = 1e-9)
+        assertEquals(10.0, b.rimSetsPerWeek, absoluteTolerance = 1e-9) // rim floors at the target
+        assertEquals(0.2, chest.fraction, absoluteTolerance = 1e-9)
+        assertEquals(1.0, b.targetFraction, absoluteTolerance = 1e-9)
         assertFalse(b.isEmpty)
     }
 
@@ -59,10 +59,10 @@ class MuscleBalanceTest {
         val rows = List(12) { row(MuscleGroup.CHEST, now - day, sessionId = "s1") }
         val b = muscleBalance(rows, 30, now)
         val chest = b.groups.first { it.group == RadarGroup.CHEST }
-        assertEquals(12.0, chest.setsPerWeek, 1e-9)
-        assertEquals(12.0, b.rimSetsPerWeek, 1e-9)
-        assertEquals(1.0, chest.fraction, 1e-9)
-        assertEquals(10.0 / 12.0, b.targetFraction, 1e-9)
+        assertEquals(12.0, chest.setsPerWeek, absoluteTolerance = 1e-9)
+        assertEquals(12.0, b.rimSetsPerWeek, absoluteTolerance = 1e-9)
+        assertEquals(1.0, chest.fraction, absoluteTolerance = 1e-9)
+        assertEquals(10.0 / 12.0, b.targetFraction, absoluteTolerance = 1e-9)
     }
 
     @Test fun outOfRangeSets_dontCountTowardDose() {
@@ -72,9 +72,9 @@ class MuscleBalanceTest {
                 row(MuscleGroup.BACK, now - day),
             )
         val b = muscleBalance(rows, 30, now)
-        assertEquals(0.0, b.groups.first { it.group == RadarGroup.CHEST }.setsPerWeek, 1e-9)
+        assertEquals(0.0, b.groups.first { it.group == RadarGroup.CHEST }.setsPerWeek, absoluteTolerance = 1e-9)
         // History predates the window → effective window is the full 30d.
-        assertEquals(7.0 / 30.0, b.groups.first { it.group == RadarGroup.BACK }.setsPerWeek, 1e-9)
+        assertEquals(7.0 / 30.0, b.groups.first { it.group == RadarGroup.BACK }.setsPerWeek, absoluteTolerance = 1e-9)
     }
 
     @Test fun otherSets_feedFootnoteNotSpokes_aloneMeansEmpty() {

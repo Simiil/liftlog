@@ -41,7 +41,14 @@ class WeightsTest {
     }
 
     @Test fun format_usesLocaleDecimalSeparator() {
-        assertEquals("82.5", Weights.format(82.5, WeightUnit.KG, java.util.Locale.US))
-        assertEquals("82,5", Weights.format(82.5, WeightUnit.KG, java.util.Locale.GERMANY))
+        val original = java.util.Locale.getDefault()
+        try {
+            java.util.Locale.setDefault(java.util.Locale.US)
+            assertEquals("82.5", Weights.format(82.5, WeightUnit.KG))
+            java.util.Locale.setDefault(java.util.Locale.GERMANY)
+            assertEquals("82,5", Weights.format(82.5, WeightUnit.KG))
+        } finally {
+            java.util.Locale.setDefault(original)
+        }
     }
 }

@@ -1,8 +1,8 @@
 package de.simiil.liftlog.domain.logging
 
 import de.simiil.liftlog.domain.model.LoggedSet
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.time.Instant
 
 private fun set(
@@ -28,7 +28,7 @@ class PrefillTest {
                 setsThisEntry = listOf(set(30.0, 10, 1), set(32.5, 8, 2)),
                 lastPerformance = listOf(set(20.0, 12, 1)),
             )
-        assertEquals(32.5, result.weightKg!!, 0.0)
+        assertEquals(32.5, result.weightKg!!, absoluteTolerance = 0.0)
         assertEquals(8, result.reps)
     }
 
@@ -38,7 +38,7 @@ class PrefillTest {
                 setsThisEntry = emptyList(),
                 lastPerformance = listOf(set(30.0, 10, 1), set(30.0, 10, 2), set(30.0, 8, 3)),
             )
-        assertEquals(30.0, result.weightKg!!, 0.0)
+        assertEquals(30.0, result.weightKg!!, absoluteTolerance = 0.0)
         assertEquals(10, result.reps)
     }
 
