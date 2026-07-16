@@ -1,7 +1,5 @@
 package de.simiil.liftlog.ui.settings
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -84,14 +82,10 @@ fun SettingsScreen(
     val formatters = koinInject<LocaleFormatters>()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val exportLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.CreateDocument("application/json"),
-        ) { uri -> uri?.let(viewModel::export) }
-    val importLauncher =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.OpenDocument(),
-        ) { uri -> uri?.let(viewModel::prepareImport) }
+    val launchExport =
+        rememberCreateDocumentLauncher("application/json") { handle -> handle?.let(viewModel::export) }
+    val launchImport =
+        rememberOpenDocumentLauncher(listOf("application/json")) { handle -> handle?.let(viewModel::prepareImport) }
 
     val exported = stringResource(Res.string.backup_exported)
     val exportFailed = stringResource(Res.string.backup_export_failed)
@@ -148,13 +142,13 @@ fun SettingsScreen(
                 icon = { Icon(Icons.Outlined.FileDownload, contentDescription = null) },
                 titleRes = Res.string.settings_export,
                 descRes = Res.string.settings_export_desc,
-                onClick = { exportLauncher.launch(viewModel.defaultExportFileName()) },
+                onClick = { launchExport(viewModel.defaultExportFileName()) },
             )
             ActionRow(
                 icon = { Icon(Icons.Outlined.FileUpload, contentDescription = null) },
                 titleRes = Res.string.settings_import,
                 descRes = Res.string.settings_import_desc,
-                onClick = { importLauncher.launch(arrayOf("application/json")) },
+                onClick = { launchImport() },
             )
 
             if (de.simiil.liftlog.BuildConfig.DEBUG) {

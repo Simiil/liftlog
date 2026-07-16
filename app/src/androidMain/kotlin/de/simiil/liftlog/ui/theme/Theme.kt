@@ -2,10 +2,7 @@ package de.simiil.liftlog.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import de.simiil.liftlog.domain.model.ThemePreference
 
 /** Pure resolution of the manual theme toggle (00-product-spec §5.8). */
@@ -29,12 +26,8 @@ fun LiftLogTheme(
 ) {
     val darkTheme = resolveDarkTheme(themePreference, isSystemInDarkTheme())
     val colorScheme =
-        when {
-            dynamicColor && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
-            dynamicColor -> dynamicLightColorScheme(LocalContext.current)
-            darkTheme -> DarkColorScheme
-            else -> LightColorScheme
-        }
+        (if (dynamicColor) platformDynamicColorScheme(darkTheme) else null)
+            ?: if (darkTheme) DarkColorScheme else LightColorScheme
     androidx.compose.runtime.CompositionLocalProvider(
         LocalLiftLogColors provides extendedColorsFor(darkTheme),
     ) {

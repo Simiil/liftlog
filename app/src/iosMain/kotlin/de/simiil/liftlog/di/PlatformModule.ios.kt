@@ -10,6 +10,8 @@ import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.DB_SCHEMA_VERSION
 import de.simiil.liftlog.data.db.MIGRATION_1_2
 import de.simiil.liftlog.data.db.MIGRATION_2_3
+import de.simiil.liftlog.ui.settings.DocumentIo
+import de.simiil.liftlog.ui.settings.IosDocumentIo
 import kotlinx.coroutines.Dispatchers
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
@@ -20,9 +22,9 @@ import platform.Foundation.NSUserDomainMask
 
 /**
  * iOS platform leaf — compile-only in M7 (no Xcode toolchain here; the gate is the klib compile,
- * not a simulator run). Every line below is exercised/verified on-device in M8. Only the mandated
- * DB/DataStore/AppInfo triple is bound: `DocumentIo`/`LocaleFormatters` are still androidMain-only
- * types in PR4, so PR5 Tasks 3/5 add their iOS bindings when the common-visible types exist.
+ * not a simulator run). Every line below is exercised/verified on-device in M8. The mandated
+ * DB/DataStore/AppInfo triple plus `DocumentIo` (PR5 Task 3) are bound; `LocaleFormatters` is
+ * still androidMain-only, so PR5 Task 5 adds its iOS binding when that type is common-visible.
  */
 actual val platformModule: Module =
     module {
@@ -51,4 +53,5 @@ actual val platformModule: Module =
         }
         // M8: read the real version from the app bundle (CFBundleShortVersionString).
         single { AppInfo(name = "LiftLog", versionName = "0.5.0", dbSchemaVersion = DB_SCHEMA_VERSION) }
+        factory<DocumentIo> { IosDocumentIo() } // unscoped, mirrors the Android binding
     }

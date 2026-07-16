@@ -1,6 +1,5 @@
 package de.simiil.liftlog.ui.settings
 
-import android.net.Uri
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -73,11 +72,11 @@ class SettingsViewModel(
 
     fun defaultExportFileName(): String = "liftlog-backup-${clock.now().toLocalDateTime(TimeZone.UTC).date}.json"
 
-    fun export(uri: Uri) {
+    fun export(handle: DocumentHandle) {
         viewModelScope.launch {
             val message =
                 try {
-                    documentIo.writeText(uri, backupRepository.exportToJson())
+                    documentIo.writeText(handle, backupRepository.exportToJson())
                     SettingsMessage.EXPORTED
                 } catch (e: Exception) {
                     SettingsMessage.EXPORT_FAILED
@@ -86,11 +85,11 @@ class SettingsViewModel(
         }
     }
 
-    fun prepareImport(uri: Uri) {
+    fun prepareImport(handle: DocumentHandle) {
         viewModelScope.launch {
             val json =
                 try {
-                    documentIo.readText(uri)
+                    documentIo.readText(handle)
                 } catch (e: Exception) {
                     // A read failure (unreadable file / expired SAF Uri) is surfaced as a corrupt-file error.
                     handleParseResult(ParseResult.Invalid(InvalidReason.MALFORMED))
