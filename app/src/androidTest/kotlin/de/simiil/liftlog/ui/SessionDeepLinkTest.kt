@@ -10,20 +10,20 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
+import de.simiil.liftlog.testing.FreshKoinRule
 import de.simiil.liftlog.ui.UiTestTags.LOG_SET_BUTTON
 import de.simiil.liftlog.ui.navigation.SESSION_DEEP_LINK_BASE
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Pins the session notification's tap-to-open path (issue #36): a cold start with the
@@ -31,10 +31,9 @@ import javax.inject.Inject
  * screen (not Home), with the synthetic back stack Navigation builds underneath.
  */
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
-class SessionDeepLinkTest {
+class SessionDeepLinkTest : KoinComponent {
     @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    val koinRule = FreshKoinRule()
 
     @get:Rule(order = 1)
     val composeRule = createEmptyComposeRule()
@@ -45,15 +44,12 @@ class SessionDeepLinkTest {
     val grantPermissionRule: GrantPermissionRule =
         GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
-    @Inject
-    lateinit var sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository by inject()
 
-    @Inject
-    lateinit var exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository by inject()
 
     @Test
     fun deepLink_coldStart_landsOnActiveSession() {
-        hiltRule.inject()
         val sessionId =
             runBlocking {
                 val exercise = exerciseRepository.createCustom("Test Bench", MuscleGroup.CHEST, Equipment.BARBELL)

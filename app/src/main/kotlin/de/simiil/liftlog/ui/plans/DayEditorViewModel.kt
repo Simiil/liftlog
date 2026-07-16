@@ -3,7 +3,6 @@ package de.simiil.liftlog.ui.plans
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 data class DayEditorUiState(
     val loading: Boolean = true,
@@ -54,7 +52,6 @@ private data class TargetsOverlay(
  * never loses the cursor and rapid stepper taps never compute from a stale value; the overlay is
  * purely internal — the UI and the repository know nothing about it.
  */
-@HiltViewModel
 class DayEditorViewModel(
     savedStateHandle: SavedStateHandle,
     private val planRepository: PlanRepository,
@@ -62,17 +59,6 @@ class DayEditorViewModel(
     private val names: ExerciseNameResolver,
     private val debounceMs: Long = DEFAULT_DEBOUNCE_MS,
 ) : ViewModel() {
-    // Dagger can't fall back to a Kotlin default for an unqualified Long, so production DI
-    // goes through this narrower @Inject constructor (Hilt never sees debounceMs) while tests
-    // construct the primary constructor directly and may override the debounce duration.
-    @Inject
-    constructor(
-        savedStateHandle: SavedStateHandle,
-        planRepository: PlanRepository,
-        exerciseRepository: ExerciseRepository,
-        names: ExerciseNameResolver,
-    ) : this(savedStateHandle, planRepository, exerciseRepository, names, debounceMs = DEFAULT_DEBOUNCE_MS)
-
     // Type-safe route fields land in the handle under their field name; every day is a real,
     // already-created row by the time this screen opens (mirrors ActiveSessionViewModel's
     // required sessionId), so the id is non-nullable.

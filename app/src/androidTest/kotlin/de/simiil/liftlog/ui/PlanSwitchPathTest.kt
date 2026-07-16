@@ -12,11 +12,10 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.repository.PlanRepository
+import de.simiil.liftlog.testing.FreshKoinRule
 import de.simiil.liftlog.ui.UiTestTags.PLAN_MENU_NEW
 import de.simiil.liftlog.ui.UiTestTags.PLAN_NEW_CONFIRM
 import de.simiil.liftlog.ui.UiTestTags.PLAN_NEW_FIELD
@@ -30,7 +29,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Instrumented path test for the multi-plan chrome (issue #30 PR4): the title-bar switcher
@@ -45,20 +45,19 @@ import javax.inject.Inject
  *
  * ### Harness
  * Same as [PlanDeletePathTest]: [createAndroidComposeRule] launches MainActivity sharing the
- * test's Hilt singleton DB; seeding happens via the injected repo (the built-in seeder does NOT
- * run under HiltTestApplication). One plan is seeded — it's the fallback selection the Plan tab
+ * test's Koin singleton DB; seeding happens via the injected repo (the built-in seeder does NOT
+ * run under KoinTestApplication). One plan is seeded — it's the fallback selection the Plan tab
  * shows automatically.
  */
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
-class PlanSwitchPathTest {
+class PlanSwitchPathTest : KoinComponent {
     @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    val koinRule = FreshKoinRule()
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
-    @Inject lateinit var planRepository: PlanRepository
+    private val planRepository: PlanRepository by inject()
 
     private lateinit var originalPlanId: String
     private lateinit var originalPlanName: String
@@ -66,8 +65,6 @@ class PlanSwitchPathTest {
     @Before
     fun seed() =
         runBlocking {
-            hiltRule.inject()
-
             // A single plan — the Plan tab's fallback selection, with no days (unrelated to this test).
             originalPlanName = "Original Plan"
             val plan = planRepository.createPlan(originalPlanName)

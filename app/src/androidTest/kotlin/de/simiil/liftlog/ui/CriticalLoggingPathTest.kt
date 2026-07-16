@@ -12,13 +12,12 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
+import de.simiil.liftlog.testing.FreshKoinRule
 import de.simiil.liftlog.ui.UiTestTags.ADD_EXERCISE
 import de.simiil.liftlog.ui.UiTestTags.HOME_RESUME_CARD
 import de.simiil.liftlog.ui.UiTestTags.HOME_START_EMPTY
@@ -31,7 +30,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * The headline M2 exit criterion (05-roadmap): a single deep test that walks the whole
@@ -42,8 +42,8 @@ import javax.inject.Inject
  * weight → log a second set → tear the activity down → resume and verify both sets.
  *
  * ### "Process-death" proxy
- * A true process death wipes the in-memory Room database the Hilt test harness installs
- * (`TestDatabaseModule`), so we cannot use it here. Instead we drive
+ * A true process death wipes the in-memory Room database the Koin test harness installs
+ * (`testOverrideModules`), so we cannot use it here. Instead we drive
  * [androidx.test.core.app.ActivityScenario.recreate], which destroys and rebuilds the
  * Activity (and re-runs nav/state restoration) while the *singleton* in-memory database —
  * the single source of truth — survives. That is precisely the assertion we care about:
@@ -52,10 +52,9 @@ import javax.inject.Inject
  * in memory, the rebuilt Activity would show an empty card and this test would fail.
  */
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
-class CriticalLoggingPathTest {
+class CriticalLoggingPathTest : KoinComponent {
     @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    val koinRule = FreshKoinRule()
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
@@ -66,20 +65,17 @@ class CriticalLoggingPathTest {
     val grantPermissionRule: GrantPermissionRule =
         GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
-    @Inject
-    lateinit var sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository by inject()
 
-    @Inject
-    lateinit var exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository by inject()
 
     private lateinit var exerciseId: String
 
     @Before
     fun seedPriorSession() =
         runBlocking {
-            hiltRule.inject()
             // 1. A custom exercise, so the picker has something to pick (the built-in seeder
-            //    does NOT run under HiltTestApplication — this is the only visible exercise).
+            //    does NOT run under KoinTestApplication — this is the only visible exercise).
             val ex = exerciseRepository.createCustom("Test Bench", MuscleGroup.CHEST, Equipment.BARBELL)
             exerciseId = ex.id
             // 2. A PRIOR COMPLETED session with this exercise at a known weight/reps. Once it is

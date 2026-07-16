@@ -40,7 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.SetEntry
@@ -50,6 +49,7 @@ import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.LoggedSetRow
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
+import org.koin.compose.viewmodel.koinViewModel
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -61,7 +61,7 @@ import java.util.Locale
 fun SessionDetailScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SessionDetailViewModel = hiltViewModel(),
+    viewModel: SessionDetailViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val name = uiState.name ?: stringResource(R.string.session_untitled)

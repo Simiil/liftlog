@@ -6,7 +6,6 @@ import android.content.pm.ServiceInfo
 import android.os.IBinder
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
-import dagger.hilt.android.AndroidEntryPoint
 import de.simiil.liftlog.domain.repository.SessionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +19,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Foreground service backing the in-workout notification (issue #36). Runs while a
@@ -28,13 +28,14 @@ import javax.inject.Inject
  * notification) the moment it is finished or discarded. LOG SET logs the values the
  * notification currently displays — the latest collected model, never intent extras.
  */
-@AndroidEntryPoint
-class SessionNotificationService : Service() {
-    @Inject lateinit var producer: SessionNotificationModelProducer
+class SessionNotificationService :
+    Service(),
+    KoinComponent {
+    private val producer: SessionNotificationModelProducer by inject()
 
-    @Inject lateinit var builder: SessionNotificationBuilder
+    private val builder: SessionNotificationBuilder by inject()
 
-    @Inject lateinit var sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository by inject()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val latestModel = MutableStateFlow<SessionNotificationModel?>(null)

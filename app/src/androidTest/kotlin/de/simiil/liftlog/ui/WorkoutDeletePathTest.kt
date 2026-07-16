@@ -7,14 +7,13 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
+import de.simiil.liftlog.testing.FreshKoinRule
 import de.simiil.liftlog.ui.UiTestTags.HOME_RECENT_ROW
 import de.simiil.liftlog.ui.UiTestTags.HOME_START_EMPTY
 import de.simiil.liftlog.ui.UiTestTags.SESSION_DELETE_CONFIRM
@@ -26,7 +25,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Instrumented path test for the workout delete flow (Edit-workout sheet).
@@ -41,30 +41,27 @@ import javax.inject.Inject
  *
  * ### Harness
  * Same as [SessionMetaPathTest]: [createAndroidComposeRule] launches MainActivity sharing the
- * test's Hilt singleton DB; seeding happens via the injected repos. The built-in seeder does
- * NOT run under HiltTestApplication, so the exercise is made via
+ * test's Koin singleton DB; seeding happens via the injected repos. The built-in seeder does
+ * NOT run under KoinTestApplication, so the exercise is made via
  * [ExerciseRepository.createCustom] (same idiom as [TemplateStartPathTest]).
  */
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
-class WorkoutDeletePathTest {
+class WorkoutDeletePathTest : KoinComponent {
     @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    val koinRule = FreshKoinRule()
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
-    @Inject lateinit var sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository by inject()
 
-    @Inject lateinit var exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository by inject()
 
     private lateinit var sessionId: String
 
     @Before
     fun seed() =
         runBlocking {
-            hiltRule.inject()
-
             // A FINISHED session with one exercise and one logged set, so Home shows it
             // under "Recent" (mirrors TemplateStartPathTest's prior-session seeding).
             val squat = exerciseRepository.createCustom("Test Squat", MuscleGroup.QUADS, Equipment.BARBELL)

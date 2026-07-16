@@ -11,14 +11,13 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
+import de.simiil.liftlog.testing.FreshKoinRule
 import de.simiil.liftlog.ui.UiTestTags.DAY_EDITOR_DONE
 import de.simiil.liftlog.ui.UiTestTags.DAY_NAME_FIELD
 import de.simiil.liftlog.ui.UiTestTags.PICKER_ADD_SELECTED
@@ -34,7 +33,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Instrumented path test for the no-Save, persist-on-change plan editing flow (issue #30 PR3b,
@@ -47,22 +47,21 @@ import javax.inject.Inject
  *
  * ### Harness
  * Same as [TemplateStartPathTest]: [createAndroidComposeRule] launches MainActivity sharing the
- * test's Hilt singleton DB; [@Before] seeds via the injected repos (the built-in seeder does NOT
- * run under HiltTestApplication). One plan with zero days is seeded — it's the fallback selection
+ * test's Koin singleton DB; [@Before] seeds via the injected repos (the built-in seeder does NOT
+ * run under KoinTestApplication). One plan with zero days is seeded — it's the fallback selection
  * the Plan tab shows automatically.
  */
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
-class PlanEditPathTest {
+class PlanEditPathTest : KoinComponent {
     @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    val koinRule = FreshKoinRule()
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
-    @Inject lateinit var planRepository: PlanRepository
+    private val planRepository: PlanRepository by inject()
 
-    @Inject lateinit var exerciseRepository: ExerciseRepository
+    private val exerciseRepository: ExerciseRepository by inject()
 
     private lateinit var planId: String
     private lateinit var exerciseId: String
@@ -70,8 +69,6 @@ class PlanEditPathTest {
     @Before
     fun seed() =
         runBlocking {
-            hiltRule.inject()
-
             val exercise = exerciseRepository.createCustom("Test Row", MuscleGroup.BACK, Equipment.MACHINE)
             exerciseId = exercise.id
 

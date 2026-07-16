@@ -12,56 +12,51 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Clock
 import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class ExerciseRepositoryImpl
-    @Inject
-    constructor(
-        private val dao: ExerciseDao,
-        private val transactor: Transactor,
-        private val clock: Clock,
-    ) : ExerciseRepository {
-        override fun observeAll() = dao.observeAll().map { it.map(ExerciseEntity::toDomain) }
+class ExerciseRepositoryImpl(
+    private val dao: ExerciseDao,
+    private val transactor: Transactor,
+    private val clock: Clock,
+) : ExerciseRepository {
+    override fun observeAll() = dao.observeAll().map { it.map(ExerciseEntity::toDomain) }
 
-        override fun observeVisible() = dao.observeVisible().map { it.map(ExerciseEntity::toDomain) }
+    override fun observeVisible() = dao.observeVisible().map { it.map(ExerciseEntity::toDomain) }
 
-        override suspend fun createCustom(
-            name: String,
-            muscleGroup: MuscleGroup,
-            equipment: Equipment,
-        ): Exercise {
-            val trimmed = name.trim()
-            require(trimmed.isNotEmpty()) { "Exercise name must not be blank" }
-            return transactor.immediate {
-                require(dao.findLiveByName(trimmed) == null) { "An exercise named \"$trimmed\" already exists" }
-                val now = clock.millis()
-                val entity =
-                    ExerciseEntity(
-                        id = UUID.randomUUID().toString(),
-                        name = trimmed,
-                        muscleGroup = muscleGroup,
-                        equipment = equipment,
-                        isBuiltIn = false,
-                        isHidden = false,
-                        createdAt = now,
-                        updatedAt = now,
-                        deletedAt = null,
-                    )
-                dao.insert(entity)
-                entity.toDomain()
-            }
+    override suspend fun createCustom(
+        name: String,
+        muscleGroup: MuscleGroup,
+        equipment: Equipment,
+    ): Exercise {
+        val trimmed = name.trim()
+        require(trimmed.isNotEmpty()) { "Exercise name must not be blank" }
+        return transactor.immediate {
+            require(dao.findLiveByName(trimmed) == null) { "An exercise named \"$trimmed\" already exists" }
+            val now = clock.millis()
+            val entity =
+                ExerciseEntity(
+                    id = UUID.randomUUID().toString(),
+                    name = trimmed,
+                    muscleGroup = muscleGroup,
+                    equipment = equipment,
+                    isBuiltIn = false,
+                    isHidden = false,
+                    createdAt = now,
+                    updatedAt = now,
+                    deletedAt = null,
+                )
+            dao.insert(entity)
+            entity.toDomain()
         }
-
-        override suspend fun setHidden(
-            id: String,
-            hidden: Boolean,
-        ) {
-            val current = dao.findById(id) ?: return
-            dao.update(current.copy(isHidden = hidden, updatedAt = clock.millis()))
-        }
-
-        override fun observeRecentlyUsedIds(): Flow<List<String>> =
-            dao.observeRecentlyUsedExerciseIds().map { rows -> rows.map { it.exerciseId } }
     }
+
+    override suspend fun setHidden(
+        id: String,
+        hidden: Boolean,
+    ) {
+        val current = dao.findById(id) ?: return
+        dao.update(current.copy(isHidden = hidden, updatedAt = clock.millis()))
+    }
+
+    override fun observeRecentlyUsedIds(): Flow<List<String>> =
+        dao.observeRecentlyUsedExerciseIds().map { rows -> rows.map { it.exerciseId } }
+}

@@ -51,7 +51,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.MuscleGroup
@@ -62,6 +61,7 @@ import de.simiil.liftlog.ui.components.PrBadge
 import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import org.koin.compose.viewmodel.koinViewModel
 import java.time.Duration
 import java.time.Instant
 
@@ -72,7 +72,7 @@ fun HomeScreen(
     onOpenSession: (String) -> Unit,
     onOpenSessionDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel(),
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     // First-launch only when there's nothing to act on: no live/finished sessions AND no plan

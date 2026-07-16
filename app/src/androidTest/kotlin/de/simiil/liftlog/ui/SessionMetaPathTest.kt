@@ -11,12 +11,11 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import de.simiil.liftlog.MainActivity
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.repository.SessionRepository
+import de.simiil.liftlog.testing.FreshKoinRule
 import de.simiil.liftlog.ui.UiTestTags.HOME_START_EMPTY
 import de.simiil.liftlog.ui.UiTestTags.RPE_INCREMENT
 import de.simiil.liftlog.ui.UiTestTags.SESSION_META_NOTE
@@ -25,11 +24,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import kotlin.math.abs
 
 /**
@@ -50,10 +49,9 @@ import kotlin.math.abs
  * We use the same waitForIdle+poll pattern as TemplateStartPathTest (per-file copy).
  */
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
-class SessionMetaPathTest {
+class SessionMetaPathTest : KoinComponent {
     @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    val koinRule = FreshKoinRule()
 
     @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
@@ -64,13 +62,7 @@ class SessionMetaPathTest {
     val grantPermissionRule: GrantPermissionRule =
         GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
-    @Inject
-    lateinit var sessionRepository: SessionRepository
-
-    @Before
-    fun setUp() {
-        hiltRule.inject()
-    }
+    private val sessionRepository: SessionRepository by inject()
 
     @Test
     fun sessionMeta_rpeAndNote_persistAfterCollapse() {

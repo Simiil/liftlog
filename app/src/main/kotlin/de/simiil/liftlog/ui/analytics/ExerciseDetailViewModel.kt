@@ -3,7 +3,6 @@ package de.simiil.liftlog.ui.analytics
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import de.simiil.liftlog.domain.analytics.Aggregation
 import de.simiil.liftlog.domain.analytics.ExerciseSummary
 import de.simiil.liftlog.domain.analytics.SessionPoint
@@ -23,7 +22,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.time.Clock
-import javax.inject.Inject
 
 enum class Metric { E1RM, TOP_SET, VOLUME, MAX_REPS, TOTAL_REPS }
 
@@ -60,151 +58,148 @@ data class ExerciseDetailUiState(
     val notEnoughData: Boolean = false,
 )
 
-@HiltViewModel
-class ExerciseDetailViewModel
-    @Inject
-    constructor(
-        savedStateHandle: SavedStateHandle,
-        private val analyticsRepository: AnalyticsRepository,
-        private val settingsRepository: SettingsRepository,
-        private val clock: Clock,
-        private val names: ExerciseNameResolver,
-    ) : ViewModel() {
-        private val exerciseId: String = checkNotNull(savedStateHandle["exerciseId"])
-        private val selectedMetric = MutableStateFlow<Metric?>(null)
-        private val selectedRange = MutableStateFlow(Range.D90)
+class ExerciseDetailViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val analyticsRepository: AnalyticsRepository,
+    private val settingsRepository: SettingsRepository,
+    private val clock: Clock,
+    private val names: ExerciseNameResolver,
+) : ViewModel() {
+    private val exerciseId: String = checkNotNull(savedStateHandle["exerciseId"])
+    private val selectedMetric = MutableStateFlow<Metric?>(null)
+    private val selectedRange = MutableStateFlow(Range.D90)
 
-        val uiState: StateFlow<ExerciseDetailUiState> =
-            combine(
-                analyticsRepository.observeExerciseSummary(exerciseId),
-                analyticsRepository.observeTrainedExercises(),
-                selectedMetric,
-                selectedRange,
-                settingsRepository.weightUnit,
-            ) { summary, trained, metricOrNull, range, unit ->
-                val trainedRow = trained.firstOrNull { it.id == exerciseId }
-                val name = trainedRow?.let { names.displayName(it.id, it.name) } ?: ""
-                if (summary == null) {
-                    return@combine ExerciseDetailUiState(name = name, notEnoughData = true, unit = unit)
+    val uiState: StateFlow<ExerciseDetailUiState> =
+        combine(
+            analyticsRepository.observeExerciseSummary(exerciseId),
+            analyticsRepository.observeTrainedExercises(),
+            selectedMetric,
+            selectedRange,
+            settingsRepository.weightUnit,
+        ) { summary, trained, metricOrNull, range, unit ->
+            val trainedRow = trained.firstOrNull { it.id == exerciseId }
+            val name = trainedRow?.let { names.displayName(it.id, it.name) } ?: ""
+            if (summary == null) {
+                return@combine ExerciseDetailUiState(name = name, notEnoughData = true, unit = unit)
+            }
+            // First entry is the default (the headline metric): total reps for bodyweight,
+            // volume for weighted. e1RM/max-reps are kept as toggles but no longer default.
+            val metrics =
+                if (summary.bodyweight) {
+                    listOf(Metric.TOTAL_REPS, Metric.MAX_REPS)
+                } else {
+                    listOf(Metric.VOLUME, Metric.TOP_SET, Metric.E1RM)
                 }
-                // First entry is the default (the headline metric): total reps for bodyweight,
-                // volume for weighted. e1RM/max-reps are kept as toggles but no longer default.
-                val metrics =
-                    if (summary.bodyweight) {
-                        listOf(Metric.TOTAL_REPS, Metric.MAX_REPS)
-                    } else {
-                        listOf(Metric.VOLUME, Metric.TOP_SET, Metric.E1RM)
-                    }
-                val metric = metricOrNull?.takeIf { it in metrics } ?: metrics.first()
+            val metric = metricOrNull?.takeIf { it in metrics } ?: metrics.first()
 
-                val cutoff = nowFallbackCutoff(summary, range)
-                val rangeFiltered = summary.sessions.filter { it.timeMillis >= cutoff }
-                // The chart needs >=2 points; fall back to the last two when the range is too sparse.
-                // The sessions list below uses rangeFiltered directly (honest to the selected window).
-                var inRange = rangeFiltered
-                if (inRange.size < 2) inRange = summary.sessions.takeLast(2)
+            val cutoff = nowFallbackCutoff(summary, range)
+            val rangeFiltered = summary.sessions.filter { it.timeMillis >= cutoff }
+            // The chart needs >=2 points; fall back to the last two when the range is too sparse.
+            // The sessions list below uses rangeFiltered directly (honest to the selected window).
+            var inRange = rangeFiltered
+            if (inRange.size < 2) inRange = summary.sessions.takeLast(2)
 
-                val zeroBased = metric == Metric.VOLUME || metric == Metric.TOTAL_REPS
-                val agg = if (zeroBased) Aggregation.SUM else Aggregation.MAX
-                val raw = inRange.map { TrendPoint(it.timeMillis, valueOf(it, metric)) }
-                val ds = downsample(raw, agg)
-                // x = whole minutes since the first in-range session: preserves real spacing
-                // (sparse-data honesty, 04-analytics-spec §6) at sub-pixel resolution. x must keep
-                // integral deltas: Vico rejects x grids finer than 1e-4 ("The x values are too
-                // precise"), which fractional days violate at millisecond timestamps, and whole
-                // minutes stay exact through Float (epoch-ms doesn't: its Float quantum is ~2.2 min,
-                // which jitters and collapses nearby sessions).
-                val t0 = inRange.first().timeMillis
+            val zeroBased = metric == Metric.VOLUME || metric == Metric.TOTAL_REPS
+            val agg = if (zeroBased) Aggregation.SUM else Aggregation.MAX
+            val raw = inRange.map { TrendPoint(it.timeMillis, valueOf(it, metric)) }
+            val ds = downsample(raw, agg)
+            // x = whole minutes since the first in-range session: preserves real spacing
+            // (sparse-data honesty, 04-analytics-spec §6) at sub-pixel resolution. x must keep
+            // integral deltas: Vico rejects x grids finer than 1e-4 ("The x values are too
+            // precise"), which fractional days violate at millisecond timestamps, and whole
+            // minutes stay exact through Float (epoch-ms doesn't: its Float quantum is ~2.2 min,
+            // which jitters and collapses nearby sessions).
+            val t0 = inRange.first().timeMillis
 
-                fun minuteX(t: Long) = ((t - t0) / 60_000L).toFloat()
-                val pts =
-                    if (ds.size == inRange.size) {
-                        // 1:1 with sessions — can carry PR flags
-                        inRange.map { ChartPoint(minuteX(it.timeMillis), valueOf(it, metric).toFloat(), prFor(it, metric)) }
-                    } else {
-                        ds.map { ChartPoint(minuteX(it.timeMillis), it.value.toFloat(), false) }
-                    }
+            fun minuteX(t: Long) = ((t - t0) / 60_000L).toFloat()
+            val pts =
+                if (ds.size == inRange.size) {
+                    // 1:1 with sessions — can carry PR flags
+                    inRange.map { ChartPoint(minuteX(it.timeMillis), valueOf(it, metric).toFloat(), prFor(it, metric)) }
+                } else {
+                    ds.map { ChartPoint(minuteX(it.timeMillis), it.value.toFloat(), false) }
+                }
 
-                // Trend over the selected window (primary metric), so the badge tracks the range pills.
-                val rangeTrend =
-                    trend(
-                        summary.sessions.map { TrendPoint(it.timeMillis, it.primary) },
-                        clock.millis(),
-                        windowDays = range.days,
-                    )
-                val last = summary.sessions.last()
-                ExerciseDetailUiState(
-                    name = name,
-                    summary = summary,
-                    metrics = metrics,
-                    selectedMetric = metric,
-                    selectedRange = range,
-                    chartPoints = pts,
-                    chartZeroBased = zeroBased,
-                    currentValueLabel = label(valueOf(last, metric), metric, unit),
-                    trend = rangeTrend,
-                    recent =
-                        rangeFiltered.reversed().map { sp ->
-                            RecentSessionRow(
-                                sessionId = sp.sessionId,
-                                dateMillis = sp.timeMillis,
-                                summary = formatSetSummary(sp.sets, unit),
-                                isPr = sp.isPr,
-                            )
-                        },
-                    unit = unit,
-                    notEnoughData = summary.sessions.size < 2,
+            // Trend over the selected window (primary metric), so the badge tracks the range pills.
+            val rangeTrend =
+                trend(
+                    summary.sessions.map { TrendPoint(it.timeMillis, it.primary) },
+                    clock.millis(),
+                    windowDays = range.days,
                 )
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ExerciseDetailUiState())
+            val last = summary.sessions.last()
+            ExerciseDetailUiState(
+                name = name,
+                summary = summary,
+                metrics = metrics,
+                selectedMetric = metric,
+                selectedRange = range,
+                chartPoints = pts,
+                chartZeroBased = zeroBased,
+                currentValueLabel = label(valueOf(last, metric), metric, unit),
+                trend = rangeTrend,
+                recent =
+                    rangeFiltered.reversed().map { sp ->
+                        RecentSessionRow(
+                            sessionId = sp.sessionId,
+                            dateMillis = sp.timeMillis,
+                            summary = formatSetSummary(sp.sets, unit),
+                            isPr = sp.isPr,
+                        )
+                    },
+                unit = unit,
+                notEnoughData = summary.sessions.size < 2,
+            )
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ExerciseDetailUiState())
 
-        fun onMetricChange(m: Metric) {
-            selectedMetric.value = m
-        }
-
-        fun onRangeChange(r: Range) {
-            selectedRange.value = r
-        }
-
-        private fun nowFallbackCutoff(
-            summary: ExerciseSummary,
-            range: Range,
-        ): Long {
-            val newest = summary.sessions.maxOf { it.timeMillis }
-            return newest - range.days * 86_400_000L
-        }
-
-        private fun valueOf(
-            s: SessionPoint,
-            m: Metric,
-        ): Double =
-            when (m) {
-                Metric.E1RM -> s.metrics.e1rmKg
-                Metric.TOP_SET -> s.metrics.topSetKg
-                Metric.VOLUME -> s.metrics.volumeKg
-                Metric.MAX_REPS -> s.metrics.maxReps.toDouble()
-                Metric.TOTAL_REPS -> s.metrics.totalReps.toDouble()
-            }
-
-        private fun prFor(
-            s: SessionPoint,
-            m: Metric,
-        ): Boolean =
-            when (m) {
-                Metric.TOP_SET -> s.isPrTopSet
-                Metric.E1RM -> s.isPrE1rm
-                Metric.MAX_REPS -> s.isPrReps
-                Metric.VOLUME -> s.isPrVolume
-                Metric.TOTAL_REPS -> s.isPrTotalReps
-            }
-
-        private fun label(
-            v: Double,
-            m: Metric,
-            unit: WeightUnit,
-        ): String =
-            when (m) {
-                Metric.VOLUME -> "${v.toLong()} ${de.simiil.liftlog.domain.units.Weights.label(unit)}"
-                Metric.MAX_REPS, Metric.TOTAL_REPS -> "${v.toInt()} reps"
-                else -> "${de.simiil.liftlog.domain.units.Weights.format(v, unit)} ${de.simiil.liftlog.domain.units.Weights.label(unit)}"
-            }
+    fun onMetricChange(m: Metric) {
+        selectedMetric.value = m
     }
+
+    fun onRangeChange(r: Range) {
+        selectedRange.value = r
+    }
+
+    private fun nowFallbackCutoff(
+        summary: ExerciseSummary,
+        range: Range,
+    ): Long {
+        val newest = summary.sessions.maxOf { it.timeMillis }
+        return newest - range.days * 86_400_000L
+    }
+
+    private fun valueOf(
+        s: SessionPoint,
+        m: Metric,
+    ): Double =
+        when (m) {
+            Metric.E1RM -> s.metrics.e1rmKg
+            Metric.TOP_SET -> s.metrics.topSetKg
+            Metric.VOLUME -> s.metrics.volumeKg
+            Metric.MAX_REPS -> s.metrics.maxReps.toDouble()
+            Metric.TOTAL_REPS -> s.metrics.totalReps.toDouble()
+        }
+
+    private fun prFor(
+        s: SessionPoint,
+        m: Metric,
+    ): Boolean =
+        when (m) {
+            Metric.TOP_SET -> s.isPrTopSet
+            Metric.E1RM -> s.isPrE1rm
+            Metric.MAX_REPS -> s.isPrReps
+            Metric.VOLUME -> s.isPrVolume
+            Metric.TOTAL_REPS -> s.isPrTotalReps
+        }
+
+    private fun label(
+        v: Double,
+        m: Metric,
+        unit: WeightUnit,
+    ): String =
+        when (m) {
+            Metric.VOLUME -> "${v.toLong()} ${de.simiil.liftlog.domain.units.Weights.label(unit)}"
+            Metric.MAX_REPS, Metric.TOTAL_REPS -> "${v.toInt()} reps"
+            else -> "${de.simiil.liftlog.domain.units.Weights.format(v, unit)} ${de.simiil.liftlog.domain.units.Weights.label(unit)}"
+        }
+}

@@ -1,8 +1,6 @@
 package de.simiil.liftlog.domain.plan
 
 import de.simiil.liftlog.domain.repository.PlanRepository
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Enforces the "zero live plans -> create a default" invariant (issue #30): the Plan tab must
@@ -10,14 +8,11 @@ import javax.inject.Singleton
  * ([ensure]), and whenever a plan is deleted ([deletePlan], which reseeds atomically if that
  * was the last live plan).
  */
-@Singleton
-class DefaultPlanEnsurer
-    @Inject
-    constructor(
-        private val planRepository: PlanRepository,
-        private val nameProvider: DefaultPlanNameProvider,
-    ) {
-        suspend fun ensure() = planRepository.ensureDefaultPlan(nameProvider.defaultPlanName())
+class DefaultPlanEnsurer(
+    private val planRepository: PlanRepository,
+    private val nameProvider: DefaultPlanNameProvider,
+) {
+    suspend fun ensure() = planRepository.ensureDefaultPlan(nameProvider.defaultPlanName())
 
-        suspend fun deletePlan(planId: String) = planRepository.softDeletePlanAndEnsureDefault(planId, nameProvider.defaultPlanName())
-    }
+    suspend fun deletePlan(planId: String) = planRepository.softDeletePlanAndEnsureDefault(planId, nameProvider.defaultPlanName())
+}
