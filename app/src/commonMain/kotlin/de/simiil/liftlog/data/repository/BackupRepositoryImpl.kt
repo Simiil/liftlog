@@ -25,7 +25,10 @@ class BackupRepositoryImpl(
     private val seeder: ExerciseSeeder,
 ) : BackupRepository {
     override suspend fun exportToJson(): String =
-        withContext(Dispatchers.IO) {
+        // Dispatchers.Default (not .IO): .IO is JVM/Android-only and unavailable in common. The
+        // work here is DB/serialization-bound and the Room queries hop to the DB's own query
+        // context internally, so Default is a fine offload target across platforms.
+        withContext(Dispatchers.Default) {
             val snapshot =
                 BackupSnapshot(
                     exercises = backupDao.getAllExercises(),
@@ -42,7 +45,7 @@ class BackupRepositoryImpl(
         }
 
     override suspend fun parseImport(json: String): ParseResult =
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Default) {
             val result = BackupCodec.decode(json)
             if (result is ParseResult.Ready && backupDao.getActiveSession() != null) {
                 ParseResult.BlockedByLiveSession
@@ -52,7 +55,7 @@ class BackupRepositoryImpl(
         }
 
     override suspend fun applyImport(parsed: ParsedBackup): ImportSummary =
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Default) {
             val snapshot = parsed as BackupSnapshot
             backupDao.replaceAll(snapshot)
             // replaceAll cleared seed_state; re-converge so a restore from an old backup

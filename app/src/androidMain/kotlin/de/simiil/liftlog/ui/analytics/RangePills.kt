@@ -12,11 +12,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import de.simiil.liftlog.R
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.range_1y
+import liftlog.app.generated.resources.range_30d
+import liftlog.app.generated.resources.range_90d
+import liftlog.app.generated.resources.range_all
+import org.jetbrains.compose.resources.stringResource
 
 /** Equal-width 30d/90d/1y/all pills, shared by the exercise-detail screen and the muscle-balance card. */
 @Composable
@@ -64,9 +68,9 @@ fun RangePills(
 internal fun rangeLabel(r: Range) =
     stringResource(
         when (r) {
-            Range.D30 -> R.string.range_30d
-            Range.D90 -> R.string.range_90d
-            Range.Y1 -> R.string.range_1y
-            Range.ALL -> R.string.range_all
+            Range.D30 -> Res.string.range_30d
+            Range.D90 -> Res.string.range_90d
+            Range.Y1 -> Res.string.range_1y
+            Range.ALL -> Res.string.range_all
         },
     )

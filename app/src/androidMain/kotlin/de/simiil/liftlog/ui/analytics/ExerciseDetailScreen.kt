@@ -29,17 +29,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.components.PrBadge
 import de.simiil.liftlog.ui.components.charts.ProgressLineChart
 import kotlinx.datetime.TimeZone
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.analytics_need_two
+import liftlog.app.generated.resources.analytics_sessions
+import liftlog.app.generated.resources.cd_progress_chart
+import liftlog.app.generated.resources.metric_e1rm
+import liftlog.app.generated.resources.metric_max_reps
+import liftlog.app.generated.resources.metric_top_set
+import liftlog.app.generated.resources.metric_total_reps
+import liftlog.app.generated.resources.metric_volume
+import liftlog.app.generated.resources.navigate_back
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -60,7 +69,7 @@ fun ExerciseDetailScreen(
                 IconButton(onClick = onBack) {
                     Icon(
                         Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = stringResource(R.string.navigate_back),
+                        contentDescription = stringResource(Res.string.navigate_back),
                     )
                 }
             },
@@ -112,7 +121,7 @@ fun ExerciseDetailScreen(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    stringResource(R.string.analytics_need_two),
+                                    stringResource(Res.string.analytics_need_two),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
@@ -122,7 +131,7 @@ fun ExerciseDetailScreen(
                                 zeroBased = ui.chartZeroBased,
                                 contentDescription =
                                     stringResource(
-                                        R.string.cd_progress_chart,
+                                        Res.string.cd_progress_chart,
                                         metricLabel(ui.selectedMetric),
                                         ui.chartPoints.size,
                                     ),
@@ -148,7 +157,7 @@ fun ExerciseDetailScreen(
             }
             item {
                 Text(
-                    stringResource(R.string.analytics_sessions),
+                    stringResource(Res.string.analytics_sessions),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
@@ -199,10 +208,10 @@ private fun SessionRow(
 private fun metricLabel(m: Metric) =
     stringResource(
         when (m) {
-            Metric.E1RM -> R.string.metric_e1rm
-            Metric.TOP_SET -> R.string.metric_top_set
-            Metric.VOLUME -> R.string.metric_volume
-            Metric.MAX_REPS -> R.string.metric_max_reps
-            Metric.TOTAL_REPS -> R.string.metric_total_reps
+            Metric.E1RM -> Res.string.metric_e1rm
+            Metric.TOP_SET -> Res.string.metric_top_set
+            Metric.VOLUME -> Res.string.metric_volume
+            Metric.MAX_REPS -> Res.string.metric_max_reps
+            Metric.TOTAL_REPS -> Res.string.metric_total_reps
         },
     )

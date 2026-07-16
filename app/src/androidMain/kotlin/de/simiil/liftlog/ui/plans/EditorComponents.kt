@@ -35,18 +35,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.exercises.equipmentLabel
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.navigate_back
+import liftlog.app.generated.resources.template_drag_handle_cd
+import liftlog.app.generated.resources.template_remove_exercise
+import liftlog.app.generated.resources.template_target_reps_max
+import liftlog.app.generated.resources.template_target_reps_min
+import liftlog.app.generated.resources.template_target_sets
+import org.jetbrains.compose.resources.stringResource
 
 // Reusable pieces shared by PlanScreen and DayEditorScreen (the DB-backed, single-day
 // autosave editor). Originally extracted verbatim from the now-deleted draft-based
@@ -83,12 +89,12 @@ internal fun EditorHeader(
                 if (closeIsBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.navigate_back),
+                        contentDescription = stringResource(Res.string.navigate_back),
                     )
                 } else {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(R.string.navigate_back),
+                        contentDescription = stringResource(Res.string.navigate_back),
                     )
                 }
             }
@@ -258,8 +264,8 @@ internal fun ExerciseEditorRow(
     dragHandleModifier: Modifier,
     modifier: Modifier = Modifier,
 ) {
-    val dragHandleCd = stringResource(R.string.template_drag_handle_cd)
-    val removeCd = stringResource(R.string.template_remove_exercise)
+    val dragHandleCd = stringResource(Res.string.template_drag_handle_cd)
+    val removeCd = stringResource(Res.string.template_remove_exercise)
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(18.dp),
@@ -316,7 +322,7 @@ internal fun ExerciseEditorRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 TargetStepper(
-                    label = stringResource(R.string.template_target_sets),
+                    label = stringResource(Res.string.template_target_sets),
                     value = targetSets,
                     onDecrement = {
                         val next = (targetSets ?: 1) - 1
@@ -328,7 +334,7 @@ internal fun ExerciseEditorRow(
                     modifier = Modifier.weight(1f),
                 )
                 TargetStepper(
-                    label = stringResource(R.string.template_target_reps_min),
+                    label = stringResource(Res.string.template_target_reps_min),
                     value = targetRepsMin,
                     onDecrement = {
                         val next = (targetRepsMin ?: 1) - 1
@@ -340,7 +346,7 @@ internal fun ExerciseEditorRow(
                     modifier = Modifier.weight(1f),
                 )
                 TargetStepper(
-                    label = stringResource(R.string.template_target_reps_max),
+                    label = stringResource(Res.string.template_target_reps_max),
                     value = targetRepsMax,
                     onDecrement = {
                         val next = (targetRepsMax ?: 1) - 1

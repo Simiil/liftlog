@@ -21,14 +21,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.components.PrBadge
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.history_empty
+import liftlog.app.generated.resources.session_untitled
+import liftlog.app.generated.resources.set_count
+import liftlog.app.generated.resources.tab_history
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -45,7 +49,7 @@ fun HistoryScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.tab_history)) })
+            TopAppBar(title = { Text(stringResource(Res.string.tab_history)) })
         },
     ) { innerPadding ->
         if (uiState.sessions.isEmpty()) {
@@ -57,7 +61,7 @@ fun HistoryScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = stringResource(R.string.history_empty),
+                    text = stringResource(Res.string.history_empty),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -103,7 +107,7 @@ private fun HistorySessionCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = session.name ?: stringResource(R.string.session_untitled),
+                    text = session.name ?: stringResource(Res.string.session_untitled),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
@@ -114,7 +118,7 @@ private fun HistorySessionCard(
             }
             val relativeDate = formatters.relativeDate(session.startedAt.toEpochMilliseconds())
             Text(
-                text = "$relativeDate · ${pluralStringResource(R.plurals.set_count, session.setCount, session.setCount)}",
+                text = "$relativeDate · ${pluralStringResource(Res.plurals.set_count, session.setCount, session.setCount)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

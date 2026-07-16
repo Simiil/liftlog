@@ -66,7 +66,7 @@ class AnalyticsBrowserViewModelTest {
     }
 
     @Test fun search_filtersByNameCaseInsensitive() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val vm =
                 AnalyticsBrowserViewModel(
                     FakeRepo(listOf(trained("a", "Bench Press"), trained("b", "Squat"))),
@@ -84,7 +84,7 @@ class AnalyticsBrowserViewModelTest {
         }
 
     @Test fun weekSummary_isExposed() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names, fixedClock)
             vm.uiState.test {
                 var s = awaitItem()
@@ -95,7 +95,7 @@ class AnalyticsBrowserViewModelTest {
         }
 
     @Test fun unit_isExposedFromSettings() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names, fixedClock)
             vm.uiState.test {
                 var s = awaitItem()
@@ -106,7 +106,7 @@ class AnalyticsBrowserViewModelTest {
         }
 
     @Test fun muscleBalance_exposedAndRecomputesOnRangeChange() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             // 8 chest sets yesterday → effective window floors at 1 week → 8.0 sets/week.
             val rows =
                 List(8) {
@@ -133,7 +133,7 @@ class AnalyticsBrowserViewModelTest {
         }
 
     @Test fun muscleBalance_noSets_flagsEmpty() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val vm = AnalyticsBrowserViewModel(FakeRepo(emptyList()), FakeSettings(), names, fixedClock)
             vm.balanceState.test {
                 var s = awaitItem()

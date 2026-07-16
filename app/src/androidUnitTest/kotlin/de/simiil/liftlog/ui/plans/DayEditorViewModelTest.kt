@@ -61,7 +61,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `loads day name and resolved exercises from the repository`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val planRepo = FakePlanRepository()
             val exerciseRepo = FakeExerciseRepository()
             exerciseRepo.all.value = listOf(exercise("ex1", "Bench Press"))
@@ -82,7 +82,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `dayGone stays false while the template has not yet loaded`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val planRepo = FakePlanRepository()
             // Never created: observeDayTemplate emits null from the very first frame. A naive
             // `dayGone = (day == null)` would emit a dayGone=true state here; the correct
@@ -101,7 +101,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `setDayName shows typed text immediately via overlay`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val planRepo = FakePlanRepository()
             val plan = planRepo.createPlan("PPL")
             val day = planRepo.createDayTemplate(plan.id, "Old Name")
@@ -119,7 +119,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `setDayName persists rename after the 400ms debounce`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val planRepo = FakePlanRepository()
             val plan = planRepo.createPlan("PPL")
             val day = planRepo.createDayTemplate(plan.id, "Old Name")
@@ -143,7 +143,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `rapid retypes collapse to one write with the final value`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val planRepo = FakePlanRepository()
             val plan = planRepo.createPlan("PPL")
             val day = planRepo.createDayTemplate(plan.id, "Old Name")
@@ -166,7 +166,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `flushPendingEdits persists a pending rename immediately`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val planRepo = FakePlanRepository()
             val plan = planRepo.createPlan("PPL")
             val day = planRepo.createDayTemplate(plan.id, "Old Name")
@@ -188,7 +188,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `flushPendingEdits is a no-op when nothing is pending`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val planRepo = FakePlanRepository()
             val plan = planRepo.createPlan("PPL")
             val day = planRepo.createDayTemplate(plan.id, "Old Name")
@@ -208,7 +208,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `setTargets rapid taps do not drop increments`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val exerciseRepo = FakeExerciseRepository()
             exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             val fake = FakePlanRepository()
@@ -242,7 +242,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `rapid setTargets taps serialize to one write with the final value`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val exerciseRepo = FakeExerciseRepository()
             exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             val fake = FakePlanRepository()
@@ -279,7 +279,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `setTargets persists targets immediately`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val exerciseRepo = FakeExerciseRepository()
             exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             val planRepo = FakePlanRepository()
@@ -303,7 +303,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `addExercises delegates to addExercisesToTemplate`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val exerciseRepo = FakeExerciseRepository()
             exerciseRepo.all.value = listOf(exercise("ex1", "Bench"), exercise("ex2", "Row"))
             val planRepo = FakePlanRepository()
@@ -323,7 +323,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `removeExercise soft-deletes immediately`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val exerciseRepo = FakeExerciseRepository()
             exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             val planRepo = FakePlanRepository()
@@ -343,7 +343,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `reorderExercises persists order`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val exerciseRepo = FakeExerciseRepository()
             exerciseRepo.all.value = listOf(exercise("ex1", "A"), exercise("ex2", "B"))
             val planRepo = FakePlanRepository()
@@ -365,7 +365,7 @@ class DayEditorViewModelTest {
 
     @Test
     fun `dayGone flips true when the template is soft-deleted`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val planRepo = FakePlanRepository()
             val plan = planRepo.createPlan("PPL")
             val day = planRepo.createDayTemplate(plan.id, "Day")

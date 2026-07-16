@@ -32,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
@@ -40,11 +39,19 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_edit_set
+import liftlog.app.generated.resources.cd_set_logged
+import liftlog.app.generated.resources.set_delete
+import liftlog.app.generated.resources.set_number
+import liftlog.app.generated.resources.set_save
+import liftlog.app.generated.resources.weight_kilograms
+import liftlog.app.generated.resources.weight_pounds
+import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Instant
 
 /**
@@ -107,13 +114,13 @@ private fun CollapsedSetRow(
 ) {
     val unitLong =
         when (unit) {
-            WeightUnit.KG -> stringResource(R.string.weight_kilograms)
-            WeightUnit.LB -> stringResource(R.string.weight_pounds)
+            WeightUnit.KG -> stringResource(Res.string.weight_kilograms)
+            WeightUnit.LB -> stringResource(Res.string.weight_pounds)
         }
     val weightFormatted = Weights.format(set.weightKg, unit)
     val unitLabel = Weights.label(unit)
-    val cdBase = stringResource(R.string.cd_set_logged, index, weightFormatted, unitLong, set.reps)
-    val editLabel = stringResource(R.string.cd_edit_set)
+    val cdBase = stringResource(Res.string.cd_set_logged, index, weightFormatted, unitLong, set.reps)
+    val editLabel = stringResource(Res.string.cd_edit_set)
 
     Surface(
         // The clickable merge-root MUST be the same node that carries the LOGGED_SET_ROW
@@ -200,7 +207,7 @@ private fun ExpandedSetRow(
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
-                text = stringResource(R.string.set_number, index),
+                text = stringResource(Res.string.set_number, index),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp),
@@ -237,7 +244,7 @@ private fun ExpandedSetRow(
             ) {
                 TextButton(onClick = onDelete) {
                     Text(
-                        text = stringResource(R.string.set_delete),
+                        text = stringResource(Res.string.set_delete),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
@@ -248,7 +255,7 @@ private fun ExpandedSetRow(
                     },
                     modifier = Modifier.heightIn(min = 48.dp),
                 ) {
-                    Text(stringResource(R.string.set_save))
+                    Text(stringResource(Res.string.set_save))
                 }
             }
         }

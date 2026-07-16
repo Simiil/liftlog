@@ -130,7 +130,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `target case - progress and prefill from last set of entry`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.setSessionDetails(
@@ -165,7 +165,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `ad-hoc exercise has null targetSets`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.setSessionDetails(
@@ -187,7 +187,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `never performed exercise - no weight, default reps`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.lastPerformanceResult = emptyList()
@@ -208,7 +208,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `tracker values override prefill for the matching exercise`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.setSessionDetails(
@@ -230,7 +230,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `tracker pointing at a completed exercise falls through to next incomplete`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"), exercise("ex2", "Squat"))
             env.sessionRepo.lastPerformanceResult = emptyList()
@@ -261,7 +261,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `tracker with blanked weight falls back to prefill values`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.setSessionDetails(
@@ -283,7 +283,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `empty tracker falls back to last performance prefill (process death)`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.lastPerformanceResult = listOf(set("old", 70.0, 12, 1))
@@ -302,7 +302,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `last performance is fetched once per exercise (ghost cache)`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.lastPerformanceResult = listOf(set("old", 70.0, 12, 1))
@@ -329,7 +329,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `weight unit is passed through`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env(weightUnit = WeightUnit.LB)
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.setSessionDetails(
@@ -348,7 +348,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `session name and null exercise for empty session`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.sessionRepo.setSessionDetails(
                 "s1",
@@ -367,7 +367,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `emits null when session is finished`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.setSessionDetails(
@@ -433,7 +433,7 @@ class SessionNotificationModelProducerTest {
 
     @Test
     fun `emits null when session is discarded`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val env = Env()
             env.exerciseRepo.all.value = listOf(exercise("ex1", "Bench"))
             env.sessionRepo.setSessionDetails(

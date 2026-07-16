@@ -24,14 +24,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.MuscleBalance
 import de.simiil.liftlog.domain.analytics.RadarGroup
 import de.simiil.liftlog.domain.analytics.TARGET_SETS_PER_WEEK
@@ -40,6 +37,30 @@ import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.components.charts.RadarChart
 import de.simiil.liftlog.ui.components.charts.RadarSpoke
 import de.simiil.liftlog.ui.theme.LocalLiftLogColors
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.balance_cd_down
+import liftlog.app.generated.resources.balance_cd_flat
+import liftlog.app.generated.resources.balance_cd_group
+import liftlog.app.generated.resources.balance_cd_no_trend
+import liftlog.app.generated.resources.balance_cd_up
+import liftlog.app.generated.resources.balance_empty
+import liftlog.app.generated.resources.balance_group_arms
+import liftlog.app.generated.resources.balance_group_core
+import liftlog.app.generated.resources.balance_group_hams_glutes
+import liftlog.app.generated.resources.balance_legend_down
+import liftlog.app.generated.resources.balance_legend_flat
+import liftlog.app.generated.resources.balance_legend_no_trend
+import liftlog.app.generated.resources.balance_legend_target
+import liftlog.app.generated.resources.balance_legend_up
+import liftlog.app.generated.resources.balance_title
+import liftlog.app.generated.resources.balance_unclassified
+import liftlog.app.generated.resources.muscle_back
+import liftlog.app.generated.resources.muscle_calves
+import liftlog.app.generated.resources.muscle_chest
+import liftlog.app.generated.resources.muscle_quads
+import liftlog.app.generated.resources.muscle_shoulders
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 /** Chart display order: chest at 12 o'clock, clockwise; push right, pull/posterior left. */
@@ -70,7 +91,7 @@ fun MuscleBalanceCard(
     ) {
         Column(Modifier.fillMaxWidth().padding(18.dp)) {
             Text(
-                stringResource(R.string.balance_title),
+                stringResource(Res.string.balance_title),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -84,7 +105,7 @@ fun MuscleBalanceCard(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        stringResource(R.string.balance_empty),
+                        stringResource(Res.string.balance_empty),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -101,7 +122,7 @@ fun MuscleBalanceCard(
                 Spacer(Modifier.height(8.dp))
                 Text(
                     pluralStringResource(
-                        R.plurals.balance_unclassified,
+                        Res.plurals.balance_unclassified,
                         balance.unclassifiedSets,
                         balance.unclassifiedSets,
                     ),
@@ -135,14 +156,14 @@ private fun radarSpokes(balance: MuscleBalance): List<RadarSpoke> {
 
 private fun groupLabel(g: RadarGroup) =
     when (g) {
-        RadarGroup.CHEST -> R.string.muscle_chest
-        RadarGroup.BACK -> R.string.muscle_back
-        RadarGroup.SHOULDERS -> R.string.muscle_shoulders
-        RadarGroup.ARMS -> R.string.balance_group_arms
-        RadarGroup.QUADS -> R.string.muscle_quads
-        RadarGroup.HAMS_GLUTES -> R.string.balance_group_hams_glutes
-        RadarGroup.CALVES -> R.string.muscle_calves
-        RadarGroup.CORE -> R.string.balance_group_core
+        RadarGroup.CHEST -> Res.string.muscle_chest
+        RadarGroup.BACK -> Res.string.muscle_back
+        RadarGroup.SHOULDERS -> Res.string.muscle_shoulders
+        RadarGroup.ARMS -> Res.string.balance_group_arms
+        RadarGroup.QUADS -> Res.string.muscle_quads
+        RadarGroup.HAMS_GLUTES -> Res.string.balance_group_hams_glutes
+        RadarGroup.CALVES -> Res.string.muscle_calves
+        RadarGroup.CORE -> Res.string.balance_group_core
     }
 
 /**
@@ -160,15 +181,15 @@ private fun balanceDescription(
         displayOrder.map { g ->
             val gb = byGroup.getValue(g)
             stringResource(
-                R.string.balance_cd_group,
+                Res.string.balance_cd_group,
                 stringResource(groupLabel(g)),
                 formatters.oneDecimal(gb.setsPerWeek),
                 stringResource(
                     when (gb.direction) {
-                        TrendDirection.UP -> R.string.balance_cd_up
-                        TrendDirection.DOWN -> R.string.balance_cd_down
-                        TrendDirection.FLAT -> R.string.balance_cd_flat
-                        null -> R.string.balance_cd_no_trend
+                        TrendDirection.UP -> Res.string.balance_cd_up
+                        TrendDirection.DOWN -> Res.string.balance_cd_down
+                        TrendDirection.FLAT -> Res.string.balance_cd_flat
+                        null -> Res.string.balance_cd_no_trend
                     },
                 ),
             )
@@ -184,11 +205,11 @@ private fun Legend() {
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        LegendDot(LocalLiftLogColors.current.success, filled = true, stringResource(R.string.balance_legend_up))
-        LegendDot(MaterialTheme.colorScheme.error, filled = true, stringResource(R.string.balance_legend_down))
-        LegendDot(neutral, filled = true, stringResource(R.string.balance_legend_flat))
-        LegendDot(neutral, filled = false, stringResource(R.string.balance_legend_no_trend))
-        LegendDash(neutral, stringResource(R.string.balance_legend_target, TARGET_SETS_PER_WEEK.toInt()))
+        LegendDot(LocalLiftLogColors.current.success, filled = true, stringResource(Res.string.balance_legend_up))
+        LegendDot(MaterialTheme.colorScheme.error, filled = true, stringResource(Res.string.balance_legend_down))
+        LegendDot(neutral, filled = true, stringResource(Res.string.balance_legend_flat))
+        LegendDot(neutral, filled = false, stringResource(Res.string.balance_legend_no_trend))
+        LegendDash(neutral, stringResource(Res.string.balance_legend_target, TARGET_SETS_PER_WEEK.toInt()))
     }
 }
 

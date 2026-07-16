@@ -1,27 +1,50 @@
 package de.simiil.liftlog.ui.exercises
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.equipment_bands
+import liftlog.app.generated.resources.equipment_barbell
+import liftlog.app.generated.resources.equipment_bodyweight
+import liftlog.app.generated.resources.equipment_cable
+import liftlog.app.generated.resources.equipment_dumbbell
+import liftlog.app.generated.resources.equipment_exercise_ball
+import liftlog.app.generated.resources.equipment_foam_roller
+import liftlog.app.generated.resources.equipment_kettlebell
+import liftlog.app.generated.resources.equipment_machine
+import liftlog.app.generated.resources.equipment_medicine_ball
+import liftlog.app.generated.resources.equipment_other
+import liftlog.app.generated.resources.muscle_abs
+import liftlog.app.generated.resources.muscle_back
+import liftlog.app.generated.resources.muscle_biceps
+import liftlog.app.generated.resources.muscle_calves
+import liftlog.app.generated.resources.muscle_chest
+import liftlog.app.generated.resources.muscle_forearms
+import liftlog.app.generated.resources.muscle_glutes
+import liftlog.app.generated.resources.muscle_hamstrings
+import liftlog.app.generated.resources.muscle_other
+import liftlog.app.generated.resources.muscle_quads
+import liftlog.app.generated.resources.muscle_shoulders
+import liftlog.app.generated.resources.muscle_triceps
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun muscleGroupLabel(muscleGroup: MuscleGroup): String =
     stringResource(
         when (muscleGroup) {
-            MuscleGroup.CHEST -> R.string.muscle_chest
-            MuscleGroup.BACK -> R.string.muscle_back
-            MuscleGroup.SHOULDERS -> R.string.muscle_shoulders
-            MuscleGroup.BICEPS -> R.string.muscle_biceps
-            MuscleGroup.TRICEPS -> R.string.muscle_triceps
-            MuscleGroup.QUADS -> R.string.muscle_quads
-            MuscleGroup.HAMSTRINGS -> R.string.muscle_hamstrings
-            MuscleGroup.GLUTES -> R.string.muscle_glutes
-            MuscleGroup.CALVES -> R.string.muscle_calves
-            MuscleGroup.ABS -> R.string.muscle_abs
-            MuscleGroup.FOREARMS -> R.string.muscle_forearms
-            MuscleGroup.OTHER -> R.string.muscle_other
+            MuscleGroup.CHEST -> Res.string.muscle_chest
+            MuscleGroup.BACK -> Res.string.muscle_back
+            MuscleGroup.SHOULDERS -> Res.string.muscle_shoulders
+            MuscleGroup.BICEPS -> Res.string.muscle_biceps
+            MuscleGroup.TRICEPS -> Res.string.muscle_triceps
+            MuscleGroup.QUADS -> Res.string.muscle_quads
+            MuscleGroup.HAMSTRINGS -> Res.string.muscle_hamstrings
+            MuscleGroup.GLUTES -> Res.string.muscle_glutes
+            MuscleGroup.CALVES -> Res.string.muscle_calves
+            MuscleGroup.ABS -> Res.string.muscle_abs
+            MuscleGroup.FOREARMS -> Res.string.muscle_forearms
+            MuscleGroup.OTHER -> Res.string.muscle_other
         },
     )
 
@@ -29,17 +52,17 @@ fun muscleGroupLabel(muscleGroup: MuscleGroup): String =
 fun equipmentLabel(equipment: Equipment): String =
     stringResource(
         when (equipment) {
-            Equipment.BARBELL -> R.string.equipment_barbell
-            Equipment.DUMBBELL -> R.string.equipment_dumbbell
-            Equipment.MACHINE -> R.string.equipment_machine
-            Equipment.CABLE -> R.string.equipment_cable
-            Equipment.BODYWEIGHT -> R.string.equipment_bodyweight
-            Equipment.KETTLEBELL -> R.string.equipment_kettlebell
-            Equipment.MEDICINE_BALL -> R.string.equipment_medicine_ball
-            Equipment.FOAM_ROLLER -> R.string.equipment_foam_roller
-            Equipment.BANDS -> R.string.equipment_bands
-            Equipment.EXERCISE_BALL -> R.string.equipment_exercise_ball
-            Equipment.OTHER -> R.string.equipment_other
+            Equipment.BARBELL -> Res.string.equipment_barbell
+            Equipment.DUMBBELL -> Res.string.equipment_dumbbell
+            Equipment.MACHINE -> Res.string.equipment_machine
+            Equipment.CABLE -> Res.string.equipment_cable
+            Equipment.BODYWEIGHT -> Res.string.equipment_bodyweight
+            Equipment.KETTLEBELL -> Res.string.equipment_kettlebell
+            Equipment.MEDICINE_BALL -> Res.string.equipment_medicine_ball
+            Equipment.FOAM_ROLLER -> Res.string.equipment_foam_roller
+            Equipment.BANDS -> Res.string.equipment_bands
+            Equipment.EXERCISE_BALL -> Res.string.equipment_exercise_ball
+            Equipment.OTHER -> Res.string.equipment_other
         },
     )
 

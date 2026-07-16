@@ -3,7 +3,6 @@ package de.simiil.liftlog.ui
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
@@ -22,7 +21,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.core.util.Consumer
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -31,27 +29,33 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import de.simiil.liftlog.R
 import de.simiil.liftlog.ui.navigation.ActiveSessionRoute
 import de.simiil.liftlog.ui.navigation.AnalyticsRoute
 import de.simiil.liftlog.ui.navigation.HistoryRoute
 import de.simiil.liftlog.ui.navigation.HomeRoute
 import de.simiil.liftlog.ui.navigation.LiftLogNavHost
 import de.simiil.liftlog.ui.navigation.PlanRoute
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.tab_analytics
+import liftlog.app.generated.resources.tab_history
+import liftlog.app.generated.resources.tab_home
+import liftlog.app.generated.resources.tab_plans
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 private data class TopLevelDestination(
     val route: Any,
     val icon: ImageVector,
-    @param:StringRes val labelRes: Int,
+    val labelRes: StringResource,
 )
 
 // 03-ux-spec §2: Home · Plan · Analytics · History
 private val topLevelDestinations =
     listOf(
-        TopLevelDestination(HomeRoute, Icons.Outlined.Home, R.string.tab_home),
-        TopLevelDestination(PlanRoute, Icons.Outlined.FitnessCenter, R.string.tab_plans),
-        TopLevelDestination(AnalyticsRoute, Icons.Outlined.Insights, R.string.tab_analytics),
-        TopLevelDestination(HistoryRoute, Icons.Outlined.History, R.string.tab_history),
+        TopLevelDestination(HomeRoute, Icons.Outlined.Home, Res.string.tab_home),
+        TopLevelDestination(PlanRoute, Icons.Outlined.FitnessCenter, Res.string.tab_plans),
+        TopLevelDestination(AnalyticsRoute, Icons.Outlined.Insights, Res.string.tab_analytics),
+        TopLevelDestination(HistoryRoute, Icons.Outlined.History, Res.string.tab_history),
     )
 
 @Composable

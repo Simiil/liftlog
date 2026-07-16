@@ -42,8 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -51,7 +49,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.ui.UiTestTags
@@ -62,6 +59,27 @@ import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.format.AndroidLocaleFormatters
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.app_name
+import liftlog.app.generated.resources.exercise_count
+import liftlog.app.generated.resources.home_first_hint
+import liftlog.app.generated.resources.home_first_start
+import liftlog.app.generated.resources.home_first_sub
+import liftlog.app.generated.resources.home_first_title
+import liftlog.app.generated.resources.home_live
+import liftlog.app.generated.resources.home_no_history
+import liftlog.app.generated.resources.home_recent
+import liftlog.app.generated.resources.home_resume_label
+import liftlog.app.generated.resources.home_resume_meta
+import liftlog.app.generated.resources.home_start_empty
+import liftlog.app.generated.resources.home_start_training
+import liftlog.app.generated.resources.home_template_chip_cd
+import liftlog.app.generated.resources.plan_untitled_day
+import liftlog.app.generated.resources.session_untitled
+import liftlog.app.generated.resources.set_count
+import liftlog.app.generated.resources.settings_open
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Clock
@@ -87,12 +105,12 @@ fun HomeScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
+                title = { Text(stringResource(Res.string.app_name)) },
                 actions = {
                     IconButton(onClick = onOpenSettings) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
-                            contentDescription = stringResource(R.string.settings_open),
+                            contentDescription = stringResource(Res.string.settings_open),
                         )
                     }
                 },
@@ -155,7 +173,7 @@ private fun HomeContent(
         }
 
         item(key = "start_section_header") {
-            SectionHeader(stringResource(R.string.home_start_training))
+            SectionHeader(stringResource(Res.string.home_start_training))
         }
 
         item(key = "start_grid") {
@@ -167,13 +185,13 @@ private fun HomeContent(
         }
 
         item(key = "recent_section_header") {
-            SectionHeader(stringResource(R.string.home_recent))
+            SectionHeader(stringResource(Res.string.home_recent))
         }
 
         if (uiState.recent.isEmpty()) {
             item(key = "no_history") {
                 Text(
-                    text = stringResource(R.string.home_no_history),
+                    text = stringResource(Res.string.home_no_history),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
@@ -199,7 +217,7 @@ private fun ResumeCard(
     modifier: Modifier = Modifier,
 ) {
     val elapsedMinutes = (Clock.System.now() - resume.startedAt).inWholeMinutes
-    val name = resume.name ?: stringResource(R.string.session_untitled)
+    val name = resume.name ?: stringResource(Res.string.session_untitled)
 
     Card(
         onClick = onClick,
@@ -232,7 +250,7 @@ private fun ResumeCard(
             Spacer(Modifier.size(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.home_resume_label, name),
+                    text = stringResource(Res.string.home_resume_label, name),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -242,7 +260,7 @@ private fun ResumeCard(
                 Text(
                     text =
                         stringResource(
-                            R.string.home_resume_meta,
+                            Res.string.home_resume_meta,
                             resume.exerciseCount,
                             elapsedMinutes,
                         ),
@@ -261,7 +279,7 @@ private fun ResumeCard(
                 )
                 Spacer(Modifier.size(6.dp))
                 Text(
-                    text = stringResource(R.string.home_live),
+                    text = stringResource(Res.string.home_live),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -301,7 +319,7 @@ private fun EmptySessionCard(
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.home_start_empty),
+                text = stringResource(Res.string.home_start_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -373,7 +391,7 @@ private fun TemplateChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val cd = stringResource(R.string.home_template_chip_cd, chip.name)
+    val cd = stringResource(Res.string.home_template_chip_cd, chip.name)
     Surface(
         onClick = onClick,
         modifier =
@@ -387,7 +405,7 @@ private fun TemplateChip(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = chip.name.ifBlank { stringResource(R.string.plan_untitled_day) },
+                text = chip.name.ifBlank { stringResource(Res.string.plan_untitled_day) },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
@@ -397,7 +415,7 @@ private fun TemplateChip(
             Text(
                 text =
                     pluralStringResource(
-                        R.plurals.exercise_count,
+                        Res.plurals.exercise_count,
                         chip.exerciseCount,
                         chip.exerciseCount,
                     ),
@@ -440,7 +458,7 @@ private fun RecentSessionItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val name = session.name ?: stringResource(R.string.session_untitled)
+    val name = session.name ?: stringResource(Res.string.session_untitled)
     val relativeDate = formatters.relativeDay(session.startedAt.toEpochMilliseconds())
 
     Column(modifier = modifier) {
@@ -471,7 +489,7 @@ private fun RecentSessionItem(
             )
             Spacer(Modifier.size(12.dp))
             Text(
-                text = pluralStringResource(R.plurals.set_count, session.setCount, session.setCount),
+                text = pluralStringResource(Res.plurals.set_count, session.setCount, session.setCount),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -493,15 +511,15 @@ private fun FirstLaunch(
 ) {
     EmptyState(
         icon = Icons.Outlined.FitnessCenter,
-        title = stringResource(R.string.home_first_title),
-        subtitle = stringResource(R.string.home_first_sub),
+        title = stringResource(Res.string.home_first_title),
+        subtitle = stringResource(Res.string.home_first_sub),
         action =
             EmptyStateAction(
-                label = stringResource(R.string.home_first_start),
+                label = stringResource(Res.string.home_first_start),
                 onClick = onStart,
                 testTag = UiTestTags.HOME_START_EMPTY,
             ),
-        hint = stringResource(R.string.home_first_hint),
+        hint = stringResource(Res.string.home_first_hint),
         modifier = modifier,
     )
 }

@@ -34,12 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.RpeStepper
@@ -50,6 +48,19 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.common_cancel
+import liftlog.app.generated.resources.common_delete
+import liftlog.app.generated.resources.common_ok
+import liftlog.app.generated.resources.session_delete_confirm_message
+import liftlog.app.generated.resources.session_delete_confirm_title
+import liftlog.app.generated.resources.session_edit_end
+import liftlog.app.generated.resources.session_edit_error_end_before_start
+import liftlog.app.generated.resources.session_edit_start
+import liftlog.app.generated.resources.session_edit_title
+import liftlog.app.generated.resources.set_save
+import liftlog.app.generated.resources.workout_note
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import kotlin.time.Instant
 
@@ -124,12 +135,12 @@ fun EditWorkoutSheet(
                     .imePadding(),
         ) {
             Text(
-                text = stringResource(R.string.session_edit_title),
+                text = stringResource(Res.string.session_edit_title),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 12.dp),
             )
             DateTimeField(
-                label = stringResource(R.string.session_edit_start),
+                label = stringResource(Res.string.session_edit_start),
                 instant = Instant.fromEpochMilliseconds(startMillis),
                 formatters = formatters,
                 onClick = {
@@ -138,7 +149,7 @@ fun EditWorkoutSheet(
                 },
             )
             DateTimeField(
-                label = stringResource(R.string.session_edit_end),
+                label = stringResource(Res.string.session_edit_end),
                 instant = Instant.fromEpochMilliseconds(endMillis),
                 formatters = formatters,
                 onClick = {
@@ -155,13 +166,13 @@ fun EditWorkoutSheet(
             OutlinedTextField(
                 value = noteDraft,
                 onValueChange = { noteDraft = it },
-                label = { Text(stringResource(R.string.workout_note)) },
+                label = { Text(stringResource(Res.string.workout_note)) },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 maxLines = 3,
             )
             if (!valid) {
                 Text(
-                    text = stringResource(R.string.session_edit_error_end_before_start),
+                    text = stringResource(Res.string.session_edit_error_end_before_start),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 8.dp),
@@ -176,12 +187,12 @@ fun EditWorkoutSheet(
                     modifier = Modifier.testTag(UiTestTags.SESSION_EDIT_DELETE),
                 ) {
                     Text(
-                        text = stringResource(R.string.common_delete),
+                        text = stringResource(Res.string.common_delete),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
                 Spacer(Modifier.weight(1f))
-                TextButton(onClick = ::animateDismiss) { Text(stringResource(R.string.common_cancel)) }
+                TextButton(onClick = ::animateDismiss) { Text(stringResource(Res.string.common_cancel)) }
                 Spacer(Modifier.width(8.dp))
                 Button(
                     enabled = valid,
@@ -196,7 +207,7 @@ fun EditWorkoutSheet(
                     },
                     modifier = Modifier.heightIn(min = 48.dp),
                 ) {
-                    Text(stringResource(R.string.set_save))
+                    Text(stringResource(Res.string.set_save))
                 }
             }
         }
@@ -226,10 +237,10 @@ fun EditWorkoutSheet(
                         pendingDateMillis = datePickerState.selectedDateMillis
                         pickStage = PickStage.TIME
                     },
-                ) { Text(stringResource(R.string.common_ok)) }
+                ) { Text(stringResource(Res.string.common_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { pickField = null }) { Text(stringResource(R.string.common_cancel)) }
+                TextButton(onClick = { pickField = null }) { Text(stringResource(Res.string.common_cancel)) }
             },
         ) {
             DatePicker(state = datePickerState)
@@ -260,13 +271,13 @@ fun EditWorkoutSheet(
                     if (editingField == PickField.START) startMillis = combined else endMillis = combined
                     pickField = null
                     pickStage = PickStage.DATE
-                }) { Text(stringResource(R.string.common_ok)) }
+                }) { Text(stringResource(Res.string.common_ok)) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     pickField = null
                     pickStage = PickStage.DATE
-                }) { Text(stringResource(R.string.common_cancel)) }
+                }) { Text(stringResource(Res.string.common_cancel)) }
             },
             text = { TimePicker(state = timeState) },
         )
@@ -275,8 +286,8 @@ fun EditWorkoutSheet(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text(stringResource(R.string.session_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.session_delete_confirm_message)) },
+            title = { Text(stringResource(Res.string.session_delete_confirm_title)) },
+            text = { Text(stringResource(Res.string.session_delete_confirm_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -286,14 +297,14 @@ fun EditWorkoutSheet(
                     modifier = Modifier.testTag(UiTestTags.SESSION_DELETE_CONFIRM),
                 ) {
                     Text(
-                        text = stringResource(R.string.common_delete),
+                        text = stringResource(Res.string.common_delete),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text(stringResource(R.string.common_cancel))
+                    Text(stringResource(Res.string.common_cancel))
                 }
             },
         )

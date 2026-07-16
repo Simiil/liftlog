@@ -12,8 +12,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import de.simiil.liftlog.R
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.placeholder_coming_soon
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Empty-tab stand-in: a top app bar (title + optional actions) over a centered
@@ -44,7 +45,7 @@ fun PlaceholderScreen(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = stringResource(R.string.placeholder_coming_soon),
+                text = stringResource(Res.string.placeholder_coming_soon),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

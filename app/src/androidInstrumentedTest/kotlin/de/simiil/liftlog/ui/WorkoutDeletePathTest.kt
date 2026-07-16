@@ -8,7 +8,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.simiil.liftlog.MainActivity
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
@@ -21,6 +20,9 @@ import de.simiil.liftlog.ui.UiTestTags.SESSION_EDIT_DELETE
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_edit_workout
+import org.jetbrains.compose.resources.getString
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -79,7 +81,7 @@ class WorkoutDeletePathTest : KoinComponent {
         composeRule.onNodeWithTag(HOME_RECENT_ROW).performClick()
 
         // 2. The pencil appears once the detail header loads (startedAt/endedAt non-null).
-        val editCd = hasContentDescription(composeRule.activity.getString(R.string.cd_edit_workout))
+        val editCd = hasContentDescription(runBlocking { getString(Res.string.cd_edit_workout) })
         await(editCd, atLeast = 1, timeoutMillis = 10_000)
         composeRule.onNode(editCd).performClick()
 

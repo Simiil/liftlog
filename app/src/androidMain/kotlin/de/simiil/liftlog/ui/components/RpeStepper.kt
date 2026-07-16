@@ -10,15 +10,35 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Rpe
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_decrease_rpe
+import liftlog.app.generated.resources.cd_increase_rpe
+import liftlog.app.generated.resources.cd_rpe_clear
+import liftlog.app.generated.resources.cd_rpe_value
+import liftlog.app.generated.resources.rpe_clear
+import liftlog.app.generated.resources.rpe_descriptor_half
+import liftlog.app.generated.resources.rpe_descriptor_whole
+import liftlog.app.generated.resources.rpe_detail_10
+import liftlog.app.generated.resources.rpe_detail_6
+import liftlog.app.generated.resources.rpe_detail_7
+import liftlog.app.generated.resources.rpe_detail_8
+import liftlog.app.generated.resources.rpe_detail_9
+import liftlog.app.generated.resources.rpe_label
+import liftlog.app.generated.resources.rpe_short_10
+import liftlog.app.generated.resources.rpe_short_6
+import liftlog.app.generated.resources.rpe_short_7
+import liftlog.app.generated.resources.rpe_short_8
+import liftlog.app.generated.resources.rpe_short_9
+import liftlog.app.generated.resources.rpe_unset_hint
+import liftlog.app.generated.resources.rpe_unset_value
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -39,15 +59,15 @@ fun RpeStepper(
             onDecrement = { onValueChange(Rpe.decrement(value)) },
             onIncrement = { onValueChange(Rpe.increment(value)) },
             onValueClick = null,
-            decrementCd = stringResource(R.string.cd_decrease_rpe),
-            incrementCd = stringResource(R.string.cd_increase_rpe),
+            decrementCd = stringResource(Res.string.cd_decrease_rpe),
+            incrementCd = stringResource(Res.string.cd_increase_rpe),
             valueCd =
                 stringResource(
-                    R.string.cd_rpe_value,
-                    value?.let { Decimals.format(it) } ?: stringResource(R.string.rpe_unset_value),
+                    Res.string.cd_rpe_value,
+                    value?.let { Decimals.format(it) } ?: stringResource(Res.string.rpe_unset_value),
                 ),
-            numberText = value?.let { Decimals.format(it) } ?: stringResource(R.string.rpe_unset_value),
-            unitText = stringResource(R.string.rpe_label),
+            numberText = value?.let { Decimals.format(it) } ?: stringResource(Res.string.rpe_unset_value),
+            unitText = stringResource(Res.string.rpe_label),
             modifier = Modifier.fillMaxWidth(),
             incrementTestTag = incrementTestTag,
         )
@@ -62,12 +82,12 @@ fun RpeStepper(
                 modifier = Modifier.weight(1f).padding(start = 4.dp),
             )
             if (value != null) {
-                val clearCd = stringResource(R.string.cd_rpe_clear)
+                val clearCd = stringResource(Res.string.cd_rpe_clear)
                 TextButton(
                     onClick = { onValueChange(null) },
                     modifier = Modifier.semantics { contentDescription = clearCd },
                 ) {
-                    Text(stringResource(R.string.rpe_clear))
+                    Text(stringResource(Res.string.rpe_clear))
                 }
             }
         }
@@ -80,11 +100,11 @@ fun RpeStepper(
  */
 @Composable
 private fun rpeDescriptor(value: Double?): String {
-    if (value == null) return stringResource(R.string.rpe_unset_hint)
+    if (value == null) return stringResource(Res.string.rpe_unset_hint)
     return if (Rpe.isWhole(value)) {
-        stringResource(R.string.rpe_descriptor_whole, rpeShort(value.toInt()), rpeDetail(value.toInt()))
+        stringResource(Res.string.rpe_descriptor_whole, rpeShort(value.toInt()), rpeDetail(value.toInt()))
     } else {
-        stringResource(R.string.rpe_descriptor_half, rpeShort(floor(value).toInt()), rpeShort(ceil(value).toInt()))
+        stringResource(Res.string.rpe_descriptor_half, rpeShort(floor(value).toInt()), rpeShort(ceil(value).toInt()))
     }
 }
 
@@ -92,11 +112,11 @@ private fun rpeDescriptor(value: Double?): String {
 private fun rpeShort(whole: Int): String =
     stringResource(
         when (whole) {
-            6 -> R.string.rpe_short_6
-            7 -> R.string.rpe_short_7
-            8 -> R.string.rpe_short_8
-            9 -> R.string.rpe_short_9
-            else -> R.string.rpe_short_10
+            6 -> Res.string.rpe_short_6
+            7 -> Res.string.rpe_short_7
+            8 -> Res.string.rpe_short_8
+            9 -> Res.string.rpe_short_9
+            else -> Res.string.rpe_short_10
         },
     )
 
@@ -104,11 +124,11 @@ private fun rpeShort(whole: Int): String =
 private fun rpeDetail(whole: Int): String =
     stringResource(
         when (whole) {
-            6 -> R.string.rpe_detail_6
-            7 -> R.string.rpe_detail_7
-            8 -> R.string.rpe_detail_8
-            9 -> R.string.rpe_detail_9
-            else -> R.string.rpe_detail_10
+            6 -> Res.string.rpe_detail_6
+            7 -> Res.string.rpe_detail_7
+            8 -> Res.string.rpe_detail_8
+            9 -> Res.string.rpe_detail_9
+            else -> Res.string.rpe_detail_10
         },
     )
 

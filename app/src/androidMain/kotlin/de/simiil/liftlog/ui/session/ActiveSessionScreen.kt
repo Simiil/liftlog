@@ -49,7 +49,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +56,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
@@ -66,6 +64,17 @@ import de.simiil.liftlog.ui.components.dashedBorder
 import de.simiil.liftlog.ui.theme.LiftLogTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_close_session
+import liftlog.app.generated.resources.cd_finish_session
+import liftlog.app.generated.resources.common_cancel
+import liftlog.app.generated.resources.session_add_exercise
+import liftlog.app.generated.resources.session_discard_confirm
+import liftlog.app.generated.resources.session_discard_confirm_message
+import liftlog.app.generated.resources.session_discard_confirm_title
+import liftlog.app.generated.resources.session_finish_summary
+import liftlog.app.generated.resources.session_untitled
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -113,8 +122,8 @@ fun ActiveSessionScreen(
 
     val finishMessage =
         stringResource(
-            R.string.session_finish_summary,
-            uiState.name ?: stringResource(R.string.session_untitled),
+            Res.string.session_finish_summary,
+            uiState.name ?: stringResource(Res.string.session_untitled),
             uiState.lastFinishedSetCount,
         )
     LaunchedEffect(uiState.finished) {
@@ -205,8 +214,8 @@ fun ActiveSessionScreen(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            title = { Text(stringResource(R.string.session_discard_confirm_title)) },
-            text = { Text(stringResource(R.string.session_discard_confirm_message)) },
+            title = { Text(stringResource(Res.string.session_discard_confirm_title)) },
+            text = { Text(stringResource(Res.string.session_discard_confirm_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -215,14 +224,14 @@ fun ActiveSessionScreen(
                     },
                 ) {
                     Text(
-                        text = stringResource(R.string.session_discard_confirm),
+                        text = stringResource(Res.string.session_discard_confirm),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) {
-                    Text(stringResource(R.string.common_cancel))
+                    Text(stringResource(Res.string.common_cancel))
                 }
             },
         )
@@ -239,10 +248,10 @@ private fun SessionTopBar(
     onCloseClick: () -> Unit,
     onFinishClick: () -> Unit,
 ) {
-    val title = name ?: stringResource(R.string.session_untitled)
+    val title = name ?: stringResource(Res.string.session_untitled)
     val timerText = formatElapsed(elapsedSeconds)
-    val closeCd = stringResource(R.string.cd_close_session)
-    val finishCd = stringResource(R.string.cd_finish_session)
+    val closeCd = stringResource(Res.string.cd_close_session)
+    val finishCd = stringResource(Res.string.cd_finish_session)
 
     TopAppBar(
         navigationIcon = {
@@ -317,7 +326,7 @@ private fun AddExerciseRow(
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                text = stringResource(R.string.session_add_exercise),
+                text = stringResource(Res.string.session_add_exercise),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
             )

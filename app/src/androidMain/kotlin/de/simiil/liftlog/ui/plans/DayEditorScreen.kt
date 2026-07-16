@@ -18,14 +18,22 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.ui.UiTestTags
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.day_editor_edit
+import liftlog.app.generated.resources.day_editor_new
+import liftlog.app.generated.resources.day_exercises
+import liftlog.app.generated.resources.day_exercises_empty
+import liftlog.app.generated.resources.day_name_field_hint
+import liftlog.app.generated.resources.day_name_field_label
+import liftlog.app.generated.resources.editor_done
+import liftlog.app.generated.resources.template_add_exercise
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -99,11 +107,11 @@ fun DayEditorScreen(
         modifier = modifier,
         topBar = {
             EditorHeader(
-                title = stringResource(if (isNew) R.string.day_editor_new else R.string.day_editor_edit),
+                title = stringResource(if (isNew) Res.string.day_editor_new else Res.string.day_editor_edit),
                 onClose = onClose,
                 closeIsBack = true,
                 closeTag = null,
-                actionLabel = stringResource(R.string.editor_done),
+                actionLabel = stringResource(Res.string.editor_done),
                 actionEnabled = true,
                 onAction = onClose,
                 actionTag = UiTestTags.DAY_EDITOR_DONE,
@@ -119,24 +127,24 @@ fun DayEditorScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item { FieldLabel(stringResource(R.string.day_name_field_label)) }
+            item { FieldLabel(stringResource(Res.string.day_name_field_label)) }
             item {
                 EditorTextField(
                     value = uiState.dayName,
                     onValueChange = viewModel::setDayName,
-                    hint = stringResource(R.string.day_name_field_hint),
+                    hint = stringResource(Res.string.day_name_field_hint),
                     modifier = Modifier.testTag(UiTestTags.DAY_NAME_FIELD),
                 )
             }
             item {
                 FieldLabelWithCount(
-                    label = stringResource(R.string.day_exercises),
+                    label = stringResource(Res.string.day_exercises),
                     count = uiState.exercises.size,
                     topSpacing = 16.dp,
                 )
             }
             if (uiState.exercises.isEmpty()) {
-                item { EditorEmpty(stringResource(R.string.day_exercises_empty)) }
+                item { EditorEmpty(stringResource(Res.string.day_exercises_empty)) }
             }
             items(localItems, key = { it.id }) { exercise ->
                 ReorderableItem(reorderableState, key = exercise.id) { isDragging ->
@@ -160,7 +168,7 @@ fun DayEditorScreen(
             }
             item {
                 AddRow(
-                    label = stringResource(R.string.template_add_exercise),
+                    label = stringResource(Res.string.template_add_exercise),
                     onClick = onAddExercise,
                     modifier =
                         Modifier

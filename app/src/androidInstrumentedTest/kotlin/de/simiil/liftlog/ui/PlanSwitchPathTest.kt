@@ -13,7 +13,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.simiil.liftlog.MainActivity
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.testing.FreshKoinRule
 import de.simiil.liftlog.ui.UiTestTags.PLAN_MENU_NEW
@@ -24,6 +23,9 @@ import de.simiil.liftlog.ui.UiTestTags.PLAN_SWITCHER
 import de.simiil.liftlog.ui.UiTestTags.PLAN_SWITCHER_ITEM
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.tab_plans
+import org.jetbrains.compose.resources.getString
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -74,7 +76,7 @@ class PlanSwitchPathTest : KoinComponent {
     @Test
     fun singlePlan_hasNoSwitcherAffordance() {
         // Switch to the Plan tab.
-        val planLabel = composeRule.activity.getString(R.string.tab_plans)
+        val planLabel = runBlocking { getString(Res.string.tab_plans) }
         await(hasText(planLabel), atLeast = 1, timeoutMillis = 10_000)
         composeRule.onNodeWithText(planLabel).performClick()
 
@@ -86,7 +88,7 @@ class PlanSwitchPathTest : KoinComponent {
     @Test
     fun createPlan_fromOverflow_switchesToItAndRevealsTheSwitcher() {
         // 1. Switch to the Plan tab.
-        val planLabel = composeRule.activity.getString(R.string.tab_plans)
+        val planLabel = runBlocking { getString(Res.string.tab_plans) }
         await(hasText(planLabel), atLeast = 1, timeoutMillis = 10_000)
         composeRule.onNodeWithText(planLabel).performClick()
         await(hasText(originalPlanName), atLeast = 1, timeoutMillis = 10_000)
@@ -122,7 +124,7 @@ class PlanSwitchPathTest : KoinComponent {
             val secondPlan = planRepository.createPlan("Second Plan")
 
             // 1. Switch to the Plan tab; the fallback selection is the first plan by position.
-            val planLabel = composeRule.activity.getString(R.string.tab_plans)
+            val planLabel = runBlocking { getString(Res.string.tab_plans) }
             await(hasText(planLabel), atLeast = 1, timeoutMillis = 10_000)
             composeRule.onNodeWithText(planLabel).performClick()
             awaitTag(PLAN_SWITCHER, timeoutMillis = 10_000)

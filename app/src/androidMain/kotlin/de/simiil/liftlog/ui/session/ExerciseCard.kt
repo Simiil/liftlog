@@ -35,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -43,7 +42,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.SetEntry
 import de.simiil.liftlog.domain.analytics.formatSetSummary
 import de.simiil.liftlog.domain.logging.Targets
@@ -57,6 +55,16 @@ import de.simiil.liftlog.ui.components.LoggedSetRow
 import de.simiil.liftlog.ui.components.RepsStepper
 import de.simiil.liftlog.ui.components.WeightStepper
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.ghost_last
+import liftlog.app.generated.resources.reps_label
+import liftlog.app.generated.resources.session_log_set
+import liftlog.app.generated.resources.session_overflow_for
+import liftlog.app.generated.resources.session_progress
+import liftlog.app.generated.resources.session_remove_exercise
+import liftlog.app.generated.resources.session_replace_exercise
+import liftlog.app.generated.resources.session_target_sets
+import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Instant
 
 private val CARD_SHAPE = RoundedCornerShape(22.dp)
@@ -218,7 +226,7 @@ private fun UpcomingCard(
             )
             if (card.targetSets != null) {
                 Text(
-                    text = stringResource(R.string.session_target_sets, card.targetSets),
+                    text = stringResource(Res.string.session_target_sets, card.targetSets),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -272,7 +280,7 @@ private fun ActiveCard(
                 )
                 ProgressPill(setsDone = card.sets.size, target = card.targetSets)
                 Box {
-                    val overflowCd = stringResource(R.string.session_overflow_for, card.name)
+                    val overflowCd = stringResource(Res.string.session_overflow_for, card.name)
                     IconButton(
                         onClick = { overflowExpanded = true },
                         modifier = Modifier.semantics { contentDescription = overflowCd },
@@ -288,14 +296,14 @@ private fun ActiveCard(
                         onDismissRequest = { overflowExpanded = false },
                     ) {
                         DropdownMenuItem(
-                            text = { Text(stringResource(R.string.session_remove_exercise)) },
+                            text = { Text(stringResource(Res.string.session_remove_exercise)) },
                             onClick = {
                                 overflowExpanded = false
                                 onRequestRemoveExercise(card.sessionExerciseId)
                             },
                         )
                         DropdownMenuItem(
-                            text = { Text(stringResource(R.string.session_replace_exercise)) },
+                            text = { Text(stringResource(Res.string.session_replace_exercise)) },
                             onClick = {
                                 overflowExpanded = false
                                 onRequestReplaceExercise(card.sessionExerciseId)
@@ -309,7 +317,7 @@ private fun ActiveCard(
             // ── Ghost row (last performance) ─────────────────────────────
             if (card.ghostSets.isNotEmpty()) {
                 Text(
-                    text = stringResource(R.string.ghost_last, summaryOf(card.ghostSets, unit)),
+                    text = stringResource(Res.string.ghost_last, summaryOf(card.ghostSets, unit)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 10.dp, bottom = 2.dp),
@@ -354,7 +362,7 @@ private fun ActiveCard(
                             if (numpad.target == NumpadTarget.WEIGHT) {
                                 Weights.label(unit)
                             } else {
-                                stringResource(R.string.reps_label)
+                                stringResource(Res.string.reps_label)
                             },
                         onConfirm = { onNumpadConfirm(it) },
                         onDismiss = { onNumpadDismiss() },
@@ -410,7 +418,7 @@ private fun ProgressPill(
         modifier = Modifier.padding(end = 4.dp),
     ) {
         Text(
-            text = stringResource(R.string.session_progress, setsDone, target?.toString() ?: "—"),
+            text = stringResource(Res.string.session_progress, setsDone, target?.toString() ?: "—"),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary,
@@ -450,7 +458,7 @@ private fun LogSetButton(
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
-                text = stringResource(R.string.session_log_set),
+                text = stringResource(Res.string.session_log_set),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp,

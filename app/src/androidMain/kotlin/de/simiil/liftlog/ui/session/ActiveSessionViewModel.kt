@@ -193,7 +193,7 @@ class ActiveSessionViewModel(
 
     // --- Pure transform ---
 
-    private fun buildState(
+    private suspend fun buildState(
         details: SessionWithDetails?,
         exercises: List<Exercise>,
         unit: WeightUnit,

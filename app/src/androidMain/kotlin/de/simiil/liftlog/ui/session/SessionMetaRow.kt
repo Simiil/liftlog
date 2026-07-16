@@ -24,15 +24,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.RpeStepper
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.common_done
+import liftlog.app.generated.resources.rpe_value
+import liftlog.app.generated.resources.session_meta_add
+import liftlog.app.generated.resources.workout_note
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Unobtrusive workout-level note + RPE entry at the END of the Active Session list
@@ -58,7 +62,7 @@ fun SessionMetaRow(
     if (!expanded) {
         val summary =
             listOfNotNull(
-                rpe?.let { stringResource(R.string.rpe_value, Decimals.format(it)) },
+                rpe?.let { stringResource(Res.string.rpe_value, Decimals.format(it)) },
                 note?.takeIf { it.isNotBlank() },
             ).joinToString(" · ")
         Surface(
@@ -87,7 +91,7 @@ fun SessionMetaRow(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        text = stringResource(R.string.session_meta_add),
+                        text = stringResource(Res.string.session_meta_add),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -120,7 +124,7 @@ fun SessionMetaRow(
                         noteDraft = it
                         onNoteChange(it)
                     },
-                    label = { Text(stringResource(R.string.workout_note)) },
+                    label = { Text(stringResource(Res.string.workout_note)) },
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -134,7 +138,7 @@ fun SessionMetaRow(
                         expanded = false
                         onNoteFlush()
                     }) {
-                        Text(stringResource(R.string.common_done))
+                        Text(stringResource(Res.string.common_done))
                     }
                 }
             }

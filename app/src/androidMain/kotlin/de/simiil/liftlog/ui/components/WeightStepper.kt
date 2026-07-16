@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -27,11 +26,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_decrease_weight
+import liftlog.app.generated.resources.cd_increase_weight
+import liftlog.app.generated.resources.cd_weight_value
+import liftlog.app.generated.resources.weight_kilograms
+import liftlog.app.generated.resources.weight_placeholder
+import liftlog.app.generated.resources.weight_pounds
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * A unified stepper box for weight entry: a single `surfaceContainerHighest` pill,
@@ -58,23 +64,23 @@ fun WeightStepper(
 ) {
     val unitLong =
         when (unit) {
-            WeightUnit.KG -> stringResource(R.string.weight_kilograms)
-            WeightUnit.LB -> stringResource(R.string.weight_pounds)
+            WeightUnit.KG -> stringResource(Res.string.weight_kilograms)
+            WeightUnit.LB -> stringResource(Res.string.weight_pounds)
         }
     val stepDisplay = Weights.stepIncrementDisplay(unit)
     val stepText = Decimals.format(stepDisplay)
-    val decrementCd = stringResource(R.string.cd_decrease_weight, stepText, unitLong)
-    val incrementCd = stringResource(R.string.cd_increase_weight, stepText, unitLong)
+    val decrementCd = stringResource(Res.string.cd_decrease_weight, stepText, unitLong)
+    val incrementCd = stringResource(Res.string.cd_increase_weight, stepText, unitLong)
 
     val numberText: String
     val valueCd: String
     if (valueKg != null) {
         val formatted = Weights.format(valueKg, unit)
         numberText = formatted
-        valueCd = stringResource(R.string.cd_weight_value, formatted, Weights.label(unit))
+        valueCd = stringResource(Res.string.cd_weight_value, formatted, Weights.label(unit))
     } else {
-        numberText = stringResource(R.string.weight_placeholder)
-        valueCd = stringResource(R.string.cd_weight_value, "—", Weights.label(unit))
+        numberText = stringResource(Res.string.weight_placeholder)
+        valueCd = stringResource(Res.string.cd_weight_value, "—", Weights.label(unit))
     }
 
     StepperShell(

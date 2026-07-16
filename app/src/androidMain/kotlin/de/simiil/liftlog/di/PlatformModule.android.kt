@@ -13,26 +13,19 @@ import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.DB_SCHEMA_VERSION
 import de.simiil.liftlog.data.db.MIGRATION_1_2
 import de.simiil.liftlog.data.db.MIGRATION_2_3
-import de.simiil.liftlog.data.repository.BackupRepositoryImpl
-import de.simiil.liftlog.data.seed.ExerciseSeeder
 import de.simiil.liftlog.domain.format.LocaleFormatters
-import de.simiil.liftlog.domain.plan.DefaultPlanNameProvider
-import de.simiil.liftlog.domain.repository.BackupRepository
 import de.simiil.liftlog.notification.NotificationPermissionTick
 import de.simiil.liftlog.notification.SessionNotificationBuilder
 import de.simiil.liftlog.notification.SessionNotificationCoordinator
 import de.simiil.liftlog.notification.SessionNotificationModelProducer
 import de.simiil.liftlog.ui.analytics.AnalyticsBrowserViewModel
 import de.simiil.liftlog.ui.analytics.ExerciseDetailViewModel
-import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
 import de.simiil.liftlog.ui.exercises.ExercisePickerViewModel
-import de.simiil.liftlog.ui.exercises.ResourceExerciseNameResolver
 import de.simiil.liftlog.ui.format.AndroidLocaleFormatters
 import de.simiil.liftlog.ui.history.HistoryViewModel
 import de.simiil.liftlog.ui.home.HomeViewModel
 import de.simiil.liftlog.ui.plans.DayEditorViewModel
 import de.simiil.liftlog.ui.plans.PlanViewModel
-import de.simiil.liftlog.ui.plans.ResourceDefaultPlanNameProvider
 import de.simiil.liftlog.ui.session.ActiveSessionViewModel
 import de.simiil.liftlog.ui.session.SessionDetailViewModel
 import de.simiil.liftlog.ui.settings.AndroidDocumentIo
@@ -68,14 +61,9 @@ actual val platformModule: Module =
         }
         single { AppInfo(name = "LiftLog", versionName = BuildConfig.VERSION_NAME, dbSchemaVersion = DB_SCHEMA_VERSION) }
 
-        // ── Asset-backed seeder + backup repo that depends on it (PR5 → common) ──
-        single { ExerciseSeeder(androidContext(), get(), get(), get(), get(), get()) }
-        factory<BackupRepository> { BackupRepositoryImpl(get(), get(), get(), get(), get(), get()) } // unscoped
-
-        // ── UI-adjacent bindings (former uiModule; PR5 unparks to common) ───────
+        // ── UI-adjacent Android bindings (name resolvers + ExerciseSeeder + BackupRepository
+        //    moved to common in PR5; these two still need a Context) ───────────────
         factory<DocumentIo> { AndroidDocumentIo(androidContext()) } // unscoped
-        single<ExerciseNameResolver> { ResourceExerciseNameResolver(androidContext()) }
-        single<DefaultPlanNameProvider> { ResourceDefaultPlanNameProvider(androidContext()) }
         single<LocaleFormatters> { AndroidLocaleFormatters(androidContext()) }
 
         // ── Android-only notification services (stay androidMain forever) ───────

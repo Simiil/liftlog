@@ -48,8 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -57,12 +55,38 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.common_cancel
+import liftlog.app.generated.resources.common_create
+import liftlog.app.generated.resources.common_delete
+import liftlog.app.generated.resources.common_remove
+import liftlog.app.generated.resources.common_save
+import liftlog.app.generated.resources.exercise_count
+import liftlog.app.generated.resources.plan_add_day
+import liftlog.app.generated.resources.plan_day_remove_confirm_message
+import liftlog.app.generated.resources.plan_day_remove_confirm_title
+import liftlog.app.generated.resources.plan_days_empty
+import liftlog.app.generated.resources.plan_delete
+import liftlog.app.generated.resources.plan_delete_confirm_message
+import liftlog.app.generated.resources.plan_delete_confirm_title
+import liftlog.app.generated.resources.plan_menu_rename
+import liftlog.app.generated.resources.plan_name_field_hint
+import liftlog.app.generated.resources.plan_name_field_label
+import liftlog.app.generated.resources.plan_overflow_cd
+import liftlog.app.generated.resources.plan_remove_day
+import liftlog.app.generated.resources.plan_start_day_cd
+import liftlog.app.generated.resources.plan_switcher_cd
+import liftlog.app.generated.resources.plan_untitled
+import liftlog.app.generated.resources.plan_untitled_day
+import liftlog.app.generated.resources.plans_create
+import liftlog.app.generated.resources.template_drag_handle_cd
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -165,7 +189,7 @@ private fun PlanContent(
                             },
                         )
                     } else {
-                        Text(plan.name.ifBlank { stringResource(R.string.plan_untitled) })
+                        Text(plan.name.ifBlank { stringResource(Res.string.plan_untitled) })
                     }
                 },
                 actions = {
@@ -176,7 +200,7 @@ private fun PlanContent(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
-                                contentDescription = stringResource(R.string.plan_overflow_cd),
+                                contentDescription = stringResource(Res.string.plan_overflow_cd),
                             )
                         }
                         DropdownMenu(
@@ -184,7 +208,7 @@ private fun PlanContent(
                             onDismissRequest = { overflowExpanded = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.plans_create)) },
+                                text = { Text(stringResource(Res.string.plans_create)) },
                                 onClick = {
                                     overflowExpanded = false
                                     showCreateDialog = true
@@ -192,7 +216,7 @@ private fun PlanContent(
                                 modifier = Modifier.testTag(UiTestTags.PLAN_MENU_NEW),
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.plan_menu_rename)) },
+                                text = { Text(stringResource(Res.string.plan_menu_rename)) },
                                 onClick = {
                                     overflowExpanded = false
                                     showRenameDialog = true
@@ -200,7 +224,7 @@ private fun PlanContent(
                                 modifier = Modifier.testTag(UiTestTags.PLAN_MENU_RENAME),
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.plan_delete)) },
+                                text = { Text(stringResource(Res.string.plan_delete)) },
                                 onClick = {
                                     overflowExpanded = false
                                     showDeleteConfirm = true
@@ -225,7 +249,7 @@ private fun PlanContent(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 if (plan.days.isEmpty()) {
-                    item { EditorEmpty(stringResource(R.string.plan_days_empty)) }
+                    item { EditorEmpty(stringResource(Res.string.plan_days_empty)) }
                 }
                 items(localDays, key = { it.templateId }) { day ->
                     ReorderableItem(reorderableState, key = day.templateId) { isDragging ->
@@ -251,7 +275,7 @@ private fun PlanContent(
                 }
                 item {
                     AddRow(
-                        label = stringResource(R.string.plan_add_day),
+                        label = stringResource(Res.string.plan_add_day),
                         onClick = onAddDay,
                         modifier =
                             Modifier
@@ -265,7 +289,7 @@ private fun PlanContent(
 
     if (showRenameDialog && plan != null) {
         PlanNameDialog(
-            title = stringResource(R.string.plan_menu_rename),
+            title = stringResource(Res.string.plan_menu_rename),
             initialName = plan.name,
             onConfirm = { name ->
                 onRenamePlan(name)
@@ -277,9 +301,9 @@ private fun PlanContent(
 
     if (showCreateDialog) {
         PlanNameDialog(
-            title = stringResource(R.string.plans_create),
+            title = stringResource(Res.string.plans_create),
             initialName = "",
-            confirmLabel = stringResource(R.string.common_create),
+            confirmLabel = stringResource(Res.string.common_create),
             fieldTag = UiTestTags.PLAN_NEW_FIELD,
             confirmTag = UiTestTags.PLAN_NEW_CONFIRM,
             onConfirm = { name ->
@@ -293,8 +317,8 @@ private fun PlanContent(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text(stringResource(R.string.plan_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.plan_delete_confirm_message)) },
+            title = { Text(stringResource(Res.string.plan_delete_confirm_title)) },
+            text = { Text(stringResource(Res.string.plan_delete_confirm_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -304,14 +328,14 @@ private fun PlanContent(
                     modifier = Modifier.testTag(UiTestTags.PLAN_DELETE_CONFIRM),
                 ) {
                     Text(
-                        text = stringResource(R.string.common_delete),
+                        text = stringResource(Res.string.common_delete),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text(stringResource(R.string.common_cancel))
+                    Text(stringResource(Res.string.common_cancel))
                 }
             },
         )
@@ -320,8 +344,8 @@ private fun PlanContent(
     pendingRemoveDayId?.let { dayId ->
         AlertDialog(
             onDismissRequest = { pendingRemoveDayId = null },
-            title = { Text(stringResource(R.string.plan_day_remove_confirm_title)) },
-            text = { Text(stringResource(R.string.plan_day_remove_confirm_message)) },
+            title = { Text(stringResource(Res.string.plan_day_remove_confirm_title)) },
+            text = { Text(stringResource(Res.string.plan_day_remove_confirm_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -331,14 +355,14 @@ private fun PlanContent(
                     modifier = Modifier.testTag(UiTestTags.PLAN_DAY_REMOVE_CONFIRM),
                 ) {
                     Text(
-                        text = stringResource(R.string.common_remove),
+                        text = stringResource(Res.string.common_remove),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { pendingRemoveDayId = null }) {
-                    Text(stringResource(R.string.common_cancel))
+                    Text(stringResource(Res.string.common_cancel))
                 }
             },
         )
@@ -357,10 +381,10 @@ private fun PlanDayRow(
     dragHandleModifier: Modifier,
     modifier: Modifier = Modifier,
 ) {
-    val untitled = stringResource(R.string.plan_untitled_day)
-    val startCd = stringResource(R.string.plan_start_day_cd, day.name.ifBlank { untitled })
-    val removeCd = stringResource(R.string.plan_remove_day)
-    val dragHandleCd = stringResource(R.string.template_drag_handle_cd)
+    val untitled = stringResource(Res.string.plan_untitled_day)
+    val startCd = stringResource(Res.string.plan_start_day_cd, day.name.ifBlank { untitled })
+    val removeCd = stringResource(Res.string.plan_remove_day)
+    val dragHandleCd = stringResource(Res.string.template_drag_handle_cd)
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
@@ -448,7 +472,7 @@ private fun PlanDayRow(
 /** "N exercises[ · group · group · group]" — mirrors the mockup's plan-row-sub. */
 @Composable
 private fun daySubtitle(day: PlanDayUi): String {
-    val count = pluralStringResource(R.plurals.exercise_count, day.exerciseCount, day.exerciseCount)
+    val count = pluralStringResource(Res.plurals.exercise_count, day.exerciseCount, day.exerciseCount)
     if (day.muscleGroups.isEmpty()) return count
     val groups = day.muscleGroups.map { muscleGroupLabel(it) }.joinToString(" · ")
     return "$count · $groups"
@@ -462,7 +486,7 @@ internal fun PlanNameDialog(
     initialName: String,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
-    confirmLabel: String = stringResource(R.string.common_save),
+    confirmLabel: String = stringResource(Res.string.common_save),
     fieldTag: String = UiTestTags.PLAN_RENAME_FIELD,
     confirmTag: String = UiTestTags.PLAN_RENAME_CONFIRM,
 ) {
@@ -472,11 +496,11 @@ internal fun PlanNameDialog(
         title = { Text(title) },
         text = {
             Column {
-                FieldLabel(stringResource(R.string.plan_name_field_label))
+                FieldLabel(stringResource(Res.string.plan_name_field_label))
                 EditorTextField(
                     value = name,
                     onValueChange = { name = it },
-                    hint = stringResource(R.string.plan_name_field_hint),
+                    hint = stringResource(Res.string.plan_name_field_hint),
                     modifier = Modifier.testTag(fieldTag),
                 )
             }
@@ -492,7 +516,7 @@ internal fun PlanNameDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
+                Text(stringResource(Res.string.common_cancel))
             }
         },
     )
@@ -509,8 +533,8 @@ private fun PlanSwitcherTitle(
     onExpandedChange: (Boolean) -> Unit,
     onSelect: (String) -> Unit,
 ) {
-    val untitled = stringResource(R.string.plan_untitled)
-    val switcherCd = stringResource(R.string.plan_switcher_cd)
+    val untitled = stringResource(Res.string.plan_untitled)
+    val switcherCd = stringResource(Res.string.plan_switcher_cd)
     Box {
         Row(
             verticalAlignment = Alignment.CenterVertically,

@@ -9,7 +9,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.simiil.liftlog.MainActivity
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
@@ -21,6 +20,10 @@ import de.simiil.liftlog.ui.UiTestTags.PLAN_OVERFLOW
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.default_plan_name
+import liftlog.app.generated.resources.tab_plans
+import org.jetbrains.compose.resources.getString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
@@ -76,7 +79,7 @@ class PlanDeletePathTest : KoinComponent {
     @Test
     fun planDelete_overflowToConfirm_reseedsDefaultAndTombstonesOld() {
         // 1. Switch to the Plan tab (bottom-nav item addressed by its localized label).
-        val planLabel = composeRule.activity.getString(R.string.tab_plans)
+        val planLabel = runBlocking { getString(Res.string.tab_plans) }
         await(hasText(planLabel), atLeast = 1, timeoutMillis = 10_000)
         composeRule.onNodeWithText(planLabel).performClick()
 
@@ -91,7 +94,7 @@ class PlanDeletePathTest : KoinComponent {
         composeRule.onNodeWithTag(PLAN_DELETE_CONFIRM).performClick()
 
         // 4a. The tab's title becomes the localized default-plan name.
-        val defaultPlanName = composeRule.activity.getString(R.string.default_plan_name)
+        val defaultPlanName = runBlocking { getString(Res.string.default_plan_name) }
         await(hasText(defaultPlanName), atLeast = 1, timeoutMillis = 10_000)
 
         // 4b. Room-level: exactly one live plan, with a different id than the deleted one.

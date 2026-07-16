@@ -2,7 +2,6 @@ package de.simiil.liftlog.ui.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,17 +34,42 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.domain.model.ThemePreference
 import de.simiil.liftlog.domain.repository.InvalidReason
 import kotlinx.datetime.TimeZone
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.backup_cancel
+import liftlog.app.generated.resources.backup_dialog_ok
+import liftlog.app.generated.resources.backup_error_corrupt
+import liftlog.app.generated.resources.backup_error_live_session
+import liftlog.app.generated.resources.backup_error_newer
+import liftlog.app.generated.resources.backup_error_title
+import liftlog.app.generated.resources.backup_export_failed
+import liftlog.app.generated.resources.backup_exported
+import liftlog.app.generated.resources.backup_import_confirm_button
+import liftlog.app.generated.resources.backup_import_confirm_message
+import liftlog.app.generated.resources.backup_import_confirm_title
+import liftlog.app.generated.resources.backup_imported
+import liftlog.app.generated.resources.navigate_back
+import liftlog.app.generated.resources.settings_data_label
+import liftlog.app.generated.resources.settings_export
+import liftlog.app.generated.resources.settings_export_desc
+import liftlog.app.generated.resources.settings_import
+import liftlog.app.generated.resources.settings_import_desc
+import liftlog.app.generated.resources.settings_seed_demo
+import liftlog.app.generated.resources.settings_theme_label
+import liftlog.app.generated.resources.settings_title
+import liftlog.app.generated.resources.theme_dark
+import liftlog.app.generated.resources.theme_light
+import liftlog.app.generated.resources.theme_system
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -69,9 +93,9 @@ fun SettingsScreen(
             ActivityResultContracts.OpenDocument(),
         ) { uri -> uri?.let(viewModel::prepareImport) }
 
-    val exported = stringResource(R.string.backup_exported)
-    val exportFailed = stringResource(R.string.backup_export_failed)
-    val imported = stringResource(R.string.backup_imported)
+    val exported = stringResource(Res.string.backup_exported)
+    val exportFailed = stringResource(Res.string.backup_export_failed)
+    val imported = stringResource(Res.string.backup_imported)
     LaunchedEffect(uiState.message) {
         val text =
             when (uiState.message) {
@@ -94,12 +118,12 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
+                title = { Text(stringResource(Res.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.navigate_back),
+                            contentDescription = stringResource(Res.string.navigate_back),
                         )
                     }
                 },
@@ -113,23 +137,23 @@ fun SettingsScreen(
                     .verticalScroll(rememberScrollState()),
         ) {
             Column(Modifier.selectableGroup()) {
-                SectionHeader(R.string.settings_theme_label)
-                ThemeOptionRow(R.string.theme_system, ThemePreference.SYSTEM, uiState.theme, viewModel::onThemeSelected)
-                ThemeOptionRow(R.string.theme_light, ThemePreference.LIGHT, uiState.theme, viewModel::onThemeSelected)
-                ThemeOptionRow(R.string.theme_dark, ThemePreference.DARK, uiState.theme, viewModel::onThemeSelected)
+                SectionHeader(Res.string.settings_theme_label)
+                ThemeOptionRow(Res.string.theme_system, ThemePreference.SYSTEM, uiState.theme, viewModel::onThemeSelected)
+                ThemeOptionRow(Res.string.theme_light, ThemePreference.LIGHT, uiState.theme, viewModel::onThemeSelected)
+                ThemeOptionRow(Res.string.theme_dark, ThemePreference.DARK, uiState.theme, viewModel::onThemeSelected)
             }
 
-            SectionHeader(R.string.settings_data_label)
+            SectionHeader(Res.string.settings_data_label)
             ActionRow(
                 icon = { Icon(Icons.Outlined.FileDownload, contentDescription = null) },
-                titleRes = R.string.settings_export,
-                descRes = R.string.settings_export_desc,
+                titleRes = Res.string.settings_export,
+                descRes = Res.string.settings_export_desc,
                 onClick = { exportLauncher.launch(viewModel.defaultExportFileName()) },
             )
             ActionRow(
                 icon = { Icon(Icons.Outlined.FileUpload, contentDescription = null) },
-                titleRes = R.string.settings_import,
-                descRes = R.string.settings_import_desc,
+                titleRes = Res.string.settings_import,
+                descRes = Res.string.settings_import_desc,
                 onClick = { importLauncher.launch(arrayOf("application/json")) },
             )
 
@@ -137,7 +161,7 @@ fun SettingsScreen(
                 TextButton(
                     onClick = viewModel::seedDemoData,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                ) { Text(stringResource(R.string.settings_seed_demo)) }
+                ) { Text(stringResource(Res.string.settings_seed_demo)) }
             }
         }
     }
@@ -152,17 +176,17 @@ fun SettingsScreen(
             }
         AlertDialog(
             onDismissRequest = viewModel::dismissImport,
-            title = { Text(stringResource(R.string.backup_import_confirm_title)) },
+            title = { Text(stringResource(Res.string.backup_import_confirm_title)) },
             text = {
-                Text(stringResource(R.string.backup_import_confirm_message, date, summary.sessions, summary.exercises))
+                Text(stringResource(Res.string.backup_import_confirm_message, date, summary.sessions, summary.exercises))
             },
             confirmButton = {
                 TextButton(onClick = viewModel::confirmImport) {
-                    Text(stringResource(R.string.backup_import_confirm_button))
+                    Text(stringResource(Res.string.backup_import_confirm_button))
                 }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::dismissImport) { Text(stringResource(R.string.backup_cancel)) }
+                TextButton(onClick = viewModel::dismissImport) { Text(stringResource(Res.string.backup_cancel)) }
             },
         )
     }
@@ -170,30 +194,28 @@ fun SettingsScreen(
     uiState.dialog?.let { dialog ->
         val body =
             when (dialog) {
-                SettingsDialog.LiveSession -> stringResource(R.string.backup_error_live_session)
-                is SettingsDialog.Newer -> stringResource(R.string.backup_error_newer)
+                SettingsDialog.LiveSession -> stringResource(Res.string.backup_error_live_session)
+                is SettingsDialog.Newer -> stringResource(Res.string.backup_error_newer)
                 is SettingsDialog.Invalid ->
                     when (dialog.reason) {
                         InvalidReason.MALFORMED, InvalidReason.MISSING_FIELDS, InvalidReason.BAD_TIMESTAMP,
                         InvalidReason.FK_ORPHAN, InvalidReason.UNKNOWN_ENUM,
-                        -> stringResource(R.string.backup_error_corrupt)
+                        -> stringResource(Res.string.backup_error_corrupt)
                     }
             }
         AlertDialog(
             onDismissRequest = viewModel::dismissDialog,
-            title = { Text(stringResource(R.string.backup_error_title)) },
+            title = { Text(stringResource(Res.string.backup_error_title)) },
             text = { Text(body) },
             confirmButton = {
-                TextButton(onClick = viewModel::dismissDialog) { Text(stringResource(R.string.backup_dialog_ok)) }
+                TextButton(onClick = viewModel::dismissDialog) { Text(stringResource(Res.string.backup_dialog_ok)) }
             },
         )
     }
 }
 
 @Composable
-private fun SectionHeader(
-    @StringRes labelRes: Int,
-) {
+private fun SectionHeader(labelRes: StringResource) {
     Text(
         text = stringResource(labelRes),
         style = MaterialTheme.typography.titleMedium,
@@ -207,8 +229,8 @@ private fun SectionHeader(
 @Composable
 private fun ActionRow(
     icon: @Composable () -> Unit,
-    @StringRes titleRes: Int,
-    @StringRes descRes: Int,
+    titleRes: StringResource,
+    descRes: StringResource,
     onClick: () -> Unit,
 ) {
     Row(
@@ -234,7 +256,7 @@ private fun ActionRow(
 
 @Composable
 private fun ThemeOptionRow(
-    @StringRes labelRes: Int,
+    labelRes: StringResource,
     option: ThemePreference,
     currentSelection: ThemePreference,
     onSelect: (ThemePreference) -> Unit,

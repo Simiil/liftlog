@@ -11,13 +11,14 @@ class BuiltInExerciseNamesTest {
     private val seed =
         Json { ignoreUnknownKeys = true }
             .decodeFromString<SeedFile>(
-                File("src/androidMain/assets/seed/exercises.v${ExerciseSeeder.SEED_VERSION}.json").readText(),
+                // Seed file + strings moved to CMP bundled resources in PR5 (commonMain/composeResources).
+                File("src/commonMain/composeResources/${ExerciseSeeder.ASSET}").readText(),
             )
 
     /** name="exercise_xxx" -> "Display Value" parsed straight from the English strings.xml. */
     private val exerciseStrings: Map<String, String> =
         run {
-            val xml = File("src/androidMain/res/values/strings.xml").readText()
+            val xml = File("src/commonMain/composeResources/values/strings.xml").readText()
             // NOTE: exercise_* values must stay plain text except apostrophes, which AAPT
             // requires escaped as \' — unescaped here so values compare against seed names.
             Regex("""<string name="(exercise_[a-z0-9_]+)">(.*?)</string>""")

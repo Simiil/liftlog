@@ -27,14 +27,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.TrendDirection
 import de.simiil.liftlog.domain.analytics.TrendResult
 import de.simiil.liftlog.domain.format.LocaleFormatters
@@ -45,6 +43,19 @@ import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.components.charts.Sparkline
 import de.simiil.liftlog.ui.exercises.exerciseDisplayName
 import de.simiil.liftlog.ui.theme.LocalLiftLogColors
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.analytics_empty
+import liftlog.app.generated.resources.analytics_reps_value
+import liftlog.app.generated.resources.analytics_search_hint
+import liftlog.app.generated.resources.analytics_stat_sessions
+import liftlog.app.generated.resources.analytics_stat_sets
+import liftlog.app.generated.resources.analytics_stat_volume
+import liftlog.app.generated.resources.analytics_stat_volume_value
+import liftlog.app.generated.resources.analytics_title
+import liftlog.app.generated.resources.analytics_volume_value
+import liftlog.app.generated.resources.analytics_week_delta
+import liftlog.app.generated.resources.analytics_week_head
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -59,7 +70,7 @@ fun AnalyticsScreen(
     val formatters = koinInject<LocaleFormatters>()
     Column(modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
         Text(
-            stringResource(R.string.analytics_title),
+            stringResource(Res.string.analytics_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(vertical = 12.dp),
@@ -85,7 +96,7 @@ fun AnalyticsScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            stringResource(R.string.analytics_empty),
+                            stringResource(Res.string.analytics_empty),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -109,7 +120,7 @@ private fun WeekCard(
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = RoundedCornerShape(22.dp)) {
         Column(Modifier.fillMaxWidth().padding(18.dp)) {
             Text(
-                stringResource(R.string.analytics_week_head),
+                stringResource(Res.string.analytics_week_head),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -119,14 +130,14 @@ private fun WeekCard(
                 Modifier.fillMaxWidth().padding(vertical = 14.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Stat(week.sessions.toString(), stringResource(R.string.analytics_stat_sessions), Modifier.weight(1f))
-                Stat(week.sets.toString(), stringResource(R.string.analytics_stat_sets), Modifier.weight(1f))
+                Stat(week.sessions.toString(), stringResource(Res.string.analytics_stat_sessions), Modifier.weight(1f))
+                Stat(week.sets.toString(), stringResource(Res.string.analytics_stat_sets), Modifier.weight(1f))
                 Stat(
                     stringResource(
-                        R.string.analytics_stat_volume_value,
+                        Res.string.analytics_stat_volume_value,
                         formatters.oneDecimal(week.volumeKg / 1000),
                     ),
-                    stringResource(R.string.analytics_stat_volume),
+                    stringResource(Res.string.analytics_stat_volume),
                     Modifier.weight(1f),
                 )
             }
@@ -138,7 +149,7 @@ private fun WeekCard(
                 }
             val sign = if (delta >= 0) "+" else ""
             Text(
-                stringResource(R.string.analytics_week_delta, "$sign$delta"),
+                stringResource(Res.string.analytics_week_delta, "$sign$delta"),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color =
@@ -179,7 +190,7 @@ private fun SearchBar(
             Box(Modifier.weight(1f)) {
                 if (query.isEmpty()) {
                     Text(
-                        stringResource(R.string.analytics_search_hint),
+                        stringResource(Res.string.analytics_search_hint),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -223,11 +234,11 @@ private fun ExerciseRow(
                     val metric =
                         if (s.bodyweight) {
                             // Bodyweight headline is now total reps (matches volume = total work).
-                            stringResource(R.string.analytics_reps_value, s.currentValue.toInt())
+                            stringResource(Res.string.analytics_reps_value, s.currentValue.toInt())
                         } else {
                             // currentValue is volume in canonical kg; shown with the unit label, no
                             // conversion — consistent with ExerciseDetailViewModel.label()'s VOLUME case.
-                            stringResource(R.string.analytics_volume_value, s.currentValue.toLong().toString(), Weights.label(unit))
+                            stringResource(Res.string.analytics_volume_value, s.currentValue.toLong().toString(), Weights.label(unit))
                         }
                     Text(metric, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }

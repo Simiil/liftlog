@@ -12,7 +12,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import de.simiil.liftlog.MainActivity
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.testing.FreshKoinRule
@@ -23,6 +22,10 @@ import de.simiil.liftlog.ui.UiTestTags.SESSION_META_ROW
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_rpe_clear
+import liftlog.app.generated.resources.common_done
+import org.jetbrains.compose.resources.getString
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -91,7 +94,7 @@ class SessionMetaPathTest : KoinComponent {
         awaitSession(description = "rpe == 8.0") { it?.rpe != null && abs(it.rpe!! - 8.0) < 0.001 }
         // (b) Composition catch-up confirmed: Clear button is visible
         await(
-            hasContentDescription(composeRule.activity.getString(R.string.cd_rpe_clear)),
+            hasContentDescription(runBlocking { getString(Res.string.cd_rpe_clear) }),
             atLeast = 1,
             timeoutMillis = 5_000,
         )
@@ -104,7 +107,7 @@ class SessionMetaPathTest : KoinComponent {
         composeRule.waitForIdle()
 
         // 6. Tap "Done" to collapse and flush the note.
-        val doneLabel = composeRule.activity.getString(R.string.common_done)
+        val doneLabel = runBlocking { getString(Res.string.common_done) }
         composeRule.onNodeWithText(doneLabel).performClick()
         composeRule.waitForIdle()
 

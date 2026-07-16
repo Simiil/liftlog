@@ -53,17 +53,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.ui.UiTestTags
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.navigate_back
+import liftlog.app.generated.resources.picker_add_selected
+import liftlog.app.generated.resources.picker_added
+import liftlog.app.generated.resources.picker_cancel
+import liftlog.app.generated.resources.picker_clear_search
+import liftlog.app.generated.resources.picker_create
+import liftlog.app.generated.resources.picker_create_confirm
+import liftlog.app.generated.resources.picker_create_equipment
+import liftlog.app.generated.resources.picker_create_muscle
+import liftlog.app.generated.resources.picker_create_name
+import liftlog.app.generated.resources.picker_create_with_query
+import liftlog.app.generated.resources.picker_duplicate_name
+import liftlog.app.generated.resources.picker_error_blank
+import liftlog.app.generated.resources.picker_recent
+import liftlog.app.generated.resources.picker_search
+import liftlog.app.generated.resources.picker_title
+import liftlog.app.generated.resources.picker_title_add
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,9 +111,9 @@ fun ExercisePickerScreen(
                     Text(
                         text =
                             if (multiSelect) {
-                                stringResource(R.string.picker_title_add)
+                                stringResource(Res.string.picker_title_add)
                             } else {
-                                stringResource(R.string.picker_title)
+                                stringResource(Res.string.picker_title)
                             },
                     )
                 },
@@ -106,7 +123,7 @@ fun ExercisePickerScreen(
                             if (multiSelect) Icons.AutoMirrored.Outlined.ArrowBack else Icons.Outlined.Close,
                             contentDescription =
                                 stringResource(
-                                    if (multiSelect) R.string.navigate_back else R.string.picker_cancel,
+                                    if (multiSelect) Res.string.navigate_back else Res.string.picker_cancel,
                                 ),
                         )
                     }
@@ -140,7 +157,7 @@ fun ExercisePickerScreen(
                             shape = RoundedCornerShape(100.dp),
                         ) {
                             Text(
-                                text = stringResource(R.string.picker_add_selected, selection.size),
+                                text = stringResource(Res.string.picker_add_selected, selection.size),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold,
                             )
@@ -218,7 +235,7 @@ fun ExercisePickerScreen(
             if (uiState.recent.isNotEmpty()) {
                 item {
                     Text(
-                        text = stringResource(R.string.picker_recent),
+                        text = stringResource(Res.string.picker_recent),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary,
@@ -335,7 +352,7 @@ private fun PickerSearchBar(
                 decorationBox = { innerTextField ->
                     if (query.isEmpty()) {
                         Text(
-                            text = stringResource(R.string.picker_search),
+                            text = stringResource(Res.string.picker_search),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -350,7 +367,7 @@ private fun PickerSearchBar(
                 ) {
                     Icon(
                         Icons.Outlined.Close,
-                        contentDescription = stringResource(R.string.picker_clear_search),
+                        contentDescription = stringResource(Res.string.picker_clear_search),
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -434,9 +451,9 @@ private fun CreateRow(
         Text(
             text =
                 if (query.isNotEmpty()) {
-                    stringResource(R.string.picker_create_with_query, query)
+                    stringResource(Res.string.picker_create_with_query, query)
                 } else {
-                    stringResource(R.string.picker_create)
+                    stringResource(Res.string.picker_create)
                 },
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
@@ -534,7 +551,7 @@ private fun PickerExerciseRow(
         // .pick-added badge for already-added exercises in multi-select
         if (multiSelect && added) {
             Text(
-                text = stringResource(R.string.picker_added),
+                text = stringResource(Res.string.picker_added),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -580,7 +597,7 @@ private fun CreateExerciseForm(
         Spacer(Modifier.height(14.dp))
 
         Text(
-            text = stringResource(R.string.picker_create),
+            text = stringResource(Res.string.picker_create),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
         )
@@ -591,7 +608,7 @@ private fun CreateExerciseForm(
             value = name,
             onValueChange = { name = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.picker_create_name)) },
+            label = { Text(stringResource(Res.string.picker_create_name)) },
             isError = createError != null,
             supportingText =
                 if (createError != null) {
@@ -599,8 +616,8 @@ private fun CreateExerciseForm(
                         Text(
                             text =
                                 when (createError) {
-                                    CreateError.BLANK_NAME -> stringResource(R.string.picker_error_blank)
-                                    CreateError.DUPLICATE_NAME -> stringResource(R.string.picker_duplicate_name)
+                                    CreateError.BLANK_NAME -> stringResource(Res.string.picker_error_blank)
+                                    CreateError.DUPLICATE_NAME -> stringResource(Res.string.picker_duplicate_name)
                                 },
                         )
                     }
@@ -619,7 +636,7 @@ private fun CreateExerciseForm(
 
         // Muscle group
         Text(
-            text = stringResource(R.string.picker_create_muscle),
+            text = stringResource(Res.string.picker_create_muscle),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -638,7 +655,7 @@ private fun CreateExerciseForm(
 
         // Equipment
         Text(
-            text = stringResource(R.string.picker_create_equipment),
+            text = stringResource(Res.string.picker_create_equipment),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -661,11 +678,11 @@ private fun CreateExerciseForm(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.picker_cancel))
+                Text(stringResource(Res.string.picker_cancel))
             }
             Spacer(Modifier.width(8.dp))
             Button(onClick = { onCreateClicked(name, selectedMuscle, selectedEquipment) }) {
-                Text(stringResource(R.string.picker_create_confirm))
+                Text(stringResource(Res.string.picker_create_confirm))
             }
         }
     }

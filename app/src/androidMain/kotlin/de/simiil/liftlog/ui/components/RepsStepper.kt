@@ -3,11 +3,15 @@ package de.simiil.liftlog.ui.components
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_decrease_reps
+import liftlog.app.generated.resources.cd_increase_reps
+import liftlog.app.generated.resources.cd_reps_value
+import liftlog.app.generated.resources.reps_label
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * A unified stepper box for reps entry (shares [StepperShell] with [WeightStepper]).
@@ -32,11 +36,11 @@ fun RepsStepper(
         onDecrement = onDecrement,
         onIncrement = onIncrement,
         onValueClick = onValueClick,
-        decrementCd = stringResource(R.string.cd_decrease_reps, (reps - 1).coerceAtLeast(0)),
-        incrementCd = stringResource(R.string.cd_increase_reps, reps + 1),
-        valueCd = stringResource(R.string.cd_reps_value, reps),
+        decrementCd = stringResource(Res.string.cd_decrease_reps, (reps - 1).coerceAtLeast(0)),
+        incrementCd = stringResource(Res.string.cd_increase_reps, reps + 1),
+        valueCd = stringResource(Res.string.cd_reps_value, reps),
         numberText = reps.toString(),
-        unitText = targetHint ?: stringResource(R.string.reps_label),
+        unitText = targetHint ?: stringResource(Res.string.reps_label),
     )
 }
 

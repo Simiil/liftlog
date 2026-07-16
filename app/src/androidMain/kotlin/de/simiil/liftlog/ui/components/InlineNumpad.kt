@@ -29,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -37,9 +36,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.units.Decimals
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_backspace
+import liftlog.app.generated.resources.cd_confirm
+import liftlog.app.generated.resources.cd_decimal
+import liftlog.app.generated.resources.cd_digit
+import liftlog.app.generated.resources.cd_numpad_add
+import liftlog.app.generated.resources.numpad_confirm
+import liftlog.app.generated.resources.numpad_dismiss
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Inline numpad that **replaces the stepper area** — not a dialog (design mockup `.numpad`).
@@ -61,7 +68,7 @@ fun InlineNumpad(
     unitLabel: String? = null,
 ) {
     var currentText by remember(initialText) { mutableStateOf(initialText) }
-    val confirmCd = stringResource(R.string.cd_confirm)
+    val confirmCd = stringResource(Res.string.cd_confirm)
     // Intentionally not remembered: re-evaluates when a locale change recomposes.
     val sep = Decimals.separator()
 
@@ -110,7 +117,7 @@ fun InlineNumpad(
             }
             Spacer(Modifier.weight(1f))
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.numpad_dismiss))
+                Text(stringResource(Res.string.numpad_dismiss))
             }
         }
 
@@ -125,7 +132,7 @@ fun InlineNumpad(
                     val label = formatDelta(delta)
                     QuickChip(
                         label = label,
-                        contentDesc = stringResource(R.string.cd_numpad_add, label),
+                        contentDesc = stringResource(Res.string.cd_numpad_add, label),
                         onClick = { applyChip(delta) },
                         modifier = Modifier.weight(1f),
                     )
@@ -144,7 +151,7 @@ fun InlineNumpad(
             ) {
                 row.forEach { digit ->
                     NumKey(
-                        contentDesc = stringResource(R.string.cd_digit, digit),
+                        contentDesc = stringResource(Res.string.cd_digit, digit),
                         onClick = { appendDigit(digit) },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -161,7 +168,7 @@ fun InlineNumpad(
             // Decimal cell — present only in weight mode (mockup leaves it empty for reps)
             if (allowDecimal) {
                 NumKey(
-                    contentDesc = stringResource(R.string.cd_decimal),
+                    contentDesc = stringResource(Res.string.cd_decimal),
                     onClick = { appendDecimal() },
                     modifier = Modifier.weight(1f),
                 ) {
@@ -171,14 +178,14 @@ fun InlineNumpad(
                 Spacer(Modifier.weight(1f))
             }
             NumKey(
-                contentDesc = stringResource(R.string.cd_digit, 0),
+                contentDesc = stringResource(Res.string.cd_digit, 0),
                 onClick = { appendDigit(0) },
                 modifier = Modifier.weight(1f),
             ) {
                 NumKeyText("0")
             }
             NumKey(
-                contentDesc = stringResource(R.string.cd_backspace),
+                contentDesc = stringResource(Res.string.cd_backspace),
                 onClick = { backspace() },
                 modifier = Modifier.weight(1f),
             ) {
@@ -209,7 +216,7 @@ fun InlineNumpad(
         ) {
             Icon(imageVector = Icons.Filled.Check, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.numpad_confirm), style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(Res.string.numpad_confirm), style = MaterialTheme.typography.titleSmall)
         }
     }
 }

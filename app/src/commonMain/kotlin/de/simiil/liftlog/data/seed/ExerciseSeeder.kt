@@ -1,6 +1,5 @@
 package de.simiil.liftlog.data.seed
 
-import android.content.Context
 import de.simiil.liftlog.data.dao.ExerciseDao
 import de.simiil.liftlog.data.dao.SeedStateDao
 import de.simiil.liftlog.data.db.Transactor
@@ -10,6 +9,7 @@ import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Force
 import de.simiil.liftlog.domain.model.MuscleGroup
 import kotlinx.serialization.json.Json
+import liftlog.app.generated.resources.Res
 import kotlin.time.Clock
 
 /**
@@ -17,11 +17,13 @@ import kotlin.time.Clock
  * DB-stored applied version, converge live built-in rows to the seed file: insert missing ids,
  * update changed classification (name/muscleGroup/equipment/force/secondaries) — preserving
  * isHidden and createdAt, bumping updatedAt only on real change, never touching tombstones,
- * never removing rows absent from the file. When versions match, returns without opening the
- * asset. Idempotent; converge + version stamp run in one transaction.
+ * never removing rows absent from the file. When versions match, returns without reading the
+ * bundled resource. Idempotent; converge + version stamp run in one transaction.
+ *
+ * The seed file is a Compose Multiplatform bundled resource (commonMain/composeResources/files),
+ * so the seeder is common (was androidMain reading `context.assets` until PR5).
  */
 class ExerciseSeeder(
-    private val context: Context,
     private val dao: ExerciseDao,
     private val seedStateDao: SeedStateDao,
     private val transactor: Transactor,
@@ -31,11 +33,7 @@ class ExerciseSeeder(
     suspend fun seed() {
         val applied = seedStateDao.appliedVersion()
         if (applied != null && applied >= SEED_VERSION) return // covers app downgrades too
-        val text =
-            context.assets
-                .open(ASSET)
-                .bufferedReader()
-                .use { it.readText() }
+        val text = Res.readBytes(ASSET).decodeToString()
         val exercises = json.decodeFromString<SeedFile>(text).exercises
         val now = clock.now().toEpochMilliseconds()
         transactor.immediate {
@@ -80,8 +78,10 @@ class ExerciseSeeder(
         )
 
     companion object {
-        /** Bump together with a new `seed/exercises.v<N>.json` asset. SeedAssetTest locks file ↔ constant. */
+        /** Bump together with a new `files/seed/exercises.v<N>.json` resource. SeedAssetTest locks file ↔ constant. */
         const val SEED_VERSION = 2
-        private const val ASSET = "seed/exercises.v$SEED_VERSION.json"
+
+        /** Path relative to the CMP resources root (commonMain/composeResources). */
+        const val ASSET = "files/seed/exercises.v$SEED_VERSION.json"
     }
 }

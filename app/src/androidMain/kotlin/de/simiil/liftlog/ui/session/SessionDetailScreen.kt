@@ -30,8 +30,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -40,7 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.SetEntry
 import de.simiil.liftlog.domain.analytics.volumeKg
 import de.simiil.liftlog.domain.format.LocaleFormatters
@@ -51,6 +48,27 @@ import de.simiil.liftlog.ui.components.LoggedSetRow
 import de.simiil.liftlog.ui.exercises.muscleGroupLabel
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_edit_workout
+import liftlog.app.generated.resources.navigate_back
+import liftlog.app.generated.resources.rpe_unset_value
+import liftlog.app.generated.resources.session_detail_bodyweight
+import liftlog.app.generated.resources.session_detail_empty
+import liftlog.app.generated.resources.session_detail_ex_sub
+import liftlog.app.generated.resources.session_detail_foot
+import liftlog.app.generated.resources.session_detail_hint
+import liftlog.app.generated.resources.session_detail_started
+import liftlog.app.generated.resources.session_detail_top_weight
+import liftlog.app.generated.resources.session_duration_value
+import liftlog.app.generated.resources.session_stat_duration
+import liftlog.app.generated.resources.session_stat_rpe
+import liftlog.app.generated.resources.session_stat_sets
+import liftlog.app.generated.resources.session_stat_volume
+import liftlog.app.generated.resources.session_stat_volume_value
+import liftlog.app.generated.resources.session_untitled
+import liftlog.app.generated.resources.set_count
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Instant
@@ -64,7 +82,7 @@ fun SessionDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val formatters = koinInject<LocaleFormatters>()
-    val name = uiState.name ?: stringResource(R.string.session_untitled)
+    val name = uiState.name ?: stringResource(Res.string.session_untitled)
     var showEditSheet by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
@@ -76,7 +94,7 @@ fun SessionDetailScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.navigate_back),
+                            contentDescription = stringResource(Res.string.navigate_back),
                         )
                     }
                 },
@@ -85,7 +103,7 @@ fun SessionDetailScreen(
                         IconButton(onClick = { showEditSheet = true }) {
                             Icon(
                                 Icons.Outlined.Edit,
-                                contentDescription = stringResource(R.string.cd_edit_workout),
+                                contentDescription = stringResource(Res.string.cd_edit_workout),
                             )
                         }
                     }
@@ -108,7 +126,7 @@ fun SessionDetailScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = stringResource(R.string.session_detail_empty),
+                        text = stringResource(Res.string.session_detail_empty),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -156,7 +174,7 @@ fun SessionDetailScreen(
                     }
                     item(key = "hint") {
                         Text(
-                            text = stringResource(R.string.session_detail_hint),
+                            text = stringResource(Res.string.session_detail_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
@@ -179,7 +197,7 @@ fun SessionDetailScreen(
                             Text(
                                 text =
                                     stringResource(
-                                        R.string.session_detail_foot,
+                                        Res.string.session_detail_foot,
                                         name,
                                         formatters.relativeDate(startedAt.toEpochMilliseconds()),
                                     ),
@@ -224,7 +242,7 @@ private fun DateStrip(
     Text(
         text =
             stringResource(
-                R.string.session_detail_started,
+                Res.string.session_detail_started,
                 formatters.weekdayDayMonth(startedAt, zone),
                 year,
                 formatters.timeHm(startedAt, zone),
@@ -248,13 +266,13 @@ private fun SummaryStrip(
     val duration =
         if (startedAt != null && endedAt != null) {
             val sec = (endedAt - startedAt).inWholeSeconds.coerceAtLeast(0)
-            stringResource(R.string.session_duration_value, sec / 60, sec % 60)
+            stringResource(Res.string.session_duration_value, sec / 60, sec % 60)
         } else {
             "—"
         }
     val volume =
         stringResource(
-            R.string.session_stat_volume_value,
+            Res.string.session_stat_volume_value,
             formatters.oneDecimal(volumeKg / 1000.0),
         )
     Surface(
@@ -266,12 +284,12 @@ private fun SummaryStrip(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 18.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            SummaryStat(duration, stringResource(R.string.session_stat_duration), Modifier.weight(1f))
-            SummaryStat(totalSets.toString(), stringResource(R.string.session_stat_sets), Modifier.weight(1f))
-            SummaryStat(volume, stringResource(R.string.session_stat_volume), Modifier.weight(1f))
+            SummaryStat(duration, stringResource(Res.string.session_stat_duration), Modifier.weight(1f))
+            SummaryStat(totalSets.toString(), stringResource(Res.string.session_stat_sets), Modifier.weight(1f))
+            SummaryStat(volume, stringResource(Res.string.session_stat_volume), Modifier.weight(1f))
             SummaryStat(
-                value = rpe?.let { Decimals.format(it) } ?: stringResource(R.string.rpe_unset_value),
-                label = stringResource(R.string.session_stat_rpe),
+                value = rpe?.let { Decimals.format(it) } ?: stringResource(Res.string.rpe_unset_value),
+                label = stringResource(Res.string.session_stat_rpe),
                 modifier = Modifier.weight(1f),
             )
         }
@@ -361,11 +379,11 @@ private fun exerciseSubtitle(
 ): String {
     val lead =
         if (exercise.equipment == Equipment.BODYWEIGHT) {
-            stringResource(R.string.session_detail_bodyweight)
+            stringResource(Res.string.session_detail_bodyweight)
         } else {
             val topKg = exercise.sets.maxOfOrNull { it.weightKg } ?: 0.0
-            stringResource(R.string.session_detail_top_weight, Weights.format(topKg, unit), Weights.label(unit))
+            stringResource(Res.string.session_detail_top_weight, Weights.format(topKg, unit), Weights.label(unit))
         }
-    val sets = pluralStringResource(R.plurals.set_count, exercise.sets.size, exercise.sets.size)
-    return stringResource(R.string.session_detail_ex_sub, lead, sets, muscleGroupLabel(exercise.muscleGroup))
+    val sets = pluralStringResource(Res.plurals.set_count, exercise.sets.size, exercise.sets.size)
+    return stringResource(Res.string.session_detail_ex_sub, lead, sets, muscleGroupLabel(exercise.muscleGroup))
 }

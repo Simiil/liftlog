@@ -4,18 +4,25 @@ import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.RoomTransactor
 import de.simiil.liftlog.data.db.Transactor
 import de.simiil.liftlog.data.repository.AnalyticsRepositoryImpl
+import de.simiil.liftlog.data.repository.BackupRepositoryImpl
 import de.simiil.liftlog.data.repository.ExerciseRepositoryImpl
 import de.simiil.liftlog.data.repository.PlanRepositoryImpl
 import de.simiil.liftlog.data.repository.SessionRepositoryImpl
 import de.simiil.liftlog.data.repository.SettingsRepositoryImpl
+import de.simiil.liftlog.data.seed.ExerciseSeeder
 import de.simiil.liftlog.data.seed.SyntheticHistorySeeder
 import de.simiil.liftlog.domain.logging.ActiveEntryTracker
 import de.simiil.liftlog.domain.plan.DefaultPlanEnsurer
+import de.simiil.liftlog.domain.plan.DefaultPlanNameProvider
 import de.simiil.liftlog.domain.repository.AnalyticsRepository
+import de.simiil.liftlog.domain.repository.BackupRepository
 import de.simiil.liftlog.domain.repository.ExerciseRepository
 import de.simiil.liftlog.domain.repository.PlanRepository
 import de.simiil.liftlog.domain.repository.SessionRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
+import de.simiil.liftlog.ui.exercises.ExerciseNameResolver
+import de.simiil.liftlog.ui.exercises.ResourceExerciseNameResolver
+import de.simiil.liftlog.ui.plans.ResourceDefaultPlanNameProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -49,8 +56,9 @@ val infraModule =
         single(AppScope) { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     }
 
-/** Repositories, the synthetic-history seeder, and domain services. (`ExerciseSeeder` reads
- *  platform assets, so it stays in the Android [platformModule] until PR5 seams asset loading.) */
+/** Repositories, the seeders, and domain services. `ExerciseSeeder` and `BackupRepositoryImpl`
+ *  became common in PR5 (the seed file is a CMP bundled resource; BackupRepositoryImpl swapped
+ *  Dispatchers.IO → Default), so their binds moved here from the Android platformModule. */
 val dataModule =
     module {
         single<SettingsRepository> { SettingsRepositoryImpl(get()) }
@@ -58,12 +66,19 @@ val dataModule =
         single<PlanRepository> { PlanRepositoryImpl(get(), get(), get(), get()) }
         single<SessionRepository> { SessionRepositoryImpl(get(), get(), get(), get(), get()) }
         single<AnalyticsRepository> { AnalyticsRepositoryImpl(get(), get(), get()) }
-        // BackupRepository is bound in the Android platformModule: BackupRepositoryImpl couples to
-        // ExerciseSeeder (asset-backed, androidMain until PR5) and withContext(Dispatchers.IO)
-        // (not a common API). PR5 moves both to common behind the asset seam.
+        factory<BackupRepository> { BackupRepositoryImpl(get(), get(), get(), get(), get(), get()) } // unscoped
+        single { ExerciseSeeder(get(), get(), get(), get(), get()) }
         single { SyntheticHistorySeeder(get(), get()) }
         single { DefaultPlanEnsurer(get(), get()) }
         single { ActiveEntryTracker() }
+    }
+
+/** UI-adjacent bindings whose implementations became common in PR5 (they resolve strings via
+ *  Compose Multiplatform resources rather than an Android Context). */
+val uiModule =
+    module {
+        single<ExerciseNameResolver> { ResourceExerciseNameResolver() }
+        single<DefaultPlanNameProvider> { ResourceDefaultPlanNameProvider() }
     }
 
 /**
@@ -73,4 +88,4 @@ val dataModule =
  */
 expect val platformModule: Module
 
-val appModules: List<Module> = listOf(infraModule, dataModule, platformModule)
+val appModules: List<Module> = listOf(infraModule, dataModule, uiModule, platformModule)

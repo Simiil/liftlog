@@ -1,7 +1,6 @@
 package de.simiil.liftlog.data.seed
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import app.cash.turbine.test
 import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.RoomTransactor
@@ -36,7 +35,6 @@ class ExerciseSeederTest {
     /** Fixed clocks so updatedAt assertions can't race the wall clock. */
     private fun seederAt(millis: Long) =
         ExerciseSeeder(
-            context = InstrumentationRegistry.getInstrumentation().targetContext,
             dao = db.exerciseDao(),
             seedStateDao = db.seedStateDao(),
             transactor = RoomTransactor(db),
