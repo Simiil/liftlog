@@ -161,7 +161,9 @@
     <string name="session_stat_sets">Sätze</string>
     <string name="session_stat_volume">Volumen</string>
     <string name="session_stat_volume_value">%1$st</string>
-    <string name="session_duration_value">%1$d:%2$02d</string>
+    <!-- %2$s must already be zero-padded by the caller (CMP resources only substitute plain
+         %N$s/%N$d — a width/zero-pad flag like %2$02d passes through unsubstituted, see #47) -->
+    <string name="session_duration_value">%1$d:%2$s</string>
 
     <!-- LoggedSetRow -->
     <string name="rpe_label">RPE</string>
@@ -254,10 +256,13 @@
     <string name="template_drag_handle_cd">Neu anordnen</string>
     <string name="home_template_chip_cd">%1$s starten</string>
 
-    <!-- Analytics trend badge -->
-    <string name="trend_up">↑ %1$s%%</string>
-    <string name="trend_down">↓ %1$s%%</string>
-    <string name="trend_flat">→ %1$s%%</string>
+    <!-- Analytics trend badge. A single literal "%" is correct here: CMP resources do not use
+         Android/aapt2's "%%"-escapes-a-literal-percent convention (java.util.Formatter semantics)
+         — CMP only recognizes %N$s/%N$d and leaves everything else, including "%%", untouched, so
+         "%%" would render as two literal percent chars, see #47. -->
+    <string name="trend_up">↑ %1$s%</string>
+    <string name="trend_down">↓ %1$s%</string>
+    <string name="trend_flat">→ %1$s%</string>
     <string name="trend_stale">seit %1$d Wo. nicht trainiert</string>
     <string name="trend_insufficient">mind. 3 Einheiten nötig</string>
 
@@ -268,7 +273,8 @@
     <string name="analytics_stat_sessions">Einheiten</string>
     <string name="analytics_stat_sets">Sätze</string>
     <string name="analytics_stat_volume">Volumen</string>
-    <string name="analytics_week_delta">%1$s%% Volumen vs. letzte Woche</string>
+    <!-- Single literal "%" (see trend_up comment above for why "%%" is wrong under CMP) -->
+    <string name="analytics_week_delta">%1$s% Volumen vs. letzte Woche</string>
     <string name="analytics_search_hint">Übungen suchen</string>
     <string name="analytics_empty">Logge eine Einheit, um Fortschritte zu sehen</string>
     <string name="analytics_volume_value">%1$s %2$s</string>

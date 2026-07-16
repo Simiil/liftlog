@@ -161,7 +161,9 @@
     <string name="session_stat_sets">sets</string>
     <string name="session_stat_volume">volume</string>
     <string name="session_stat_volume_value">%1$st</string>
-    <string name="session_duration_value">%1$d:%2$02d</string>
+    <!-- %2$s must already be zero-padded by the caller (CMP resources only substitute plain
+         %N$s/%N$d — a width/zero-pad flag like %2$02d passes through unsubstituted, see #47) -->
+    <string name="session_duration_value">%1$d:%2$s</string>
 
     <!-- LoggedSetRow -->
     <string name="rpe_label">RPE</string>
@@ -254,10 +256,13 @@
     <string name="template_drag_handle_cd">Reorder</string>
     <string name="home_template_chip_cd">Start %1$s</string>
 
-    <!-- Analytics trend badge -->
-    <string name="trend_up">↑ %1$s%%</string>
-    <string name="trend_down">↓ %1$s%%</string>
-    <string name="trend_flat">→ %1$s%%</string>
+    <!-- Analytics trend badge. A single literal "%" is correct here: CMP resources do not use
+         Android/aapt2's "%%"-escapes-a-literal-percent convention (java.util.Formatter semantics)
+         — CMP only recognizes %N$s/%N$d and leaves everything else, including "%%", untouched, so
+         "%%" would render as two literal percent chars, see #47. -->
+    <string name="trend_up">↑ %1$s%</string>
+    <string name="trend_down">↓ %1$s%</string>
+    <string name="trend_flat">→ %1$s%</string>
     <string name="trend_stale">not trained in %1$d wk</string>
     <string name="trend_insufficient">need 3+ sessions</string>
 
@@ -268,7 +273,8 @@
     <string name="analytics_stat_sessions">sessions</string>
     <string name="analytics_stat_sets">sets</string>
     <string name="analytics_stat_volume">volume</string>
-    <string name="analytics_week_delta">%1$s%% volume vs last week</string>
+    <!-- Single literal "%" (see trend_up comment above for why "%%" is wrong under CMP) -->
+    <string name="analytics_week_delta">%1$s% volume vs last week</string>
     <string name="analytics_search_hint">Search exercises</string>
     <string name="analytics_empty">Log a session to see progress</string>
     <string name="analytics_volume_value">%1$s %2$s</string>

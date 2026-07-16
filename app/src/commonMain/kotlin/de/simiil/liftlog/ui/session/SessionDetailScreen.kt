@@ -266,7 +266,9 @@ private fun SummaryStrip(
     val duration =
         if (startedAt != null && endedAt != null) {
             val sec = (endedAt - startedAt).inWholeSeconds.coerceAtLeast(0)
-            stringResource(Res.string.session_duration_value, sec / 60, sec % 60)
+            // CMP resources only substitute plain %N$s/%N$d (no width/zero-pad flags), so the
+            // zero-pad has to happen here, not via a %2$02d format specifier (see #47).
+            stringResource(Res.string.session_duration_value, sec / 60, (sec % 60).toString().padStart(2, '0'))
         } else {
             "—"
         }
