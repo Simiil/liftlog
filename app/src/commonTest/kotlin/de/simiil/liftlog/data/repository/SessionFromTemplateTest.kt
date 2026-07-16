@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -215,14 +216,16 @@ class SessionFromTemplateTest {
 
     // ─── active-session guard ─────────────────────────────────────────────────
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun startSessionFromTemplate_throws_when_a_session_is_already_active() =
         runTest {
-            // Start an active session first
-            sessionRepo.startEmptySession()
+            assertFailsWith<IllegalStateException> {
+                // Start an active session first
+                sessionRepo.startEmptySession()
 
-            // Should throw because there is already an active session
-            sessionRepo.startSessionFromTemplate(dayId)
+                // Should throw because there is already an active session
+                sessionRepo.startSessionFromTemplate(dayId)
+            }
         }
 
     // ─── empty template ───────────────────────────────────────────────────────

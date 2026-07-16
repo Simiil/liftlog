@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -54,25 +55,31 @@ class ExerciseRepositoryTest {
             assertEquals("Bench", dao.rows[result.id]!!.name)
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun createCustom_throws_on_blank_name() =
         runTest {
-            repo.createCustom("   ", MuscleGroup.CHEST, Equipment.BARBELL)
+            assertFailsWith<IllegalArgumentException> {
+                repo.createCustom("   ", MuscleGroup.CHEST, Equipment.BARBELL)
+            }
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun createCustom_throws_on_empty_name() =
         runTest {
-            repo.createCustom("", MuscleGroup.CHEST, Equipment.BARBELL)
+            assertFailsWith<IllegalArgumentException> {
+                repo.createCustom("", MuscleGroup.CHEST, Equipment.BARBELL)
+            }
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun createCustom_throws_on_case_insensitive_duplicate_of_live_row() =
         runTest {
-            // Pre-insert a live "Bench" exercise
-            repo.createCustom("Bench", MuscleGroup.CHEST, Equipment.BARBELL)
-            // Attempt to create "bench" (case-insensitive duplicate) — must throw
-            repo.createCustom("bench", MuscleGroup.CHEST, Equipment.BARBELL)
+            assertFailsWith<IllegalArgumentException> {
+                // Pre-insert a live "Bench" exercise
+                repo.createCustom("Bench", MuscleGroup.CHEST, Equipment.BARBELL)
+                // Attempt to create "bench" (case-insensitive duplicate) — must throw
+                repo.createCustom("bench", MuscleGroup.CHEST, Equipment.BARBELL)
+            }
         }
 
     @Test

@@ -39,6 +39,8 @@ Rules that make this real (enforced in review, lint-able later):
 
 **Single Gradle module (`:app`).** A solo-developer app of this size gains nothing from multi-module builds except configuration overhead; the package boundaries below mirror the layers exactly, so extracting modules later (e.g. `:domain` for build-time isolation) is mechanical. Revisit if build times or team size grow.
 
+**Kotlin Multiplatform since M7:** `:app` targets both `androidTarget` and iOS (`iosArm64`/`iosSimulatorArm64`). The package tree below lives almost entirely in the `commonMain` source set — `ui/`, `domain/`, and `data/` (Room DAOs/entities/repositories) are shared as-is across platforms. Each platform source set (`androidMain`, `iosMain`) is thin: only `expect`/`actual` platform seams (DB driver install, DataStore file location, locale formatting, dynamic color, document/share intents) plus that platform's entry point (`MainActivity` / `MainViewController`) and, for Android, `@Preview` composables (CMP's `@Preview` is Android-only). `commonTest` holds the shared repository/domain test suite, run on both the JVM (`testDebugUnitTest`) and the iOS simulator (`iosSimulatorArm64Test`).
+
 ```
 de.simiil.liftlog/          (applicationId TBD with app name)
 ├── data/
@@ -60,6 +62,8 @@ de.simiil.liftlog/          (applicationId TBD with app name)
 │   └── …               (one package per screen/feature: Screen + ViewModel + UiState)
 └── di/                Koin modules
 ```
+
+(Tree shown once; in practice it's rooted under `app/src/commonMain/kotlin/de/simiil/liftlog/`, with `app/src/androidMain/.../{platform,di,notification}` and `app/src/iosMain/.../{platform,di,ui}` supplying the platform actuals alongside it.)
 
 ## 3. MVVM / UDF conventions
 

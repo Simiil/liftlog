@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -52,11 +53,13 @@ class SessionRepositoryTest {
             assertNull(dao.sessions[result.id]!!.endedAt)
         }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun startEmptySession_throws_when_a_session_is_already_active() =
         runTest {
-            repo.startEmptySession()
-            repo.startEmptySession() // must throw
+            assertFailsWith<IllegalStateException> {
+                repo.startEmptySession()
+                repo.startEmptySession() // must throw
+            }
         }
 
     @Test
@@ -303,22 +306,28 @@ class SessionRepositoryTest {
             assertEquals(1, result.position)
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun logSet_rejects_negative_weightKg() =
         runTest {
-            repo.logSet("se-1", -1.0, 5)
+            assertFailsWith<IllegalArgumentException> {
+                repo.logSet("se-1", -1.0, 5)
+            }
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun logSet_rejects_zero_reps() =
         runTest {
-            repo.logSet("se-1", 100.0, 0)
+            assertFailsWith<IllegalArgumentException> {
+                repo.logSet("se-1", 100.0, 0)
+            }
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun logSet_rejects_negative_reps() =
         runTest {
-            repo.logSet("se-1", 100.0, -1)
+            assertFailsWith<IllegalArgumentException> {
+                repo.logSet("se-1", 100.0, -1)
+            }
         }
 
     // ─── updateSet ────────────────────────────────────────────────────────────
@@ -361,16 +370,20 @@ class SessionRepositoryTest {
             assertEquals(0, dao.loggedSets.size)
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun updateSet_rejects_negative_weightKg() =
         runTest {
-            repo.updateSet("ls-1", -1.0, 5)
+            assertFailsWith<IllegalArgumentException> {
+                repo.updateSet("ls-1", -1.0, 5)
+            }
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun updateSet_rejects_zero_reps() =
         runTest {
-            repo.updateSet("ls-1", 100.0, 0)
+            assertFailsWith<IllegalArgumentException> {
+                repo.updateSet("ls-1", 100.0, 0)
+            }
         }
 
     // ─── deleteSet ────────────────────────────────────────────────────────────
@@ -482,10 +495,12 @@ class SessionRepositoryTest {
             assertNull(stored.deletedAt)
         }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun replaceExercise_throws_when_session_exercise_not_found() =
         runTest {
-            repo.replaceExercise("non-existent", "ex-new")
+            assertFailsWith<IllegalStateException> {
+                repo.replaceExercise("non-existent", "ex-new")
+            }
         }
 
     // ─── lastPerformance ──────────────────────────────────────────────────────
@@ -588,37 +603,43 @@ class SessionRepositoryTest {
             assertEquals(clockMillis, stored.updatedAt)
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun updateSessionDetails_rejects_end_not_after_start() =
         runTest {
             dao.sessions["sess-1"] = storedSession()
-            repo.updateSessionDetails(
-                "sess-1",
-                startedAt = Instant.fromEpochMilliseconds(200L),
-                endedAt = Instant.fromEpochMilliseconds(200L),
-                rpe = null,
-                note = null,
-            )
+            assertFailsWith<IllegalArgumentException> {
+                repo.updateSessionDetails(
+                    "sess-1",
+                    startedAt = Instant.fromEpochMilliseconds(200L),
+                    endedAt = Instant.fromEpochMilliseconds(200L),
+                    rpe = null,
+                    note = null,
+                )
+            }
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun updateSessionRpe_rejects_out_of_range_rpe() =
         runTest {
             dao.sessions["sess-1"] = storedSession()
-            repo.updateSessionRpe("sess-1", 5.5)
+            assertFailsWith<IllegalArgumentException> {
+                repo.updateSessionRpe("sess-1", 5.5)
+            }
         }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun updateSessionDetails_rejects_out_of_range_rpe() =
         runTest {
             dao.sessions["sess-1"] = storedSession()
-            repo.updateSessionDetails(
-                "sess-1",
-                startedAt = Instant.fromEpochMilliseconds(100L),
-                endedAt = Instant.fromEpochMilliseconds(200L),
-                rpe = 10.5,
-                note = null,
-            )
+            assertFailsWith<IllegalArgumentException> {
+                repo.updateSessionDetails(
+                    "sess-1",
+                    startedAt = Instant.fromEpochMilliseconds(100L),
+                    endedAt = Instant.fromEpochMilliseconds(200L),
+                    rpe = 10.5,
+                    note = null,
+                )
+            }
         }
 
     @Test

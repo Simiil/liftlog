@@ -15,8 +15,14 @@ kotlin {
     androidTarget {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
-    iosArm64()
-    iosSimulatorArm64()
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+        target.binaries.framework {
+            baseName = "LiftLogKit"
+            // isStatic is the CMP-recommended default: the framework is embedded directly
+            // into the Xcode app target (M8) rather than distributed as a dynamic .framework.
+            isStatic = true
+        }
+    }
 
     compilerOptions {
         optIn.add("kotlin.time.ExperimentalTime")
