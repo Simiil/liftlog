@@ -1,7 +1,8 @@
 package de.simiil.liftlog.data.db
 
 import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.execSQL
 
 /**
  * v1 → v2 (2026-06-11 spec): RPE moves from logged sets to the session.
@@ -10,9 +11,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 val MIGRATION_1_2 =
     object : Migration(1, 2) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("ALTER TABLE sessions ADD COLUMN rpe REAL")
-            db.execSQL(
+        override fun migrate(connection: SQLiteConnection) {
+            connection.execSQL("ALTER TABLE sessions ADD COLUMN rpe REAL")
+            connection.execSQL(
                 """CREATE TABLE IF NOT EXISTS `logged_sets_new` (
                    `id` TEXT NOT NULL, `sessionExerciseId` TEXT NOT NULL, `weightKg` REAL NOT NULL,
                    `reps` INTEGER NOT NULL, `position` INTEGER NOT NULL, `completedAt` INTEGER NOT NULL,
@@ -20,15 +21,15 @@ val MIGRATION_1_2 =
                    PRIMARY KEY(`id`),
                    FOREIGN KEY(`sessionExerciseId`) REFERENCES `session_exercises`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION)""",
             )
-            db.execSQL(
+            connection.execSQL(
                 """INSERT INTO logged_sets_new
                    (id, sessionExerciseId, weightKg, reps, position, completedAt, createdAt, updatedAt, deletedAt)
                    SELECT id, sessionExerciseId, weightKg, reps, position, completedAt, createdAt, updatedAt, deletedAt
                    FROM logged_sets""",
             )
-            db.execSQL("DROP TABLE logged_sets")
-            db.execSQL("ALTER TABLE logged_sets_new RENAME TO logged_sets")
-            db.execSQL("CREATE INDEX IF NOT EXISTS `index_logged_sets_sessionExerciseId` ON `logged_sets` (`sessionExerciseId`)")
+            connection.execSQL("DROP TABLE logged_sets")
+            connection.execSQL("ALTER TABLE logged_sets_new RENAME TO logged_sets")
+            connection.execSQL("CREATE INDEX IF NOT EXISTS `index_logged_sets_sessionExerciseId` ON `logged_sets` (`sessionExerciseId`)")
         }
     }
 
@@ -39,10 +40,10 @@ val MIGRATION_1_2 =
  */
 val MIGRATION_2_3 =
     object : Migration(2, 3) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("ALTER TABLE exercises ADD COLUMN force TEXT")
-            db.execSQL("ALTER TABLE exercises ADD COLUMN secondaryMuscleGroups TEXT NOT NULL DEFAULT '[]'")
-            db.execSQL(
+        override fun migrate(connection: SQLiteConnection) {
+            connection.execSQL("ALTER TABLE exercises ADD COLUMN force TEXT")
+            connection.execSQL("ALTER TABLE exercises ADD COLUMN secondaryMuscleGroups TEXT NOT NULL DEFAULT '[]'")
+            connection.execSQL(
                 "CREATE TABLE IF NOT EXISTS `seed_state` (`id` INTEGER NOT NULL, `appliedSeedVersion` INTEGER NOT NULL, PRIMARY KEY(`id`))",
             )
         }

@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.room.gradle.plugin)
 }
 
 kotlin {
@@ -60,7 +61,10 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.reorderable)
             implementation(libs.androidx.room.runtime)
-            implementation(libs.androidx.room.ktx)
+            // BundledSQLiteDriver: Room reads/writes via SQLite compiled from source rather than the
+            // OS's framework SQLite, so behavior is identical across Android versions. Moves to
+            // commonMain in PR4 Task 5 once the DB builder lives behind a platform module.
+            implementation(libs.androidx.sqlite.bundled)
         }
         androidUnitTest.dependencies {
             implementation(libs.junit)
@@ -147,10 +151,6 @@ android {
         buildConfig = true
     }
 
-    sourceSets {
-        getByName("androidTest").assets.srcDir("$projectDir/schemas")
-    }
-
     testOptions {
         managedDevices {
             localDevices {
@@ -164,9 +164,14 @@ android {
     }
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-    arg("room.generateKotlin", "true")
+// Room 2.8's Gradle plugin (`androidx.room`) replaces the raw `ksp { arg("room.schemaLocation", ...) }`
+// wiring. It also auto-registers a copy task that adds the exported schemas into the
+// androidTest assets source set for MigrationTestHelper — this supersedes the old manual
+// `android { sourceSets.getByName("androidTest").assets.srcDir(...) }` line (removed above);
+// keeping both would double-add the same asset paths and fail AGP's asset merge.
+room {
+    schemaDirectory("$projectDir/schemas")
+    generateKotlin = true
 }
 
 dependencies {

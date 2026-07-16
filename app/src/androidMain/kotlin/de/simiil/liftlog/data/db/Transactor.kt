@@ -1,6 +1,7 @@
 package de.simiil.liftlog.data.db
 
-import androidx.room.withTransaction
+import androidx.room.immediateTransaction
+import androidx.room.useWriterConnection
 
 /** Atomic multi-DAO unit of work. Fakes run [block] inline so cascade logic is JVM-testable. */
 interface Transactor {
@@ -10,5 +11,6 @@ interface Transactor {
 class RoomTransactor(
     private val db: AppDatabase,
 ) : Transactor {
-    override suspend fun <R> immediate(block: suspend () -> R): R = db.withTransaction { block() }
+    override suspend fun <R> immediate(block: suspend () -> R): R =
+        db.useWriterConnection { transactor -> transactor.immediateTransaction { block() } }
 }

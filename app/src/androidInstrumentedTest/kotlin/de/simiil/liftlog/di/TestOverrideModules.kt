@@ -5,9 +5,11 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import de.simiil.liftlog.data.backup.AppInfo
 import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.DB_SCHEMA_VERSION
+import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -30,7 +32,13 @@ import java.util.UUID
 val testOverrideModules: List<Module> =
     listOf(
         module {
-            single { Room.inMemoryDatabaseBuilder(androidContext(), AppDatabase::class.java).build() }
+            single {
+                Room
+                    .inMemoryDatabaseBuilder(androidContext(), AppDatabase::class.java)
+                    .setDriver(BundledSQLiteDriver())
+                    .setQueryCoroutineContext(Dispatchers.IO)
+                    .build()
+            }
             single { AppInfo(name = "LiftLog", versionName = "test", dbSchemaVersion = DB_SCHEMA_VERSION) }
             single<DataStore<Preferences>> {
                 PreferenceDataStoreFactory.create {

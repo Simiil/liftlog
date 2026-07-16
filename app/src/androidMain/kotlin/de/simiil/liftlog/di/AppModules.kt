@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import de.simiil.liftlog.BuildConfig
 import de.simiil.liftlog.MainViewModel
 import de.simiil.liftlog.data.backup.AppInfo
@@ -74,6 +75,8 @@ val infraModule =
             Room
                 .databaseBuilder(androidContext(), AppDatabase::class.java, "liftlog.db")
                 .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .setDriver(BundledSQLiteDriver())
+                .setQueryCoroutineContext(Dispatchers.IO)
                 .build()
         }
         single { get<AppDatabase>().exerciseDao() }
