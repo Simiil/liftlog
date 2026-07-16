@@ -1,6 +1,8 @@
 package de.simiil.liftlog.ui.components.charts
 
+import de.simiil.liftlog.ui.format.AndroidLocaleFormatters
 import org.junit.Test
+import java.util.Locale
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -22,8 +24,27 @@ class NiceTicksTest {
         assertTrue(t.size >= 2) // never collapses to one tick
     }
 
-    @Test fun labels() {
-        assertEquals("80", tickLabel(80.0))
-        assertEquals("82.5", tickLabel(82.5))
+    @Test fun labels_localeAware() {
+        val fmt = AndroidLocaleFormatters(context = null)
+
+        fun <T> withLocale(
+            l: Locale,
+            block: () -> T,
+        ): T {
+            val old = Locale.getDefault()
+            Locale.setDefault(l)
+            try {
+                return block()
+            } finally {
+                Locale.setDefault(old)
+            }
+        }
+
+        // Whole ticks are locale-independent integers.
+        assertEquals("80", withLocale(Locale.US) { tickLabel(80.0, fmt) })
+        assertEquals("80", withLocale(Locale.GERMANY) { tickLabel(80.0, fmt) })
+        // Fractional ticks use the locale decimal separator (08-i18n-spec §5).
+        assertEquals("82.5", withLocale(Locale.US) { tickLabel(82.5, fmt) })
+        assertEquals("82,5", withLocale(Locale.GERMANY) { tickLabel(82.5, fmt) })
     }
 }
