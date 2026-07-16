@@ -18,17 +18,17 @@
     <string name="settings_import">Import data</string>
     <string name="settings_import_desc">Restore from a backup file</string>
     <string name="backup_exported">Backup exported</string>
-    <string name="backup_export_failed">Couldn\'t export backup</string>
+    <string name="backup_export_failed">Couldn't export backup</string>
     <string name="backup_imported">Backup imported</string>
     <string name="backup_import_confirm_title">Replace all data?</string>
     <!-- %1$s = backup date, %2$d = sessions, %3$d = exercises -->
-    <string name="backup_import_confirm_message">Replace all current data with the backup from %1$s? %2$d sessions · %3$d exercises. This can\'t be undone.</string>
+    <string name="backup_import_confirm_message">Replace all current data with the backup from %1$s? %2$d sessions · %3$d exercises. This can't be undone.</string>
     <string name="backup_import_confirm_button">Replace</string>
     <string name="backup_cancel">Cancel</string>
-    <string name="backup_error_title">Couldn\'t import backup</string>
+    <string name="backup_error_title">Couldn't import backup</string>
     <string name="backup_error_live_session">Finish or discard your active session before importing.</string>
     <string name="backup_error_newer">This backup was created by a newer version of LiftLog. Update the app, then try again.</string>
-    <string name="backup_error_corrupt">This file isn\'t a valid LiftLog backup, or it\'s incomplete.</string>
+    <string name="backup_error_corrupt">This file isn't a valid LiftLog backup, or it's incomplete.</string>
     <string name="backup_dialog_ok">OK</string>
     <string name="placeholder_coming_soon">Coming soon</string>
 
@@ -355,7 +355,7 @@
     <string name="exercise_bent_over_two_dumbbell_row">Bent Over Two-Dumbbell Row</string>
     <string name="exercise_cat_stretch">Cat Stretch</string>
     <string name="exercise_chair_lower_back_stretch">Chair Lower Back Stretch</string>
-    <string name="exercise_child_s_pose">Child\'s Pose</string>
+    <string name="exercise_child_s_pose">Child's Pose</string>
     <string name="exercise_chin_up">Chin-up</string>
     <string name="exercise_close_grip_front_lat_pulldown">Close-Grip Front Lat Pulldown</string>
     <string name="exercise_crossover_reverse_lunge">Crossover Reverse Lunge</string>
@@ -548,7 +548,7 @@
     <string name="exercise_stiff_legged_dumbbell_deadlift">Stiff-Legged Dumbbell Deadlift</string>
     <string name="exercise_sumo_deadlift">Sumo Deadlift</string>
     <string name="exercise_vertical_swing">Vertical Swing</string>
-    <string name="exercise_world_s_greatest_stretch">World\'s Greatest Stretch</string>
+    <string name="exercise_world_s_greatest_stretch">World's Greatest Stretch</string>
     <string name="exercise_ankle_on_the_knee">Ankle On The Knee</string>
     <string name="exercise_barbell_glute_bridge">Barbell Glute Bridge</string>
     <string name="exercise_butt_lift_bridge">Butt Lift (Bridge)</string>
@@ -612,7 +612,7 @@
     <string name="exercise_weighted_crunches">Weighted Crunches</string>
     <string name="exercise_barbell_wrist_curl">Barbell Wrist Curl</string>
     <string name="exercise_cable_wrist_curl">Cable Wrist Curl</string>
-    <string name="exercise_farmer_s_walk">Farmer\'s Walk</string>
+    <string name="exercise_farmer_s_walk">Farmer's Walk</string>
     <string name="exercise_finger_curls">Finger Curls</string>
     <string name="exercise_kneeling_forearm_stretch">Kneeling Forearm Stretch</string>
     <string name="exercise_plate_pinch">Plate Pinch</string>
