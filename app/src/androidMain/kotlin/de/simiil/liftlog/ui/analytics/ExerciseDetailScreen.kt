@@ -120,6 +120,7 @@ fun ExerciseDetailScreen(
                             ProgressLineChart(
                                 ui.chartPoints,
                                 zeroBased = ui.chartZeroBased,
+                                formatters = formatters,
                                 contentDescription =
                                     stringResource(
                                         R.string.cd_progress_chart,

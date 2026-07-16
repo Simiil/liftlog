@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import de.simiil.liftlog.domain.format.LocaleFormatters
 
 /**
  * A single data point: x = whole minutes since the first charted session, y = the selected metric
@@ -40,6 +41,7 @@ data class ChartPoint(
 fun ProgressLineChart(
     points: List<ChartPoint>,
     zeroBased: Boolean,
+    formatters: LocaleFormatters,
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
 ) {
@@ -73,9 +75,12 @@ fun ProgressLineChart(
                 },
             ),
     ) {
-        val tickLayouts = ticks.map { t -> t to textMeasurer.measure(tickLabel(t), labelStyle) }
+        val tickLayouts = ticks.map { t -> t to textMeasurer.measure(tickLabel(t, formatters), labelStyle) }
         val labelWidth = tickLayouts.maxOf { it.second.size.width } + 8.dp.toPx()
-        val plot = Rect(labelWidth, 6.dp.toPx(), size.width, size.height - 6.dp.toPx())
+        // Inset both x edges by the largest marker radius so the first/last session dots
+        // (most visibly the 11dp PR marker) never clip at the canvas boundary.
+        val maxDotRadius = 11.dp.toPx() / 2f
+        val plot = Rect(labelWidth + maxDotRadius, 6.dp.toPx(), size.width - maxDotRadius, size.height - 6.dp.toPx())
         val xMin = points.first().x
         val xSpan = (points.last().x - xMin).takeIf { it > 0f } ?: 1f
         val yFirst = ticks.first()
