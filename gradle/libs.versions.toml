@@ -14,7 +14,15 @@ composeMultiplatformMaterialIcons = "1.7.3"
 sqlite = "2.7.0"
 activityCompose = "1.10.1"
 lifecycle = "2.9.2"
-navigationCompose = "2.9.3"
+# JetBrains multiplatform fork of navigation-compose (org.jetbrains.androidx.navigation), not the
+# Google androidx.navigation artifact. Same androidx.navigation.* packages; on the Android target
+# its release variant depends directly on the real androidx.navigation:navigation-compose, so the
+# exact same classes load there too (verified via the published Gradle module metadata) — the fork
+# only supplies its own implementation for non-Android (iOS/desktop/etc.) targets. 2.9.2 is the
+# newest STABLE release in the org.jetbrains.androidx.navigation:navigation-compose group as of
+# 2026-07-16 (maven-metadata.xml <release> is 2.10.0-alpha02; the 2.9.x line tops out at 2.9.2,
+# with 2.10.0 still alpha-only — no Nav3 artifacts considered).
+jbNavigation = "2.9.2"
 coreKtx = "1.16.0"
 datastore = "1.1.7"
 kotlinxSerialization = "1.9.0"
@@ -32,8 +40,6 @@ reorderable = "3.1.0"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
-androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
-androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
@@ -41,7 +47,6 @@ compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
-androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 androidx-datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }
 koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koinBom" }
@@ -82,6 +87,9 @@ compose-mp-ui-tooling-preview = { group = "org.jetbrains.compose.ui", name = "ui
 compose-mp-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "composeMultiplatformMaterial3" }
 compose-mp-material-icons-extended = { group = "org.jetbrains.compose.material", name = "material-icons-extended", version.ref = "composeMultiplatformMaterialIcons" }
 compose-mp-components-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "composeMultiplatform" }
+
+# JetBrains multiplatform fork of navigation-compose — see the jbNavigation version comment above.
+jetbrains-navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "jbNavigation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
