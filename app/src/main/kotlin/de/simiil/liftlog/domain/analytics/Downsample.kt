@@ -1,8 +1,8 @@
 package de.simiil.liftlog.domain.analytics
 
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 enum class Aggregation { MAX, SUM }
 
