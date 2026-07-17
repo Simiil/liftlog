@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import de.simiil.liftlog.domain.logging.ActiveEntry
 import de.simiil.liftlog.domain.logging.ActiveEntryTracker
+import de.simiil.liftlog.domain.logging.NotificationPermissionTick
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.LoggedSet
@@ -13,7 +14,6 @@ import de.simiil.liftlog.domain.model.SessionExercise
 import de.simiil.liftlog.domain.model.SessionExerciseWithSets
 import de.simiil.liftlog.domain.model.SessionWithDetails
 import de.simiil.liftlog.domain.model.WeightUnit
-import de.simiil.liftlog.notification.NotificationPermissionTick
 import de.simiil.liftlog.testing.FakeExerciseRepository
 import de.simiil.liftlog.testing.FakeSessionRepository
 import de.simiil.liftlog.testing.FakeSettingsRepository
@@ -143,7 +143,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `entry is pre-filled from last performance first set (rule 2)`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult =
@@ -176,7 +176,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `weight increment adds 2_5 kg and decrement floors at 0`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
@@ -202,7 +202,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `logSet records the set and re-primes the entry (rule 1)`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10), perf(30.0, 10))
@@ -254,7 +254,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `logSet is a no-op when weight is null (never performed)`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = emptyList() // never performed
@@ -281,7 +281,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `auto-advance activates the next card when a target is met`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo =
                 FakeExerciseRepository().apply {
@@ -329,7 +329,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `card exposes targetRepsMin and targetRepsMax from session exercise`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Squat")) }
             sessionRepo.lastPerformanceResult = listOf(perf(100.0, 10))
@@ -359,7 +359,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `finish sets finished flag and total set count`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
@@ -395,7 +395,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `uiState exposes session rpe and note`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
@@ -419,7 +419,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `onSessionRpeChange persists immediately`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
@@ -441,7 +441,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `onSessionNoteChange persists after debounce`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
@@ -466,7 +466,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `onFinish flushes a pending note before finishing`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
@@ -498,7 +498,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `rapid note edits conflate to one debounced write`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
@@ -527,7 +527,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `onFinish without pending note writes no note`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
@@ -556,7 +556,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `onNoteFlush persists immediately without debounce`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository().apply { all.value = listOf(exercise("ex1", "Bench")) }
             sessionRepo.lastPerformanceResult = listOf(perf(30.0, 10))
@@ -597,7 +597,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `tracker mirrors the seeded entry`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = singleExerciseSetup(sessionRepo)
             val tracker = ActiveEntryTracker()
@@ -610,7 +610,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `tracker mirrors dialed weight and reps changes`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = singleExerciseSetup(sessionRepo)
             val tracker = ActiveEntryTracker()
@@ -627,7 +627,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `tracker clears on finish`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = singleExerciseSetup(sessionRepo)
             val tracker = ActiveEntryTracker()
@@ -644,7 +644,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `tracker clears on discard`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = singleExerciseSetup(sessionRepo)
             val tracker = ActiveEntryTracker()
@@ -663,7 +663,7 @@ class ActiveSessionViewModelTest {
 
     @Test
     fun `permission result bumps the coordinator tick`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = singleExerciseSetup(sessionRepo)
             val tick = NotificationPermissionTick()

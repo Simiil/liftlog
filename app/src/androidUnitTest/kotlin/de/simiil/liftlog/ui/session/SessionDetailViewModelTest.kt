@@ -121,7 +121,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `loading is true when details not yet emitted`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeSessionRepository()
             val vm = makeVm(repo)
 
@@ -134,7 +134,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `details are mapped to ui state`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository()
 
@@ -170,7 +170,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `exercise name is empty string when exerciseId not in repository`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository()
 
@@ -201,7 +201,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `onEditSetSave calls updateSet on repository`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository()
 
@@ -241,7 +241,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `onDeleteSet calls deleteSet on repository`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository()
 
@@ -276,7 +276,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `editingSetId reflects long-press then collapse`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository()
 
@@ -314,7 +314,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `editingSetId is cleared after onEditSetSave`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository()
 
@@ -349,7 +349,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `rpe and note are mapped to ui state`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository()
             val sess = session("s1").copy(rpe = 8.5, note = "good one")
@@ -369,7 +369,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `onEditDetailsSave delegates to repository`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val sess = session("s1")
             val se = sessionExercise("se-1", "s1", "ex-1")
@@ -401,7 +401,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `onDeleteWorkout soft-deletes the session and invokes the callback`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val sess = session("s1")
             val se = sessionExercise("se-1", "s1", "ex-1")
@@ -431,7 +431,7 @@ class SessionDetailViewModelTest {
 
     @Test
     fun `editingSetId is cleared after onDeleteSet`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sessionRepo = FakeSessionRepository()
             val exerciseRepo = FakeExerciseRepository()
 

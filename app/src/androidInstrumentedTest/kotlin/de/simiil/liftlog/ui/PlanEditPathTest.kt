@@ -12,7 +12,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.simiil.liftlog.MainActivity
-import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
 import de.simiil.liftlog.domain.repository.ExerciseRepository
@@ -27,6 +26,9 @@ import de.simiil.liftlog.ui.UiTestTags.TEMPLATE_ADD_EXERCISE
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.tab_plans
+import org.jetbrains.compose.resources.getString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
@@ -80,7 +82,7 @@ class PlanEditPathTest : KoinComponent {
     @Test
     fun addDay_editInPlace_startsSessionWithTheAddedExercise() {
         // 1. Switch to the Plan tab.
-        val planLabel = composeRule.activity.getString(R.string.tab_plans)
+        val planLabel = runBlocking { getString(Res.string.tab_plans) }
         await(hasText(planLabel), atLeast = 1, timeoutMillis = 10_000)
         composeRule.onNodeWithText(planLabel).performClick()
 

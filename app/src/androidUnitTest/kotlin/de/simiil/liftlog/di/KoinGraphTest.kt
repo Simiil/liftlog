@@ -12,10 +12,12 @@ class KoinGraphTest {
     fun koinGraph_resolves() {
         // A single module's verify() only builds its definition index from its OWN mappings plus
         // whatever it `includes()` — it does not see other top-level modules' definitions. So
-        // dataModule/uiModule/androidPlatformModule/viewModelModule (which depend on types bound
-        // in infraModule, e.g. ExerciseSeeder -> ExerciseDao) can only be checked together by
+        // dataModule/uiModule/viewModelModule/platformModule (which depend on types bound in
+        // infraModule, e.g. ExerciseSeeder -> ExerciseDao) can only be checked together by
         // wrapping the whole app graph in one module via includes(), Koin's documented pattern for
         // verifying a multi-module app (module-by-module verify()/verifyAll() would both under-report).
+        // This runs on Android, where platformModule binds LocaleFormatters/DocumentIo/notification
+        // singles, so the graph is complete; the iOS graph is completed in PR5 Task 5.
         // Context comes from androidContext(); SavedStateHandle from the VM factory extras.
         module { includes(appModules) }
             .verify(extraTypes = listOf(Context::class, SavedStateHandle::class, Long::class))

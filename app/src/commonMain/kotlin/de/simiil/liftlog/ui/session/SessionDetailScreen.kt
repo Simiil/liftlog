@@ -1,0 +1,391 @@
+package de.simiil.liftlog.ui.session
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.simiil.liftlog.domain.analytics.SetEntry
+import de.simiil.liftlog.domain.analytics.volumeKg
+import de.simiil.liftlog.domain.format.LocaleFormatters
+import de.simiil.liftlog.domain.model.Equipment
+import de.simiil.liftlog.domain.units.Decimals
+import de.simiil.liftlog.domain.units.Weights
+import de.simiil.liftlog.ui.components.LoggedSetRow
+import de.simiil.liftlog.ui.exercises.muscleGroupLabel
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.cd_edit_workout
+import liftlog.app.generated.resources.navigate_back
+import liftlog.app.generated.resources.rpe_unset_value
+import liftlog.app.generated.resources.session_detail_bodyweight
+import liftlog.app.generated.resources.session_detail_empty
+import liftlog.app.generated.resources.session_detail_ex_sub
+import liftlog.app.generated.resources.session_detail_foot
+import liftlog.app.generated.resources.session_detail_hint
+import liftlog.app.generated.resources.session_detail_started
+import liftlog.app.generated.resources.session_detail_top_weight
+import liftlog.app.generated.resources.session_duration_value
+import liftlog.app.generated.resources.session_stat_duration
+import liftlog.app.generated.resources.session_stat_rpe
+import liftlog.app.generated.resources.session_stat_sets
+import liftlog.app.generated.resources.session_stat_volume
+import liftlog.app.generated.resources.session_stat_volume_value
+import liftlog.app.generated.resources.session_untitled
+import liftlog.app.generated.resources.set_count
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.Instant
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SessionDetailScreen(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: SessionDetailViewModel = koinViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val formatters = koinInject<LocaleFormatters>()
+    val name = uiState.name ?: stringResource(Res.string.session_untitled)
+    var showEditSheet by rememberSaveable { mutableStateOf(false) }
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(name) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = stringResource(Res.string.navigate_back),
+                        )
+                    }
+                },
+                actions = {
+                    if (uiState.startedAt != null && uiState.endedAt != null) {
+                        IconButton(onClick = { showEditSheet = true }) {
+                            Icon(
+                                Icons.Outlined.Edit,
+                                contentDescription = stringResource(Res.string.cd_edit_workout),
+                            )
+                        }
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        when {
+            uiState.loading -> {
+                Box(
+                    modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            uiState.exercises.isEmpty() -> {
+                Box(
+                    modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(Res.string.session_detail_empty),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            else -> {
+                val totalSets = uiState.exercises.sumOf { it.sets.size }
+                val totalVolumeKg =
+                    volumeKg(
+                        uiState.exercises.flatMap { e -> e.sets.map { SetEntry(it.weightKg, it.reps) } },
+                    )
+                LazyColumn(
+                    modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 28.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    uiState.startedAt?.let { startedAt ->
+                        item(key = "datestrip") { DateStrip(startedAt, formatters) }
+                    }
+                    item(key = "summary") {
+                        SummaryStrip(
+                            startedAt = uiState.startedAt,
+                            endedAt = uiState.endedAt,
+                            totalSets = totalSets,
+                            volumeKg = totalVolumeKg,
+                            rpe = uiState.rpe,
+                            formatters = formatters,
+                        )
+                    }
+                    uiState.note?.let { note ->
+                        item(key = "note") {
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(
+                                    text = note,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(14.dp),
+                                )
+                            }
+                        }
+                    }
+                    item(key = "hint") {
+                        Text(
+                            text = stringResource(Res.string.session_detail_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    items(uiState.exercises, key = { it.sessionExerciseId }) { exercise ->
+                        DetailCard(
+                            exercise = exercise,
+                            unit = uiState.unit,
+                            editingSetId = uiState.editingSetId,
+                            onLongPress = viewModel::onLongPressSet,
+                            onSave = viewModel::onEditSetSave,
+                            onDelete = viewModel::onDeleteSet,
+                            onCollapse = viewModel::onCollapseEdit,
+                        )
+                    }
+                    uiState.startedAt?.let { startedAt ->
+                        item(key = "foot") {
+                            Text(
+                                text =
+                                    stringResource(
+                                        Res.string.session_detail_foot,
+                                        name,
+                                        formatters.relativeDate(startedAt.toEpochMilliseconds()),
+                                    ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    val startedAt = uiState.startedAt
+    val endedAt = uiState.endedAt
+    if (showEditSheet && startedAt != null && endedAt != null) {
+        EditWorkoutSheet(
+            startedAt = startedAt,
+            endedAt = endedAt,
+            rpe = uiState.rpe,
+            note = uiState.note,
+            onSave = viewModel::onEditDetailsSave,
+            onDelete = {
+                showEditSheet = false
+                viewModel.onDeleteWorkout(onBack)
+            },
+            onDismiss = { showEditSheet = false },
+        )
+    }
+}
+
+// ── Date strip: "Mon 2 Jun · 2026 · started 18:30" ────────────────────────────
+@Composable
+private fun DateStrip(
+    startedAt: Instant,
+    formatters: LocaleFormatters,
+) {
+    val zone = TimeZone.currentSystemDefault()
+    val year = startedAt.toLocalDateTime(zone).year
+    Text(
+        text =
+            stringResource(
+                Res.string.session_detail_started,
+                formatters.weekdayDayMonth(startedAt, zone),
+                year,
+                formatters.timeHm(startedAt, zone),
+            ),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp),
+    )
+}
+
+// ── Summary stat strip: duration · sets · volume · RPE ───────────────────────
+@Composable
+private fun SummaryStrip(
+    startedAt: Instant?,
+    endedAt: Instant?,
+    totalSets: Int,
+    volumeKg: Double,
+    formatters: LocaleFormatters,
+    rpe: Double? = null,
+) {
+    val duration =
+        if (startedAt != null && endedAt != null) {
+            val sec = (endedAt - startedAt).inWholeSeconds.coerceAtLeast(0)
+            // CMP resources only substitute plain %N$s/%N$d (no width/zero-pad flags), so the
+            // zero-pad has to happen here, not via a %2$02d format specifier (see #47).
+            stringResource(Res.string.session_duration_value, sec / 60, (sec % 60).toString().padStart(2, '0'))
+        } else {
+            "—"
+        }
+    val volume =
+        stringResource(
+            Res.string.session_stat_volume_value,
+            formatters.oneDecimal(volumeKg / 1000.0),
+        )
+    Surface(
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 18.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SummaryStat(duration, stringResource(Res.string.session_stat_duration), Modifier.weight(1f))
+            SummaryStat(totalSets.toString(), stringResource(Res.string.session_stat_sets), Modifier.weight(1f))
+            SummaryStat(volume, stringResource(Res.string.session_stat_volume), Modifier.weight(1f))
+            SummaryStat(
+                value = rpe?.let { Decimals.format(it) } ?: stringResource(Res.string.rpe_unset_value),
+                label = stringResource(Res.string.session_stat_rpe),
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryStat(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = value,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = FontFamily.Monospace,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+// ── One exercise card: title, sub-line, logged set rows ───────────────────────
+@Composable
+private fun DetailCard(
+    exercise: DetailExerciseUi,
+    unit: de.simiil.liftlog.domain.model.WeightUnit,
+    editingSetId: String?,
+    onLongPress: (String) -> Unit,
+    onSave: (String, Double, Int) -> Unit,
+    onDelete: (String) -> Unit,
+    onCollapse: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)) {
+            Text(
+                text = exercise.name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(
+                text = exerciseSubtitle(exercise, unit),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                exercise.sets.forEachIndexed { index, set ->
+                    LoggedSetRow(
+                        index = index + 1,
+                        set = set,
+                        unit = unit,
+                        expanded = editingSetId == set.id,
+                        onLongPress = { onLongPress(set.id) },
+                        onSave = { w, r -> onSave(set.id, w, r) },
+                        onDelete = { onDelete(set.id) },
+                        onCollapse = onCollapse,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** "top 85 kg · 3 sets · Chest" — or "Bodyweight · 3 sets · Back" for bodyweight lifts. */
+@Composable
+private fun exerciseSubtitle(
+    exercise: DetailExerciseUi,
+    unit: de.simiil.liftlog.domain.model.WeightUnit,
+): String {
+    val lead =
+        if (exercise.equipment == Equipment.BODYWEIGHT) {
+            stringResource(Res.string.session_detail_bodyweight)
+        } else {
+            val topKg = exercise.sets.maxOfOrNull { it.weightKg } ?: 0.0
+            stringResource(Res.string.session_detail_top_weight, Weights.format(topKg, unit), Weights.label(unit))
+        }
+    val sets = pluralStringResource(Res.plurals.set_count, exercise.sets.size, exercise.sets.size)
+    return stringResource(Res.string.session_detail_ex_sub, lead, sets, muscleGroupLabel(exercise.muscleGroup))
+}

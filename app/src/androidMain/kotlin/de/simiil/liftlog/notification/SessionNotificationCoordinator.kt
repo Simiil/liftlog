@@ -8,6 +8,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import de.simiil.liftlog.domain.logging.ActiveEntryTracker
+import de.simiil.liftlog.domain.logging.NotificationPermissionTick
 import de.simiil.liftlog.domain.repository.SessionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

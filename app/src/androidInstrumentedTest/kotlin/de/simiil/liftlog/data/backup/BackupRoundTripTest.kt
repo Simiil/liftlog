@@ -4,8 +4,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import de.simiil.liftlog.R
 import de.simiil.liftlog.data.db.AppDatabase
 import de.simiil.liftlog.data.db.RoomTransactor
 import de.simiil.liftlog.data.entity.ExerciseEntity
@@ -33,6 +31,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import liftlog.app.generated.resources.Res
+import liftlog.app.generated.resources.default_plan_name
+import org.jetbrains.compose.resources.getString
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -83,14 +84,12 @@ class BackupRoundTripTest {
     /** Wires a real [DefaultPlanEnsurer] over the test [db] so `applyImport` exercises the same
      *  seeding path production does. */
     private fun defaultPlanEnsurer(): DefaultPlanEnsurer {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         val planRepository = PlanRepositoryImpl(db.planDao(), RoomTransactor(db), clock, FakeDataStore())
-        return DefaultPlanEnsurer(planRepository, ResourceDefaultPlanNameProvider(context))
+        return DefaultPlanEnsurer(planRepository, ResourceDefaultPlanNameProvider())
     }
 
     private fun exerciseSeeder() =
         ExerciseSeeder(
-            context = InstrumentationRegistry.getInstrumentation().targetContext,
             dao = db.exerciseDao(),
             seedStateDao = db.seedStateDao(),
             transactor = RoomTransactor(db),
@@ -284,8 +283,7 @@ class BackupRoundTripTest {
 
             val livePlans = db.planDao().observePlans().first()
             assertEquals(1, livePlans.size)
-            val context = InstrumentationRegistry.getInstrumentation().targetContext
-            assertEquals(context.getString(R.string.default_plan_name), livePlans[0].name)
+            assertEquals(getString(Res.string.default_plan_name), livePlans[0].name)
         }
 
     private suspend fun snapshotTables(dao: de.simiil.liftlog.data.dao.BackupDao) =

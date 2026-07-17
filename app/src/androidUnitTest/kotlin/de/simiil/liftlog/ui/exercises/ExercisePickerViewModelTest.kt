@@ -53,7 +53,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `query filters results by case-insensitive substring`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             repo.visible.value =
                 listOf(
@@ -80,7 +80,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `muscle filter narrows results to matching muscle group`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             repo.visible.value =
                 listOf(
@@ -107,7 +107,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `equipment filter narrows results to matching equipment`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             repo.visible.value =
                 listOf(
@@ -133,7 +133,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `recent surfaces recently-used exercises first when no query or filter active`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             val ex1 = makeExercise("ex-1", "Bench Press")
             val ex2 = makeExercise("ex-2", "Squat")
@@ -158,7 +158,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `recent is empty when a query is active`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             val ex1 = makeExercise("ex-1", "Bench Press")
             repo.visible.value = listOf(ex1)
@@ -179,7 +179,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `recent is empty when a muscle filter is active`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             val ex1 = makeExercise("ex-1", "Bench Press", muscle = MuscleGroup.CHEST)
             repo.visible.value = listOf(ex1)
@@ -200,7 +200,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `createCustom happy path invokes onCreated with new exercise id`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
@@ -223,7 +223,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `createCustom blank name sets createError to BLANK_NAME and does not call onCreated`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
@@ -243,7 +243,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `createCustom duplicate name sets createError to DUPLICATE_NAME and does not call onCreated`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             repo.duplicateNames.add("bench press")
 
@@ -265,7 +265,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `createError is cleared when onQueryChange is called`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             val vm = ExercisePickerViewModel(repo, resolver, formatters)
 
@@ -289,7 +289,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `results sorted by recency then name when no query active`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             val exA = makeExercise("ex-a", "Squat")
             val exB = makeExercise("ex-b", "Bench Press")
@@ -313,7 +313,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `sorts by localized display name, not stored name`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             // Stored "Zzz Press" resolves to "Aaa Press": must sort first despite its stored name.
             val invertingResolver =
                 ExerciseNameResolver { id, fallback ->
@@ -337,7 +337,7 @@ class ExercisePickerViewModelTest {
 
     @Test
     fun `query matches the localized display name`() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val repo = FakeExerciseRepository()
             repo.visible.value =
                 listOf(

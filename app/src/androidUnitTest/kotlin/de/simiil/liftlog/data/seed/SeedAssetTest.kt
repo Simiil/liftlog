@@ -13,7 +13,8 @@ class SeedAssetTest {
     private val seed =
         Json { ignoreUnknownKeys = true }
             .decodeFromString<SeedFile>(
-                File("src/androidMain/assets/seed/exercises.v${ExerciseSeeder.SEED_VERSION}.json").readText(),
+                // Seed file moved to CMP bundled resources in PR5 (commonMain/composeResources).
+                File("src/commonMain/composeResources/${ExerciseSeeder.ASSET}").readText(),
             )
 
     @Test fun hasExactlyExpectedCount() = assertEquals(331, seed.exercises.size)

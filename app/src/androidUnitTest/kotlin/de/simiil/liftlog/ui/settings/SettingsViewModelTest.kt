@@ -34,10 +34,10 @@ class SettingsViewModelTest {
             backupRepository = backup,
             documentIo =
                 object : DocumentIo {
-                    override suspend fun readText(uri: android.net.Uri) = error("unused")
+                    override suspend fun readText(handle: DocumentHandle) = error("unused")
 
                     override suspend fun writeText(
-                        uri: android.net.Uri,
+                        handle: DocumentHandle,
                         text: String,
                     ) = error("unused")
                 },

@@ -27,6 +27,16 @@ milestone is a reviewable PR series with a review gate at its exit criteria.
 - `./gradlew lint` — Android lint
 - `./gradlew ktlintFormat` — auto-format Kotlin (ktlint, style in `.editorconfig`); run before committing
 - `./gradlew ktlintCheck lint testDebugUnitTest assembleDebug` — exactly what CI runs
+- KMP source-set layout (since M7): `commonMain` holds UI (Compose), domain, and data (Room DAOs/
+  repositories) — the code that's actually shared; `androidMain`/`iosMain` hold only the
+  platform-seam `actual`s (DB driver install, DataStore file location, locale formatting, previews)
+  plus each platform's entry point.
+- `./gradlew compileKotlinIosSimulatorArm64` — compiles the iOS klib (no Xcode needed; this is the
+  fast iOS-correctness check to run locally/in CI).
+- `./gradlew iosSimulatorArm64Test` — runs commonTest on the iOS simulator; **requires Xcode**
+  (needs `xcrun simctl` to boot a simulator) — not runnable on a machine with only Xcode CLI tools.
+- `./gradlew linkDebugFrameworkIosSimulatorArm64` — links the `LiftLogKit.framework` M8's Xcode
+  shell will embed; **requires Xcode** for the same reason.
 - `./gradlew connectedDebugAndroidTest` — instrumented Room/DAO + seeder tests. **These run
   locally now**: KVM works on this machine and an emulator is usually up (`emulator-5554`, a
   Pixel 9 Pro XL AVD); a physical Pixel 9 is sometimes attached over adb too. Note this task

@@ -2,7 +2,7 @@
 #
 # Most of our stack ships its own consumer R8 rules inside the published
 # artifacts and needs nothing here: Room, Koin, Jetpack Compose,
-# DataStore, and Vico. The one thing R8 can silently break is
+# and DataStore. The one thing R8 can silently break is
 # kotlinx.serialization, which we depend on in four data-critical places —
 # so the bulk of this file keeps those serializers intact.
 

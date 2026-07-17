@@ -91,7 +91,7 @@ class ExerciseDetailViewModelTest {
     }
 
     @Test fun weightedExercise_offersWeightMetrics_volumeFirst() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             vm(summaryWith(5)).uiState.test {
                 var s = awaitItem()
                 while (s.summary == null) s = awaitItem()
@@ -103,7 +103,7 @@ class ExerciseDetailViewModelTest {
         }
 
     @Test fun bodyweightExercise_offersRepMetrics_totalRepsFirst() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             vm(summaryWith(5, bodyweight = true)).uiState.test {
                 var s = awaitItem()
                 while (s.summary == null) s = awaitItem()
@@ -114,7 +114,7 @@ class ExerciseDetailViewModelTest {
         }
 
     @Test fun fewerThanTwoPointsInRange_fallsBackToLastTwo() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val v = vm(summaryWith(5))
             v.onRangeChange(Range.D30) // 30d window may include <2; chart still shows ≥2
             v.uiState.test {
@@ -126,7 +126,7 @@ class ExerciseDetailViewModelTest {
         }
 
     @Test fun emptySummary_marksInsufficient() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             vm(summaryWith(1)).uiState.test {
                 var s = awaitItem()
                 while (s.summary == null) s = awaitItem()
@@ -161,7 +161,7 @@ class ExerciseDetailViewModelTest {
     }
 
     @Test fun recentRows_pairEachWeightWithItsReps() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             // Issue #28 repro: 55×10, 60×9, 60×5, 55×10 must not collapse to "60 kg × 10·9·5"
             // (max weight paired with the wrong reps, 4th set dropped).
             val sets = listOf(SetEntry(55.0, 10), SetEntry(60.0, 9), SetEntry(60.0, 5), SetEntry(55.0, 10))
@@ -175,7 +175,7 @@ class ExerciseDetailViewModelTest {
         }
 
     @Test fun recentRows_bodyweight_bareRepsList() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val sets = listOf(SetEntry(0.0, 12), SetEntry(0.0, 10))
             vm(summaryOfSets(listOf(listOf(SetEntry(0.0, 8)), sets), bodyweight = true)).uiState.test {
                 var s = awaitItem()
@@ -186,7 +186,7 @@ class ExerciseDetailViewModelTest {
         }
 
     @Test fun recentRows_carrySessionId() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             vm(summaryWith(3)).uiState.test {
                 var s = awaitItem()
                 while (s.summary == null) s = awaitItem()
@@ -202,7 +202,7 @@ class ExerciseDetailViewModelTest {
     // CartesianChartHost crashes with "The x values are too precise. The maximum precision is
     // four decimal places."
     @Test fun chartPoints_atMillisecondTimestamps_surviveVicoPrecisionCheck() =
-        runTest {
+        runTest(mainDispatcherRule.dispatcher) {
             val times =
                 listOf(
                     now - 30 * day + 37_043_123,
