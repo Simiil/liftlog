@@ -2,6 +2,7 @@ package de.simiil.liftlog.ui.format
 
 import kotlinx.datetime.TimeZone
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -37,13 +38,18 @@ class IosLocaleFormattersTest {
 
     @Test
     fun oneDecimal_hasOneFractionDigit() {
-        assertTrue(fmt.oneDecimal(12.5).length >= 4)
+        val s = fmt.oneDecimal(12.5)
+        val sep = s.first { !it.isDigit() && it != '-' }
+        assertEquals(1, s.substringAfterLast(sep).length)
     }
 
     @Test
     fun relativeDay_todayIsWordNotDate() {
         val now = Clock.System.now().toEpochMilliseconds()
+        val longAgo = now - 400L * 24 * 3600 * 1000
         assertTrue(fmt.relativeDay(now).isNotBlank())
+        assertTrue(fmt.relativeDay(longAgo).isNotBlank())
+        assertTrue(fmt.relativeDay(now) != fmt.relativeDay(longAgo))
     }
 
     @Test

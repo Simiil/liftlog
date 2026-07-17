@@ -23,12 +23,20 @@ class DecimalsIosParityTest {
     }
 
     @Test
-    fun format_negativeTie_awayFromZero() {
-        // Java HALF_UP rounds -2.345 -> -2.35 (away from zero, not toward-zero/half-even).
-        // NSNumberFormatterRoundHalfUp is documented to round ties away from zero too, but the
-        // negative-tie case was never exercised on-device before this test (M7 debt item) —
-        // this pins the iOS actual to the same behavior.
-        assertEquals("-2" + Decimals.separator() + "35", Decimals.format(-2.345))
+    fun format_dyadicTie_awayFromZero() {
+        // -2.345 is not a real test of tie-breaking: it isn't exactly representable in binary
+        // (the actual double is closer to -2.35 already), so HALF_UP and HALF_EVEN silently
+        // agree on it and the test never discriminated between rounding modes. -2.125, by
+        // contrast, is exactly representable (2.125 == 17/8) and is a genuine tie at the 2nd
+        // fraction digit: Java HALF_UP rounds it away from zero to -2.13, while HALF_EVEN would
+        // give -2.12. NSNumberFormatterRoundHalfUp is documented to round ties away from zero
+        // too; this pins the iOS actual to that same behavior for both signs.
+        assertEquals("-2" + Decimals.separator() + "13", Decimals.format(-2.125))
+    }
+
+    @Test
+    fun format_dyadicTie_positive() {
+        assertEquals("2" + Decimals.separator() + "13", Decimals.format(2.125))
     }
 
     @Test
