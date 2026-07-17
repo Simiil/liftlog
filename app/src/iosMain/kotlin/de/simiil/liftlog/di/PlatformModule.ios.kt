@@ -15,7 +15,9 @@ import de.simiil.liftlog.domain.logging.NotificationPermissionTick
 import de.simiil.liftlog.ui.format.IosLocaleFormatters
 import de.simiil.liftlog.ui.settings.DocumentIo
 import de.simiil.liftlog.ui.settings.IosDocumentIo
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.newFixedThreadPoolContext
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -23,6 +25,11 @@ import platform.Foundation.NSBundle
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
+
+// Dedicated DB context: Default is shared with domain computation; DB IO deserves
+// its own threads (M7 debt item). 4 matches Room's Android IO parallelism in practice.
+@OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+private val dbContext = newFixedThreadPoolContext(4, "liftlog-db")
 
 internal fun iosAppInfo(): AppInfo =
     AppInfo(
@@ -34,18 +41,9 @@ internal fun iosAppInfo(): AppInfo =
     )
 
 /**
- * iOS platform leaf — compile-only in M7 (no Xcode toolchain here; the gate is the klib compile,
- * not a simulator run). Every line below is exercised/verified on-device in M8. The mandated
- * DB/DataStore/AppInfo triple plus `DocumentIo` (PR5 Task 3) and `LocaleFormatters`/
- * `NotificationPermissionTick` (PR5 Task 5) are bound, completing the common [viewModelModule]'s
- * (PR5 Task 4) dependency graph: `LocaleFormatters` feeds `ExercisePickerViewModel`,
- * `NotificationPermissionTick` feeds `ActiveSessionViewModel`. [NotificationPermissionTick] is a
- * pure common class (like on Android) but its single stays per-platform since there is no
- * Android-style notification coordinator to share it with here — no session notification ships on
- * iOS in v1 (see `DeepLinkEffect.ios.kt`/`NotificationPermissionEffect.ios.kt`), so this binding
- * exists solely to satisfy `ActiveSessionViewModel`'s constructor. KoinGraphTest runs on Android
- * (graph complete there); the iOS gate here is the klib compile, not graph resolution — there is
- * no runtime verify() on iOS yet (M8 revisits).
+ * iOS platform leaf — verified via `iosSimulatorArm64Test` which exercises the Room database,
+ * DataStore, and DI bindings. The mandated DB/DataStore/AppInfo triple plus `DocumentIo`,
+ * `LocaleFormatters`, and `NotificationPermissionTick` complete the common dependency graph.
  */
 actual val platformModule: Module =
     module {
@@ -58,9 +56,7 @@ actual val platformModule: Module =
                 .databaseBuilder<AppDatabase>(name = dbPath)
                 .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .setDriver(BundledSQLiteDriver())
-                // Dispatchers.IO is JVM/Android-only (internal on Native); Default is the Native-safe
-                // query context. M8 revisits (a dedicated background dispatcher) when this runs on-device.
-                .setQueryCoroutineContext(Dispatchers.Default)
+                .setQueryCoroutineContext(dbContext)
                 .build()
         }
         single<DataStore<Preferences>> {
