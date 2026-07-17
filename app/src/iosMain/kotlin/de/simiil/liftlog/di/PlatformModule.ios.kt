@@ -63,7 +63,7 @@ actual val platformModule: Module =
             }
         }
         // M8: read the real version from the app bundle (CFBundleShortVersionString).
-        single { AppInfo(name = "LiftLog", versionName = "0.5.0", dbSchemaVersion = DB_SCHEMA_VERSION) }
+        single { AppInfo(name = "LiftLog", versionName = "0.6.0", dbSchemaVersion = DB_SCHEMA_VERSION) }
         factory<DocumentIo> { IosDocumentIo() } // unscoped, mirrors the Android binding
         single<LocaleFormatters> { IosLocaleFormatters() }
         single { NotificationPermissionTick() }
