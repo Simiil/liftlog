@@ -19,9 +19,19 @@ import kotlinx.coroutines.Dispatchers
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import platform.Foundation.NSBundle
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
+
+internal fun iosAppInfo(): AppInfo =
+    AppInfo(
+        name = "LiftLog",
+        versionName =
+            (NSBundle.mainBundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as? String)
+                ?: "dev",
+        dbSchemaVersion = DB_SCHEMA_VERSION,
+    )
 
 /**
  * iOS platform leaf — compile-only in M7 (no Xcode toolchain here; the gate is the klib compile,
@@ -62,8 +72,7 @@ actual val platformModule: Module =
                 ).toPath()
             }
         }
-        // M8: read the real version from the app bundle (CFBundleShortVersionString).
-        single { AppInfo(name = "LiftLog", versionName = "0.5.0", dbSchemaVersion = DB_SCHEMA_VERSION) }
+        single { iosAppInfo() }
         factory<DocumentIo> { IosDocumentIo() } // unscoped, mirrors the Android binding
         single<LocaleFormatters> { IosLocaleFormatters() }
         single { NotificationPermissionTick() }
