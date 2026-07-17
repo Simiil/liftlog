@@ -16,7 +16,6 @@ import de.simiil.liftlog.ui.format.IosLocaleFormatters
 import de.simiil.liftlog.ui.settings.DocumentIo
 import de.simiil.liftlog.ui.settings.IosDocumentIo
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newFixedThreadPoolContext
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
@@ -28,7 +27,7 @@ import platform.Foundation.NSUserDomainMask
 
 // Dedicated DB context: Default is shared with domain computation; DB IO deserves
 // its own threads (M7 debt item). 4 matches Room's Android IO parallelism in practice.
-@OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class)
 private val dbContext = newFixedThreadPoolContext(4, "liftlog-db")
 
 internal fun iosAppInfo(): AppInfo =
@@ -41,8 +40,10 @@ internal fun iosAppInfo(): AppInfo =
     )
 
 /**
- * iOS platform leaf — verified via `iosSimulatorArm64Test` which exercises the Room database,
- * DataStore, and DI bindings. The mandated DB/DataStore/AppInfo triple plus `DocumentIo`,
+ * iOS platform leaf. Runtime behavior is verified manually: the app boots and exercises
+ * full flows on the iOS simulator (M8-PR1). `iosSimulatorArm64Test` runs the common suites
+ * (fakes/in-memory) plus iosTest unit tests; automated Room/DataStore/Koin wiring coverage
+ * on iOS is pending (M8-PR2). The mandated DB/DataStore/AppInfo triple plus `DocumentIo`,
  * `LocaleFormatters`, and `NotificationPermissionTick` complete the common dependency graph.
  */
 actual val platformModule: Module =
