@@ -21,6 +21,7 @@ kotlin {
             // isStatic is the CMP-recommended default: the framework is embedded directly
             // into the Xcode app target (M8) rather than distributed as a dynamic .framework.
             isStatic = true
+            binaryOption("bundleId", "de.simiil.liftlog.kit")
         }
     }
 

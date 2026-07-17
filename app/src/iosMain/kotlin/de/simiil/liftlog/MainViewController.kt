@@ -3,9 +3,14 @@ package de.simiil.liftlog
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.ComposeUIViewController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.simiil.liftlog.data.seed.ExerciseSeeder
+import de.simiil.liftlog.di.AppScope
 import de.simiil.liftlog.di.appModules
+import de.simiil.liftlog.domain.plan.DefaultPlanEnsurer
 import de.simiil.liftlog.ui.LiftLogApp
 import de.simiil.liftlog.ui.theme.LiftLogTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.startKoin
 import org.koin.mp.KoinPlatformTools
@@ -18,7 +23,8 @@ import platform.UIKit.UIViewController
  * own `NavHostController` and wires `DeepLinkEffect` internally — see `ui/LiftLogApp.kt` — so there
  * is nothing platform-specific left for this function to pass in). Two differences from
  * `MainActivity` are forced by there being no `Application.onCreate()` hook on iOS: (1) Koin is
- * started here, via [startKoinOnce] below, instead of an `Application` subclass; (2) there is no
+ * started — and the one-time startup seeding (exercise catalog + default plan) run — here, via
+ * [startKoinOnce] below, instead of an `Application` subclass; (2) there is no
  * edge-to-edge/status-bar-contrast dance — that machinery (`enableEdgeToEdge`, scrim colors) is
  * Android-only.
  *
@@ -57,9 +63,19 @@ fun MainViewController(): UIViewController =
  * actual global context — via the same `KoinPlatformTools.defaultContext()` koin-compose itself
  * consults — rather than a local boolean flag, so the guard stays correct even if something else
  * started Koin first.
+ *
+ * Also runs the one-time startup seeding that `LiftLogApplication.onCreate()` performs on Android:
+ * seed the built-in exercise catalog and ensure the default plan exists. Both run inside this
+ * once-guard so they fire only on the first Koin start (mirroring a single `onCreate`), and both are
+ * idempotent anyway (the seeder is version-gated; `ensure()` no-ops once a default plan exists). The
+ * Android-only session-notification coordinator has no iOS counterpart (no session notification in
+ * v1), so it is deliberately absent here.
  */
 private fun startKoinOnce() {
-    if (KoinPlatformTools.defaultContext().getOrNull() == null) {
-        startKoin { modules(appModules) }
+    if (KoinPlatformTools.defaultContext().getOrNull() != null) return
+    val koin = startKoin { modules(appModules) }.koin
+    koin.get<CoroutineScope>(AppScope).launch {
+        koin.get<ExerciseSeeder>().seed()
+        koin.get<DefaultPlanEnsurer>().ensure()
     }
 }

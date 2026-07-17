@@ -23,3 +23,9 @@ captures/
 
 # Kotlin language-server artifact
 kls_database.db
+
+# Xcode
+iosApp/iosApp.xcodeproj/xcuserdata/
+iosApp/iosApp.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcuserstate
+iosApp/Configuration/Local.xcconfig
