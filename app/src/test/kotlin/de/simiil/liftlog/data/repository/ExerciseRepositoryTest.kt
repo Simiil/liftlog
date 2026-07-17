@@ -3,6 +3,7 @@ package de.simiil.liftlog.data.repository
 import de.simiil.liftlog.data.dao.RecentExercise
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
+import de.simiil.liftlog.testing.FixedClock
 import de.simiil.liftlog.testing.fakes.FakeExerciseDao
 import de.simiil.liftlog.testing.fakes.FakeTransactor
 import kotlinx.coroutines.flow.first
@@ -14,15 +15,13 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 import java.util.UUID
+import kotlin.time.Instant
 
 class ExerciseRepositoryTest {
     private val clockMillis = 5000L
-    private val clock = Clock.fixed(Instant.ofEpochMilli(clockMillis), ZoneOffset.UTC)
-    private val fixedInstant = Instant.ofEpochMilli(clockMillis)
+    private val clock = FixedClock(Instant.fromEpochMilliseconds(clockMillis))
+    private val fixedInstant = Instant.fromEpochMilliseconds(clockMillis)
 
     private lateinit var dao: FakeExerciseDao
     private lateinit var repo: ExerciseRepositoryImpl

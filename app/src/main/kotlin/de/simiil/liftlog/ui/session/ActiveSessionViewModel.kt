@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.Instant
+import kotlin.time.Instant
 
 enum class CardState { COMPLETED, ACTIVE, UPCOMING }
 

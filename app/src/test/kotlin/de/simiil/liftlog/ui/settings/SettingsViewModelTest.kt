@@ -9,6 +9,7 @@ import de.simiil.liftlog.domain.repository.ParseResult
 import de.simiil.liftlog.domain.repository.ParsedBackup
 import de.simiil.liftlog.testing.FakeBackupRepository
 import de.simiil.liftlog.testing.FakeSettingsRepository
+import de.simiil.liftlog.testing.FixedClock
 import de.simiil.liftlog.testing.MainDispatcherRule
 import de.simiil.liftlog.testing.fakes.FakeSessionDao
 import kotlinx.coroutines.test.runTest
@@ -16,16 +17,15 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class SettingsViewModelTest {
     @get:Rule val mainDispatcherRule = MainDispatcherRule()
 
-    private val clock = Clock.fixed(Instant.parse("2026-06-09T12:00:00Z"), ZoneOffset.UTC)
+    private val clock = FixedClock(Instant.parse("2026-06-09T12:00:00Z"))
 
-    private fun noOpSeeder() = SyntheticHistorySeeder(FakeSessionDao(), Clock.systemUTC())
+    private fun noOpSeeder() = SyntheticHistorySeeder(FakeSessionDao(), Clock.System)
 
     private fun vm(backup: FakeBackupRepository = FakeBackupRepository()) =
         SettingsViewModel(

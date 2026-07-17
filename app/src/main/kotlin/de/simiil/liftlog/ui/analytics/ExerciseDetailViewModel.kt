@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import java.time.Clock
+import kotlin.time.Clock
 
 enum class Metric { E1RM, TOP_SET, VOLUME, MAX_REPS, TOTAL_REPS }
 
@@ -124,7 +124,7 @@ class ExerciseDetailViewModel(
             val rangeTrend =
                 trend(
                     summary.sessions.map { TrendPoint(it.timeMillis, it.primary) },
-                    clock.millis(),
+                    clock.now().toEpochMilliseconds(),
                     windowDays = range.days,
                 )
             val last = summary.sessions.last()

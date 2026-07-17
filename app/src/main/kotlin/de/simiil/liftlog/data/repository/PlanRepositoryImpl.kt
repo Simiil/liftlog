@@ -20,8 +20,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import java.time.Clock
 import java.util.UUID
+import kotlin.time.Clock
 
 class PlanRepositoryImpl(
     private val dao: PlanDao,
@@ -71,7 +71,7 @@ class PlanRepositoryImpl(
         }
 
     override suspend fun createPlan(name: String): WorkoutPlan {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         val entity =
             WorkoutPlanEntity(
                 id = UUID.randomUUID().toString(),
@@ -90,25 +90,25 @@ class PlanRepositoryImpl(
         name: String,
     ) {
         val existing = dao.findPlan(id) ?: return
-        dao.updatePlan(existing.copy(name = name.trim(), updatedAt = clock.millis()))
+        dao.updatePlan(existing.copy(name = name.trim(), updatedAt = clock.now().toEpochMilliseconds()))
     }
 
     override suspend fun softDeletePlan(id: String) =
         transactor.immediate {
-            cascadeSoftDeletePlan(id, clock.millis())
+            cascadeSoftDeletePlan(id, clock.now().toEpochMilliseconds())
         }
 
     override suspend fun ensureDefaultPlan(name: String) =
         transactor.immediate {
             if (dao.countLivePlans() > 0) return@immediate
-            insertDefaultPlan(name, clock.millis())
+            insertDefaultPlan(name, clock.now().toEpochMilliseconds())
         }
 
     override suspend fun softDeletePlanAndEnsureDefault(
         id: String,
         defaultName: String,
     ) = transactor.immediate {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         cascadeSoftDeletePlan(id, now)
         if (dao.countLivePlans() == 0) {
             insertDefaultPlan(defaultName, now)
@@ -148,7 +148,7 @@ class PlanRepositoryImpl(
         planId: String,
         name: String,
     ): PlanDayTemplate {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         val entity =
             PlanDayTemplateEntity(
                 id = UUID.randomUUID().toString(),
@@ -168,12 +168,12 @@ class PlanRepositoryImpl(
         name: String,
     ) {
         val existing = dao.findDayTemplate(id) ?: return
-        dao.updateDayTemplate(existing.copy(name = name.trim(), updatedAt = clock.millis()))
+        dao.updateDayTemplate(existing.copy(name = name.trim(), updatedAt = clock.now().toEpochMilliseconds()))
     }
 
     override suspend fun softDeleteDayTemplate(id: String) =
         transactor.immediate {
-            val now = clock.millis()
+            val now = clock.now().toEpochMilliseconds()
             dao.softDeleteTemplateExercisesForTemplate(id, now)
             dao.softDeleteDayTemplate(id, now)
         }
@@ -182,7 +182,7 @@ class PlanRepositoryImpl(
         templateId: String,
         exerciseId: String,
     ): TemplateExercise {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         val entity =
             TemplateExerciseEntity(
                 id = UUID.randomUUID().toString(),
@@ -212,17 +212,17 @@ class PlanRepositoryImpl(
                 targetSets = targetSets,
                 targetRepsMin = targetRepsMin,
                 targetRepsMax = targetRepsMax,
-                updatedAt = clock.millis(),
+                updatedAt = clock.now().toEpochMilliseconds(),
             ),
         )
     }
 
     override suspend fun removeTemplateExercise(id: String) {
-        dao.softDeleteTemplateExercise(id, clock.millis())
+        dao.softDeleteTemplateExercise(id, clock.now().toEpochMilliseconds())
     }
 
     override suspend fun reorderTemplateExercises(orderedTemplateExerciseIds: List<String>) {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         transactor.immediate {
             orderedTemplateExerciseIds.forEachIndexed { index, id ->
                 dao.updateTemplateExercisePosition(id, index, now)
@@ -231,7 +231,7 @@ class PlanRepositoryImpl(
     }
 
     override suspend fun reorderDayTemplates(orderedTemplateIds: List<String>) {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         transactor.immediate {
             orderedTemplateIds.forEachIndexed { index, id ->
                 dao.updateDayTemplatePosition(id, index, now)
@@ -244,7 +244,7 @@ class PlanRepositoryImpl(
         exerciseIds: List<String>,
     ) {
         transactor.immediate {
-            val now = clock.millis()
+            val now = clock.now().toEpochMilliseconds()
             val liveExerciseIds = dao.templateExercisesFor(templateId).map { it.exerciseId }.toSet()
             var nextPosition = (dao.maxTemplateExercisePosition(templateId) ?: -1) + 1
             val seen = mutableSetOf<String>()

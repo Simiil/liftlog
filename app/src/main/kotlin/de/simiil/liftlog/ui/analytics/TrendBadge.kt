@@ -11,11 +11,13 @@ import androidx.compose.ui.unit.sp
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.TrendDirection
 import de.simiil.liftlog.domain.analytics.TrendResult
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.theme.LocalLiftLogColors
 
 @Composable
 fun TrendBadge(
     trend: TrendResult,
+    formatters: LocaleFormatters,
     modifier: Modifier = Modifier,
     large: Boolean = false,
 ) {
@@ -28,7 +30,7 @@ fun TrendBadge(
             TrendResult.Insufficient ->
                 Triple(stringResource(R.string.trend_insufficient), MaterialTheme.colorScheme.onSurfaceVariant, FontWeight.Medium)
             is TrendResult.Ok -> {
-                val pct = formatPercent(trend.percent)
+                val pct = formatters.signedOneDecimal(trend.percent)
                 when (trend.direction) {
                     TrendDirection.UP -> Triple(stringResource(R.string.trend_up, pct), success, FontWeight.Bold)
                     TrendDirection.DOWN ->
@@ -48,6 +50,3 @@ fun TrendBadge(
         }
     Text(text = text, color = color, fontWeight = weight, fontSize = size, modifier = modifier)
 }
-
-/** "+4.0" / "-2.1" — one decimal, locale separator, explicit sign for non-negative. */
-private fun formatPercent(percent: Double): String = String.format(java.util.Locale.getDefault(), "%+.1f", percent)

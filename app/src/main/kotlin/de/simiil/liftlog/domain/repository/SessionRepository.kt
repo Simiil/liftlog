@@ -5,7 +5,7 @@ import de.simiil.liftlog.domain.model.Session
 import de.simiil.liftlog.domain.model.SessionExercise
 import de.simiil.liftlog.domain.model.SessionWithDetails
 import kotlinx.coroutines.flow.Flow
-import java.time.Instant
+import kotlin.time.Instant
 
 interface SessionRepository {
     fun observeActiveSession(): Flow<Session?>

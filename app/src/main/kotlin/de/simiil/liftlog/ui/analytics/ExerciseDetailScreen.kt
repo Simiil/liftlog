@@ -27,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -37,12 +36,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.simiil.liftlog.R
 import de.simiil.liftlog.domain.analytics.TrendResult
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.components.PrBadge
 import de.simiil.liftlog.ui.components.charts.ProgressLineChart
+import kotlinx.datetime.TimeZone
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +52,7 @@ fun ExerciseDetailScreen(
     viewModel: ExerciseDetailViewModel = koinViewModel(),
 ) {
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
-    val fmt = rememberDateFormat()
+    val formatters = koinInject<LocaleFormatters>()
     Scaffold(modifier = modifier, topBar = {
         TopAppBar(
             title = { Text(ui.name) },
@@ -143,7 +142,7 @@ fun ExerciseDetailScreen(
                     // Insufficient "need N sessions" badge is suppressed here — the chart slot
                     // already says "need 2+ sessions", so showing it twice is redundant.
                     if (ui.summary?.bodyweight == false) {
-                        ui.trend?.takeIf { it !is TrendResult.Insufficient }?.let { TrendBadge(it, large = true) }
+                        ui.trend?.takeIf { it !is TrendResult.Insufficient }?.let { TrendBadge(it, formatters, large = true) }
                     }
                 }
             }
@@ -157,7 +156,12 @@ fun ExerciseDetailScreen(
                 )
             }
             items(ui.recent, key = { it.sessionId }) { row ->
-                SessionRow(row, fmt.format(Date(row.dateMillis)), onOpenSession)
+                val dateLabel =
+                    formatters.weekdayDayMonth(
+                        kotlin.time.Instant.fromEpochMilliseconds(row.dateMillis),
+                        TimeZone.currentSystemDefault(),
+                    )
+                SessionRow(row, dateLabel, onOpenSession)
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
         }
@@ -190,9 +194,6 @@ private fun SessionRow(
         }
     }
 }
-
-@Composable
-private fun rememberDateFormat() = remember { SimpleDateFormat("EEE d MMM", Locale.getDefault()) }
 
 @Composable
 private fun metricLabel(m: Metric) =

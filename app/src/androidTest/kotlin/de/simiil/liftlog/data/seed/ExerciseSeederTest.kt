@@ -8,6 +8,7 @@ import de.simiil.liftlog.data.db.RoomTransactor
 import de.simiil.liftlog.data.entity.SeedStateEntity
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.MuscleGroup
+import de.simiil.liftlog.testing.FixedClock
 import de.simiil.liftlog.testing.newInMemoryDb
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -20,9 +21,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
+import kotlin.time.Instant
 
 @RunWith(AndroidJUnit4::class)
 class ExerciseSeederTest {
@@ -41,7 +40,7 @@ class ExerciseSeederTest {
             dao = db.exerciseDao(),
             seedStateDao = db.seedStateDao(),
             transactor = RoomTransactor(db),
-            clock = Clock.fixed(Instant.ofEpochMilli(millis), ZoneOffset.UTC),
+            clock = FixedClock(Instant.fromEpochMilliseconds(millis)),
             json = Json { ignoreUnknownKeys = true },
         )
 

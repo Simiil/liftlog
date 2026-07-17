@@ -17,10 +17,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import java.time.Clock
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.ZoneId
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.isoDayNumber
+import kotlinx.datetime.minus
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 class AnalyticsRepositoryImpl(
     private val analyticsDao: AnalyticsDao,
@@ -28,15 +31,11 @@ class AnalyticsRepositoryImpl(
     private val clock: Clock,
 ) : AnalyticsRepository {
     override fun observeWeekSummary(): Flow<WeekSummary> {
-        val zone: ZoneId = clock.zone
-        val thisWeekStart = LocalDate.now(clock).with(DayOfWeek.MONDAY)
-        val thisWeekStartMs = thisWeekStart.atStartOfDay(zone).toInstant().toEpochMilli()
-        val prevWeekStartMs =
-            thisWeekStart
-                .minusWeeks(1)
-                .atStartOfDay(zone)
-                .toInstant()
-                .toEpochMilli()
+        val tz = TimeZone.UTC
+        val today = clock.now().toLocalDateTime(tz).date
+        val thisWeekStart = today.minus(today.dayOfWeek.isoDayNumber - 1, DateTimeUnit.DAY) // ISO Monday
+        val thisWeekStartMs = thisWeekStart.atStartOfDayIn(tz).toEpochMilliseconds()
+        val prevWeekStartMs = thisWeekStart.minus(1, DateTimeUnit.WEEK).atStartOfDayIn(tz).toEpochMilliseconds()
         return analyticsDao.observeAllSetsSince(prevWeekStartMs).map { rows ->
             val thisWeek = rows.filter { it.startedAt >= thisWeekStartMs }
             val prevWeek = rows.filter { it.startedAt < thisWeekStartMs }
@@ -66,7 +65,7 @@ class AnalyticsRepositoryImpl(
             exerciseRepository.observeAll(),
         ) { rows, exercises ->
             val equipment = exercises.firstOrNull { it.id == exerciseId }?.equipment ?: return@combine null
-            summarize(equipment, rows.map { DatedSet(it.sessionId, it.startedAt, it.weightKg, it.reps) }, clock.millis())
+            summarize(equipment, rows.map { DatedSet(it.sessionId, it.startedAt, it.weightKg, it.reps) }, clock.now().toEpochMilliseconds())
         }
 
     override fun observePrSessionIds(): Flow<Set<String>> =
@@ -81,7 +80,7 @@ class AnalyticsRepositoryImpl(
                         { DatedSet(it.sessionId, it.startedAt, it.weightKg, it.reps) },
                     ),
                 equipmentById = exercises.associate { it.id to it.equipment },
-                nowMillis = clock.millis(),
+                nowMillis = clock.now().toEpochMilliseconds(),
             )
         }.flowOn(Dispatchers.Default)
 

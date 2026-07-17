@@ -11,7 +11,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.time.Instant
+import kotlin.time.Instant
 
 class HistoryViewModelTest {
     @get:Rule

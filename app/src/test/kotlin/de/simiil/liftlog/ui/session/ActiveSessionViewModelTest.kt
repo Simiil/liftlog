@@ -28,7 +28,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.time.Instant
+import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ActiveSessionViewModelTest {

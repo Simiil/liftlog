@@ -1,6 +1,5 @@
 package de.simiil.liftlog.ui.session
 
-import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +33,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -42,15 +40,18 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.simiil.liftlog.R
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.UiTestTags
 import de.simiil.liftlog.ui.components.RpeStepper
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import org.koin.compose.koinInject
+import kotlin.time.Instant
 
 private enum class PickField { START, END }
 
@@ -61,20 +62,22 @@ private enum class PickStage { DATE, TIME }
  *
  * [pickedUtcDateMillis] follows the DatePicker contract (UTC midnight of the picked calendar
  * day; null when the text-input mode cleared the field) — null falls back to [current]'s
- * LOCAL calendar date. The combination applies [current]'s zone rules of the picked date;
- * DST-gap times are shifted forward by java.time's resolver (02:30 → 03:30 on spring-forward).
+ * LOCAL calendar date in [zone]. The combination applies [zone]'s rules of the picked date;
+ * DST-gap times are shifted forward by kotlinx-datetime's `toInstant` (02:30 → 03:30 on
+ * spring-forward), matching java.time's SMART resolver semantics.
  */
 internal fun combineDateAndTime(
     pickedUtcDateMillis: Long?,
     hour: Int,
     minute: Int,
-    current: ZonedDateTime,
+    current: Instant,
+    zone: TimeZone = TimeZone.currentSystemDefault(),
 ): Instant {
     val date =
         pickedUtcDateMillis
-            ?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }
-            ?: current.toLocalDate()
-    return date.atTime(hour, minute).atZone(current.zone).toInstant()
+            ?.let { Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.UTC).date }
+            ?: current.toLocalDateTime(zone).date
+    return LocalDateTime(date, LocalTime(hour, minute)).toInstant(zone)
 }
 
 /**
@@ -93,9 +96,10 @@ fun EditWorkoutSheet(
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val zone = ZoneId.systemDefault()
-    var startMillis by remember { mutableLongStateOf(startedAt.toEpochMilli()) }
-    var endMillis by remember { mutableLongStateOf(endedAt.toEpochMilli()) }
+    val formatters = koinInject<LocaleFormatters>()
+    val zone = TimeZone.currentSystemDefault()
+    var startMillis by remember { mutableLongStateOf(startedAt.toEpochMilliseconds()) }
+    var endMillis by remember { mutableLongStateOf(endedAt.toEpochMilliseconds()) }
     var editRpe by remember { mutableStateOf(rpe) }
     var noteDraft by remember { mutableStateOf(note ?: "") }
     var pickField by remember { mutableStateOf<PickField?>(null) }
@@ -126,8 +130,8 @@ fun EditWorkoutSheet(
             )
             DateTimeField(
                 label = stringResource(R.string.session_edit_start),
-                instant = Instant.ofEpochMilli(startMillis),
-                zone = zone,
+                instant = Instant.fromEpochMilliseconds(startMillis),
+                formatters = formatters,
                 onClick = {
                     pickField = PickField.START
                     pickStage = PickStage.DATE
@@ -135,8 +139,8 @@ fun EditWorkoutSheet(
             )
             DateTimeField(
                 label = stringResource(R.string.session_edit_end),
-                instant = Instant.ofEpochMilli(endMillis),
-                zone = zone,
+                instant = Instant.fromEpochMilliseconds(endMillis),
+                formatters = formatters,
                 onClick = {
                     pickField = PickField.END
                     pickStage = PickStage.DATE
@@ -183,8 +187,8 @@ fun EditWorkoutSheet(
                     enabled = valid,
                     onClick = {
                         onSave(
-                            Instant.ofEpochMilli(startMillis),
-                            Instant.ofEpochMilli(endMillis),
+                            Instant.fromEpochMilliseconds(startMillis),
+                            Instant.fromEpochMilliseconds(endMillis),
                             editRpe,
                             noteDraft.trim().takeIf { it.isNotEmpty() },
                         )
@@ -201,17 +205,17 @@ fun EditWorkoutSheet(
     val editingField = pickField
     if (editingField != null && pickStage == PickStage.DATE) {
         val current =
-            Instant
-                .ofEpochMilli(if (editingField == PickField.START) startMillis else endMillis)
-                .atZone(zone)
+            Instant.fromEpochMilliseconds(
+                if (editingField == PickField.START) startMillis else endMillis,
+            )
         val datePickerState =
             rememberDatePickerState(
                 initialSelectedDateMillis =
                     current
-                        .toLocalDate()
-                        .atStartOfDay(ZoneOffset.UTC)
-                        .toInstant()
-                        .toEpochMilli(),
+                        .toLocalDateTime(zone)
+                        .date
+                        .atStartOfDayIn(TimeZone.UTC)
+                        .toEpochMilliseconds(),
             )
         DatePickerDialog(
             onDismissRequest = { pickField = null },
@@ -233,14 +237,15 @@ fun EditWorkoutSheet(
     }
     if (editingField != null && pickStage == PickStage.TIME) {
         val current =
-            Instant
-                .ofEpochMilli(if (editingField == PickField.START) startMillis else endMillis)
-                .atZone(zone)
+            Instant.fromEpochMilliseconds(
+                if (editingField == PickField.START) startMillis else endMillis,
+            )
+        val currentLocal = current.toLocalDateTime(zone)
         val timeState =
             rememberTimePickerState(
-                initialHour = current.hour,
-                initialMinute = current.minute,
-                is24Hour = DateFormat.is24HourFormat(LocalContext.current),
+                initialHour = currentLocal.hour,
+                initialMinute = currentLocal.minute,
+                is24Hour = formatters.prefers24HourTime(),
             )
         AlertDialog(
             onDismissRequest = {
@@ -250,8 +255,8 @@ fun EditWorkoutSheet(
             confirmButton = {
                 TextButton(onClick = {
                     val combined =
-                        combineDateAndTime(pendingDateMillis, timeState.hour, timeState.minute, current)
-                            .toEpochMilli()
+                        combineDateAndTime(pendingDateMillis, timeState.hour, timeState.minute, current, zone)
+                            .toEpochMilliseconds()
                     if (editingField == PickField.START) startMillis = combined else endMillis = combined
                     pickField = null
                     pickStage = PickStage.DATE
@@ -299,14 +304,15 @@ fun EditWorkoutSheet(
 private fun DateTimeField(
     label: String,
     instant: Instant,
-    zone: ZoneId,
+    formatters: LocaleFormatters,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val text =
-        DateTimeFormatter
-            .ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-            .format(instant.atZone(zone))
+        formatters.mediumDateShortTime(
+            instant,
+            TimeZone.currentSystemDefault(),
+        )
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),

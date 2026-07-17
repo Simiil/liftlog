@@ -20,7 +20,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.time.Instant
+import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DayEditorViewModelTest {
@@ -41,8 +41,8 @@ class DayEditorViewModelTest {
         equipment = Equipment.BARBELL,
         isBuiltIn = true,
         isHidden = false,
-        createdAt = Instant.EPOCH,
-        updatedAt = Instant.EPOCH,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
         deletedAt = null,
     )
 

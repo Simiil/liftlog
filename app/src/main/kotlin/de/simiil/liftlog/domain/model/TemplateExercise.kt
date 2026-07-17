@@ -1,6 +1,6 @@
 package de.simiil.liftlog.domain.model
 
-import java.time.Instant
+import kotlin.time.Instant
 
 data class TemplateExercise(
     val id: String,

@@ -23,7 +23,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlanViewModelTest {
@@ -41,8 +42,8 @@ class PlanViewModelTest {
         equipment = Equipment.BARBELL,
         isBuiltIn = true,
         isHidden = false,
-        createdAt = Instant.EPOCH,
-        updatedAt = Instant.EPOCH,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
         deletedAt = null,
     )
 
@@ -164,7 +165,7 @@ class PlanViewModelTest {
     fun `startDay resumes the active session instead of starting another`() =
         runTest {
             val sessionRepo = FakeSessionRepository()
-            val now = Instant.now()
+            val now = Clock.System.now()
             sessionRepo.activeSession.value =
                 Session(
                     id = "active-1",

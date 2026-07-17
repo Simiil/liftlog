@@ -4,10 +4,10 @@ import de.simiil.liftlog.data.dao.SessionDao
 import de.simiil.liftlog.data.entity.LoggedSetEntity
 import de.simiil.liftlog.data.entity.SessionEntity
 import de.simiil.liftlog.data.entity.SessionExerciseEntity
-import java.time.Clock
 import java.util.UUID
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Clock
 
 /**
  * DEBUG-ONLY perf fixture: ~1 year of completed sessions for a few seed exercises, so the
@@ -21,7 +21,7 @@ class SyntheticHistorySeeder(
     private val day = 86_400_000L
 
     suspend fun seed() {
-        val now = clock.millis()
+        val now = clock.now().toEpochMilliseconds()
         // (exerciseId from seed/exercises.v2.json, startWeight, weeklyStep, sessions, reps)
         val plans =
             listOf(

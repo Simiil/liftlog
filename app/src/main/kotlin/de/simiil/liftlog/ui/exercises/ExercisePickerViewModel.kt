@@ -2,6 +2,7 @@ package de.simiil.liftlog.ui.exercises
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.domain.model.Equipment
 import de.simiil.liftlog.domain.model.Exercise
 import de.simiil.liftlog.domain.model.MuscleGroup
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.text.Collator
 
 enum class CreateError { BLANK_NAME, DUPLICATE_NAME }
 
@@ -30,6 +30,7 @@ data class ExercisePickerUiState(
 class ExercisePickerViewModel(
     private val repo: ExerciseRepository,
     private val names: ExerciseNameResolver,
+    private val formatters: LocaleFormatters,
 ) : ViewModel() {
     private val queryFlow = MutableStateFlow("")
     private val muscleFlow = MutableStateFlow<MuscleGroup?>(null)
@@ -54,13 +55,12 @@ class ExercisePickerViewModel(
                     if (ok) ex to display else null
                 }
             val recencyRank = recentIds.withIndex().associate { (i, id) -> id to i }
-            // Collator deliberately created per emission: picks up runtime locale changes.
-            val collator = Collator.getInstance()
             val sorted =
                 matches
                     .sortedWith(
                         compareBy<Pair<Exercise, String>> { recencyRank[it.first.id] ?: Int.MAX_VALUE }
-                            .thenComparator { a, b -> collator.compare(a.second, b.second) },
+                            // nameComparator() deliberately called per emission: picks up runtime locale changes.
+                            .thenComparator { a, b -> formatters.nameComparator().compare(a.second, b.second) },
                     ).map { it.first }
             val recent =
                 if (active) {

@@ -45,7 +45,7 @@ import de.simiil.liftlog.domain.model.LoggedSet
 import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.units.Weights
 import de.simiil.liftlog.ui.theme.LiftLogTheme
-import java.time.Instant
+import kotlin.time.Instant
 
 /**
  * A single logged-set row that supports inline editing (long-press to expand).
@@ -264,9 +264,9 @@ private val previewSet =
         weightKg = 85.0,
         reps = 8,
         position = 0,
-        completedAt = Instant.ofEpochSecond(0),
-        createdAt = Instant.ofEpochSecond(0),
-        updatedAt = Instant.ofEpochSecond(0),
+        completedAt = Instant.fromEpochSeconds(0),
+        createdAt = Instant.fromEpochSeconds(0),
+        updatedAt = Instant.fromEpochSeconds(0),
         deletedAt = null,
     )
 

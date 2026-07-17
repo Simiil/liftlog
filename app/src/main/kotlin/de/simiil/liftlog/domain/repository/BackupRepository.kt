@@ -1,6 +1,6 @@
 package de.simiil.liftlog.domain.repository
 
-import java.time.Instant
+import kotlin.time.Instant
 
 /** Opaque, validated backup produced by [BackupRepository.parseImport] and consumed by
  *  [BackupRepository.applyImport]. The data layer's BackupSnapshot is the only implementor. */

@@ -12,6 +12,7 @@ import de.simiil.liftlog.domain.model.WeightUnit
 import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.TrainedExercise
 import de.simiil.liftlog.domain.repository.WeekSummary
+import de.simiil.liftlog.testing.FixedClock
 import de.simiil.liftlog.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -19,9 +20,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
+import kotlin.time.Instant
 
 class ExerciseDetailViewModelTest {
     @get:Rule
@@ -78,7 +77,7 @@ class ExerciseDetailViewModelTest {
             override fun observeSetsWithExercise() = flowOf(emptyList<de.simiil.liftlog.domain.analytics.SetWithExercise>())
         },
         FakeSettings(),
-        Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC),
+        FixedClock(Instant.fromEpochMilliseconds(now)),
         names,
     )
 

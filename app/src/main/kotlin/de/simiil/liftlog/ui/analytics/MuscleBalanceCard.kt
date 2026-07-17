@@ -36,9 +36,11 @@ import de.simiil.liftlog.domain.analytics.MuscleBalance
 import de.simiil.liftlog.domain.analytics.RadarGroup
 import de.simiil.liftlog.domain.analytics.TARGET_SETS_PER_WEEK
 import de.simiil.liftlog.domain.analytics.TrendDirection
+import de.simiil.liftlog.domain.format.LocaleFormatters
 import de.simiil.liftlog.ui.components.charts.RadarChart
 import de.simiil.liftlog.ui.components.charts.RadarSpoke
 import de.simiil.liftlog.ui.theme.LocalLiftLogColors
+import org.koin.compose.koinInject
 
 /** Chart display order: chest at 12 o'clock, clockwise; push right, pull/posterior left. */
 private val displayOrder =
@@ -60,6 +62,7 @@ fun MuscleBalanceCard(
     modifier: Modifier = Modifier,
 ) {
     val balance = state.balance ?: return
+    val formatters = koinInject<LocaleFormatters>()
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = RoundedCornerShape(22.dp),
@@ -89,7 +92,7 @@ fun MuscleBalanceCard(
                 RadarChart(
                     spokes = radarSpokes(balance),
                     targetFraction = balance.targetFraction.toFloat(),
-                    contentDescription = balanceDescription(balance),
+                    contentDescription = balanceDescription(balance, formatters),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 )
                 Legend()
@@ -148,7 +151,10 @@ private fun groupLabel(g: RadarGroup) =
  * inline, so `stringResource` inside it would not compile.
  */
 @Composable
-private fun balanceDescription(balance: MuscleBalance): String {
+private fun balanceDescription(
+    balance: MuscleBalance,
+    formatters: LocaleFormatters,
+): String {
     val byGroup = balance.groups.associateBy { it.group }
     val parts =
         displayOrder.map { g ->
@@ -156,7 +162,7 @@ private fun balanceDescription(balance: MuscleBalance): String {
             stringResource(
                 R.string.balance_cd_group,
                 stringResource(groupLabel(g)),
-                String.format(java.util.Locale.getDefault(), "%.1f", gb.setsPerWeek),
+                formatters.oneDecimal(gb.setsPerWeek),
                 stringResource(
                     when (gb.direction) {
                         TrendDirection.UP -> R.string.balance_cd_up

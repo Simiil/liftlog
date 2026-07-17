@@ -13,6 +13,7 @@ import de.simiil.liftlog.domain.repository.AnalyticsRepository
 import de.simiil.liftlog.domain.repository.SettingsRepository
 import de.simiil.liftlog.domain.repository.TrainedExercise
 import de.simiil.liftlog.domain.repository.WeekSummary
+import de.simiil.liftlog.testing.FixedClock
 import de.simiil.liftlog.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -20,9 +21,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
+import kotlin.time.Instant
 
 class AnalyticsBrowserViewModelTest {
     @get:Rule
@@ -34,7 +33,7 @@ class AnalyticsBrowserViewModelTest {
 
     private val now = 1_000_000_000_000L
     private val day = 86_400_000L
-    private val fixedClock = Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC)
+    private val fixedClock = FixedClock(Instant.fromEpochMilliseconds(now))
 
     private fun trained(
         id: String,

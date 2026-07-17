@@ -1,8 +1,8 @@
 package de.simiil.liftlog.domain.analytics
 
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.temporal.IsoFields
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 enum class Aggregation { MAX, SUM }
 
@@ -20,8 +20,8 @@ fun downsample(
     val sorted = points.sortedBy { it.timeMillis }
     val buckets = LinkedHashMap<Long, MutableList<TrendPoint>>()
     for (p in sorted) {
-        val date = Instant.ofEpochMilli(p.timeMillis).atZone(ZoneOffset.UTC).toLocalDate()
-        val key = date.get(IsoFields.WEEK_BASED_YEAR) * 100L + date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
+        val date = Instant.fromEpochMilliseconds(p.timeMillis).toLocalDateTime(TimeZone.UTC).date
+        val key = isoWeekKey(date)
         buckets.getOrPut(key) { mutableListOf() }.add(p)
     }
     return buckets.values.map { bucket ->

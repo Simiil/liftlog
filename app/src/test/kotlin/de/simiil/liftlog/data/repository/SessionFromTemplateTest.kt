@@ -3,6 +3,7 @@ package de.simiil.liftlog.data.repository
 import de.simiil.liftlog.data.entity.PlanDayTemplateEntity
 import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
+import de.simiil.liftlog.testing.FixedClock
 import de.simiil.liftlog.testing.InMemoryPreferencesDataStore
 import de.simiil.liftlog.testing.fakes.FakePlanDao
 import de.simiil.liftlog.testing.fakes.FakePrefillDao
@@ -16,16 +17,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 import java.util.UUID
+import kotlin.time.Instant
 
 class SessionFromTemplateTest {
     // Shared FakePlanDao so both planRepo and sessionRepo read from the same store
     private val planDao = FakePlanDao()
     private val sessionDao = FakeSessionDao()
-    private val clock = Clock.fixed(Instant.ofEpochMilli(7000L), ZoneOffset.UTC)
+    private val clock = FixedClock(Instant.fromEpochMilliseconds(7000L))
     private val planRepo = PlanRepositoryImpl(planDao, FakeTransactor(), clock, InMemoryPreferencesDataStore())
     private val sessionRepo = SessionRepositoryImpl(sessionDao, FakeTransactor(), clock, FakePrefillDao(), planDao)
 

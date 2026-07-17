@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import de.simiil.liftlog.data.entity.PlanDayTemplateEntity
 import de.simiil.liftlog.data.entity.TemplateExerciseEntity
 import de.simiil.liftlog.data.entity.WorkoutPlanEntity
+import de.simiil.liftlog.testing.FixedClock
 import de.simiil.liftlog.testing.InMemoryPreferencesDataStore
 import de.simiil.liftlog.testing.fakes.FakePlanDao
 import de.simiil.liftlog.testing.fakes.FakeTransactor
@@ -15,15 +16,13 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 import java.util.UUID
+import kotlin.time.Instant
 
 class PlanRepositoryTest {
     private val clockMillis = 5000L
-    private val clock = Clock.fixed(Instant.ofEpochMilli(clockMillis), ZoneOffset.UTC)
-    private val fixedInstant = Instant.ofEpochMilli(clockMillis)
+    private val clock = FixedClock(Instant.fromEpochMilliseconds(clockMillis))
+    private val fixedInstant = Instant.fromEpochMilliseconds(clockMillis)
 
     private lateinit var dao: FakePlanDao
     private lateinit var dataStore: InMemoryPreferencesDataStore

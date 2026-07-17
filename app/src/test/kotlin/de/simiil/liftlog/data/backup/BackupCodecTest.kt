@@ -18,7 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.Instant
+import kotlin.time.Instant
 
 class BackupCodecTest {
     private val appInfo = AppInfo(name = "LiftLog", versionName = "0.1.0", dbSchemaVersion = 3)

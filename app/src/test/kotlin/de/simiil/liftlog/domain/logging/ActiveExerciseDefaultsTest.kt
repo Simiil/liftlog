@@ -10,19 +10,19 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.Instant
+import kotlin.time.Instant
 
 private fun session() =
     Session(
         id = "s1",
         templateId = null,
         templateNameSnapshot = null,
-        startedAt = Instant.EPOCH,
+        startedAt = Instant.fromEpochMilliseconds(0),
         endedAt = null,
         note = null,
         rpe = null,
-        createdAt = Instant.EPOCH,
-        updatedAt = Instant.EPOCH,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
         deletedAt = null,
     )
 
@@ -41,8 +41,8 @@ private fun entry(
             targetSets = targetSets,
             targetRepsMin = null,
             targetRepsMax = null,
-            createdAt = Instant.EPOCH,
-            updatedAt = Instant.EPOCH,
+            createdAt = Instant.fromEpochMilliseconds(0),
+            updatedAt = Instant.fromEpochMilliseconds(0),
             deletedAt = null,
         ),
     sets =
@@ -53,9 +53,9 @@ private fun entry(
                 weightKg = 40.0,
                 reps = 8,
                 position = i,
-                completedAt = Instant.EPOCH,
-                createdAt = Instant.EPOCH,
-                updatedAt = Instant.EPOCH,
+                completedAt = Instant.fromEpochMilliseconds(0),
+                createdAt = Instant.fromEpochMilliseconds(0),
+                updatedAt = Instant.fromEpochMilliseconds(0),
                 deletedAt = null,
             )
         },
