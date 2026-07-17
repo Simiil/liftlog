@@ -6,9 +6,11 @@ import platform.Foundation.NSNumberFormatterDecimalStyle
 import platform.Foundation.NSNumberFormatterRoundHalfUp
 
 /**
- * NSNumberFormatter-backed actual. Behavior verified on-device in M8 (no Xcode toolchain on the
- * machine that authored this — compile-gated only); unit-covered by the commonTest basics that
- * exercise [format]/[parse]/[separator] once the simulator run is available.
+ * NSNumberFormatter-backed actual. Covered by the locale-agnostic commonTest basics
+ * ([format]/[parse]/[separator]) plus `DecimalsIosParityTest` (iosTest, M8-PR2), which pins the
+ * negative-tie rounding case specifically: `NSNumberFormatterRoundHalfUp` was an open debt item
+ * (unverified whether it rounds ties away from zero like Java's `HALF_UP` for negative values) —
+ * verified on the iOS simulator to already match, so no reimplementation was needed here.
  */
 actual object Decimals {
     actual fun separator(): Char = NSNumberFormatter().decimalSeparator.first()

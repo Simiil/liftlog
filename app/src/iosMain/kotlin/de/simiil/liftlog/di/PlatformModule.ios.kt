@@ -42,9 +42,10 @@ internal fun iosAppInfo(): AppInfo =
 /**
  * iOS platform leaf. Runtime behavior is verified manually: the app boots and exercises
  * full flows on the iOS simulator (M8-PR1). `iosSimulatorArm64Test` runs the common suites
- * (fakes/in-memory) plus iosTest unit tests; automated Room/DataStore/Koin wiring coverage
- * on iOS is pending (M8-PR2). The mandated DB/DataStore/AppInfo triple plus `DocumentIo`,
- * `LocaleFormatters`, and `NotificationPermissionTick` complete the common dependency graph.
+ * (fakes/in-memory) plus iosTest unit tests, including automated Room/DataStore/Koin wiring
+ * coverage on iOS via `IosKoinGraphTest` (M8-PR2). The mandated DB/DataStore/AppInfo triple
+ * plus `DocumentIo`, `LocaleFormatters`, and `NotificationPermissionTick` complete the common
+ * dependency graph.
  */
 actual val platformModule: Module =
     module {
